@@ -1,19 +1,18 @@
-import { ResponsiveContainer } from 'recharts';
 import { pct } from '../utils/format.js';
 
-function BoxWhiskerSvg({ payload, width, height }) {
+function BoxWhiskerSvg({ payload }) {
+  const width = 920;
+  const height = 420;
   const margin = { top: 20, right: 18, bottom: 40, left: 48 };
-  const innerW = Math.max(10, width - margin.left - margin.right);
-  const innerH = Math.max(10, height - margin.top - margin.bottom);
+  const innerW = width - margin.left - margin.right;
+  const innerH = height - margin.top - margin.bottom;
   const rows = payload.rankSummaries;
-  const maxY = 1;
-  const minY = 0;
   const xStep = innerW / rows.length;
-  const boxW = Math.min(36, xStep * 0.55);
-  const y = (v) => margin.top + (maxY - v) * (innerH / (maxY - minY));
+  const boxW = Math.min(38, xStep * 0.55);
+  const y = (v) => margin.top + (1 - v) * innerH;
 
   return (
-    <svg width={width} height={height} role="img" aria-label="Box and whisker chart">
+    <svg viewBox={`0 0 ${width} ${height}`} width="100%" height="100%" role="img" aria-label="Box and whisker chart">
       <rect x="0" y="0" width={width} height={height} fill="white" />
       {[0, 0.25, 0.5, 0.75, 1].map((tick) => (
         <g key={tick}>
@@ -59,9 +58,7 @@ export default function BoxWhiskerChart({ payload }) {
         <span><i className="legend-swatch swatch-proposed" /> Proposed plan dot</span>
       </div>
       <div style={{ width: '100%', height: 420 }}>
-        <ResponsiveContainer>
-          {({ width, height }) => <BoxWhiskerSvg payload={payload} width={width} height={height} />}
-        </ResponsiveContainer>
+        <BoxWhiskerSvg payload={payload} />
       </div>
     </div>
   );
