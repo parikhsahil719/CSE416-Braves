@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GinglesScatterResponse",
+  "type": "object",
+  "required": ["schemaVersion", "chartType", "state", "totalDistricts", "election", "selectedGroup", "units", "points"],
+  "properties": {
+    "schemaVersion": { "const": "v1" },
+    "chartType": { "const": "gingles-scatter" },
+    "state": { "enum": ["OR", "SC"] },
+    "totalDistricts": { "type": "integer", "minimum": 1 },
+    "election": { "type": "string" },
+    "selectedGroup": { "type": "string" },
+    "units": { "type": "object", "properties": { "share": { "type": "string" } }, "required": ["share"] },
+    "points": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["precinctId", "minorityShare", "demVoteShare", "repVoteShare", "totalPopulation", "minorityPopulation"],
+        "properties": {
+          "precinctId": { "type": "string" },
+          "minorityShare": { "type": "number", "minimum": 0, "maximum": 1 },
+          "demVoteShare": { "type": "number", "minimum": 0, "maximum": 1 },
+          "repVoteShare": { "type": "number", "minimum": 0, "maximum": 1 },
+          "totalPopulation": { "type": "integer", "minimum": 0 },
+          "minorityPopulation": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

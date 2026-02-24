@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BoxWhiskerResponse",
+  "type": "object",
+  "required": ["schemaVersion", "chartType", "state", "totalDistricts", "selectedGroup", "metricLabel", "units", "rankSummaries"],
+  "properties": {
+    "schemaVersion": { "const": "v1" },
+    "chartType": { "const": "box-whisker" },
+    "state": { "enum": ["OR", "SC"] },
+    "totalDistricts": { "type": "integer", "enum": [6, 7] },
+    "selectedGroup": { "type": "string" },
+    "metricLabel": { "type": "string" },
+    "units": { "type": "object", "properties": { "share": { "type": "string" } }, "required": ["share"] },
+    "rankSummaries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["districtRank", "min", "q1", "median", "q3", "max", "enactedValue"],
+        "properties": {
+          "districtRank": { "type": "integer", "minimum": 1 },
+          "min": { "type": "number", "minimum": 0, "maximum": 1 },
+          "q1": { "type": "number", "minimum": 0, "maximum": 1 },
+          "median": { "type": "number", "minimum": 0, "maximum": 1 },
+          "q3": { "type": "number", "minimum": 0, "maximum": 1 },
+          "max": { "type": "number", "minimum": 0, "maximum": 1 },
+          "enactedValue": { "type": "number", "minimum": 0, "maximum": 1 },
+          "proposedValue": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+        }
+      }
+    }
+  }
+}

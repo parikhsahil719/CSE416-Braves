@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EiKdeResponse",
+  "type": "object",
+  "required": ["schemaVersion", "chartType", "state", "totalDistricts", "metricLabel", "series"],
+  "properties": {
+    "schemaVersion": { "const": "v1" },
+    "chartType": { "const": "ei-kde" },
+    "state": { "enum": ["OR", "SC"] },
+    "totalDistricts": { "type": "integer", "enum": [6, 7] },
+    "metricLabel": { "type": "string" },
+    "domain": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+    "thresholdX": { "type": ["number", "null"] },
+    "thresholdLabel": { "type": "string" },
+    "thresholdProbability": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "label", "points"],
+        "properties": {
+          "key": { "type": "string" },
+          "label": { "type": "string" },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["x", "density"],
+              "properties": {
+                "x": { "type": "number" },
+                "density": { "type": "number", "minimum": 0 }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

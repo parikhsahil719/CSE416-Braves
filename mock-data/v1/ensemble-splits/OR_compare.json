@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "v1",
+  "chartType": "ensemble-splits",
+  "state": "OR",
+  "totalDistricts": 6,
+  "ensembleSize": 250,
+  "election": "2024 Presidential",
+  "units": { "share": "decimal_0_to_1" },
+  "series": {
+    "raceBlind": [
+      { "splitLabel": "1R/5D", "repWins": 1, "demWins": 5, "frequency": 28, "shareOfEnsemble": 0.112 },
+      { "splitLabel": "2R/4D", "repWins": 2, "demWins": 4, "frequency": 102, "shareOfEnsemble": 0.408 },
+      { "splitLabel": "3R/3D", "repWins": 3, "demWins": 3, "frequency": 92, "shareOfEnsemble": 0.368 },
+      { "splitLabel": "4R/2D", "repWins": 4, "demWins": 2, "frequency": 28, "shareOfEnsemble": 0.112 }
+    ],
+    "vraConstrained": [
+      { "splitLabel": "1R/5D", "repWins": 1, "demWins": 5, "frequency": 20, "shareOfEnsemble": 0.08 },
+      { "splitLabel": "2R/4D", "repWins": 2, "demWins": 4, "frequency": 116, "shareOfEnsemble": 0.464 },
+      { "splitLabel": "3R/3D", "repWins": 3, "demWins": 3, "frequency": 95, "shareOfEnsemble": 0.38 },
+      { "splitLabel": "4R/2D", "repWins": 4, "demWins": 2, "frequency": 19, "shareOfEnsemble": 0.076 }
+    ]
+  }
+}

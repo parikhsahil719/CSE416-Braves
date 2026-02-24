@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EiPrecinctBarCIResponse",
+  "type": "object",
+  "required": ["schemaVersion", "chartType", "state", "totalDistricts", "selectedCandidate", "categories"],
+  "properties": {
+    "schemaVersion": { "const": "v1" },
+    "chartType": { "const": "ei-precinct-bar-ci" },
+    "state": { "enum": ["OR", "SC"] },
+    "totalDistricts": { "type": "integer", "enum": [6, 7] },
+    "selectedCandidate": { "type": "string" },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["category", "peak", "ciLow", "ciHigh"],
+        "properties": {
+          "category": { "type": "string" },
+          "peak": { "type": "number", "minimum": 0, "maximum": 1 },
+          "ciLow": { "type": "number", "minimum": 0, "maximum": 1 },
+          "ciHigh": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    }
+  }
+}

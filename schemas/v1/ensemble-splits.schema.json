@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EnsembleSplitsResponse",
+  "type": "object",
+  "required": ["schemaVersion", "chartType", "state", "totalDistricts", "ensembleSize", "series", "units"],
+  "properties": {
+    "schemaVersion": { "const": "v1" },
+    "chartType": { "const": "ensemble-splits" },
+    "state": { "enum": ["OR", "SC"] },
+    "totalDistricts": { "type": "integer", "enum": [6, 7] },
+    "ensembleSize": { "type": "integer", "minimum": 1 },
+    "units": { "type": "object", "properties": { "share": { "type": "string" } }, "required": ["share"] },
+    "series": {
+      "type": "object",
+      "required": ["raceBlind", "vraConstrained"],
+      "properties": {
+        "raceBlind": { "$ref": "#/$defs/buckets" },
+        "vraConstrained": { "$ref": "#/$defs/buckets" }
+      }
+    }
+  },
+  "$defs": {
+    "bucket": {
+      "type": "object",
+      "required": ["splitLabel", "repWins", "demWins", "frequency", "shareOfEnsemble"],
+      "properties": {
+        "splitLabel": { "type": "string" },
+        "repWins": { "type": "integer", "minimum": 0 },
+        "demWins": { "type": "integer", "minimum": 0 },
+        "frequency": { "type": "integer", "minimum": 0 },
+        "shareOfEnsemble": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "buckets": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/bucket" }
+    }
+  }
+}

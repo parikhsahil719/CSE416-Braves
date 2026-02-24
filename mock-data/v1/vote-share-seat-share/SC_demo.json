@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "v1",
+  "chartType": "vote-share-seat-share",
+  "state": "SC",
+  "totalDistricts": 7,
+  "enabled": true,
+  "election": "2024 Presidential",
+  "points": [
+    { "voteShare": 0.35, "seatShare": 0.14 },
+    { "voteShare": 0.40, "seatShare": 0.14 },
+    { "voteShare": 0.45, "seatShare": 0.29 },
+    { "voteShare": 0.50, "seatShare": 0.43 },
+    { "voteShare": 0.55, "seatShare": 0.57 },
+    { "voteShare": 0.60, "seatShare": 0.71 },
+    { "voteShare": 0.65, "seatShare": 0.86 }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VoteShareSeatShareResponse",
+  "type": "object",
+  "required": ["schemaVersion", "chartType", "state", "totalDistricts", "enabled", "points"],
+  "properties": {
+    "schemaVersion": { "const": "v1" },
+    "chartType": { "const": "vote-share-seat-share" },
+    "state": { "enum": ["OR", "SC"] },
+    "totalDistricts": { "type": "integer", "enum": [6, 7] },
+    "enabled": { "type": "boolean" },
+    "disabledReason": { "type": "string" },
+    "points": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["voteShare", "seatShare"],
+        "properties": {
+          "voteShare": { "type": "number", "minimum": 0, "maximum": 1 },
+          "seatShare": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    }
+  }
+}

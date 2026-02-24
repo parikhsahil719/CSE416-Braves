@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EiSupportDistributionResponse",
+  "type": "object",
+  "required": ["schemaVersion", "chartType", "state", "totalDistricts", "election", "selectedCandidate", "units", "series"],
+  "properties": {
+    "schemaVersion": { "const": "v1" },
+    "chartType": { "const": "ei-support" },
+    "state": { "enum": ["OR", "SC"] },
+    "totalDistricts": { "type": "integer" },
+    "election": { "type": "string" },
+    "selectedCandidate": { "type": "string" },
+    "units": { "type": "object", "properties": { "share": { "type": "string" } }, "required": ["share"] },
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "label", "points"],
+        "properties": {
+          "key": { "type": "string" },
+          "label": { "type": "string" },
+          "confidenceScore": { "type": "number", "minimum": 0, "maximum": 1 },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["xSupportShare", "density"],
+              "properties": {
+                "xSupportShare": { "type": "number", "minimum": 0, "maximum": 1 },
+                "density": { "type": "number", "minimum": 0 }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

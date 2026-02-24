@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "v1",
+  "chartType": "ensemble-splits",
+  "state": "SC",
+  "totalDistricts": 7,
+  "ensembleSize": 250,
+  "election": "2024 Presidential",
+  "units": { "share": "decimal_0_to_1" },
+  "series": {
+    "raceBlind": [
+      { "splitLabel": "4R/3D", "repWins": 4, "demWins": 3, "frequency": 36, "shareOfEnsemble": 0.144 },
+      { "splitLabel": "5R/2D", "repWins": 5, "demWins": 2, "frequency": 118, "shareOfEnsemble": 0.472 },
+      { "splitLabel": "6R/1D", "repWins": 6, "demWins": 1, "frequency": 78, "shareOfEnsemble": 0.312 },
+      { "splitLabel": "7R/0D", "repWins": 7, "demWins": 0, "frequency": 18, "shareOfEnsemble": 0.072 }
+    ],
+    "vraConstrained": [
+      { "splitLabel": "4R/3D", "repWins": 4, "demWins": 3, "frequency": 58, "shareOfEnsemble": 0.232 },
+      { "splitLabel": "5R/2D", "repWins": 5, "demWins": 2, "frequency": 126, "shareOfEnsemble": 0.504 },
+      { "splitLabel": "6R/1D", "repWins": 6, "demWins": 1, "frequency": 58, "shareOfEnsemble": 0.232 },
+      { "splitLabel": "7R/0D", "repWins": 7, "demWins": 0, "frequency": 8, "shareOfEnsemble": 0.032 }
+    ]
+  }
+}

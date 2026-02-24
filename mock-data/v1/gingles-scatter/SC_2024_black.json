@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "v1",
+  "chartType": "gingles-scatter",
+  "state": "SC",
+  "totalDistricts": 7,
+  "election": "2024 Presidential",
+  "selectedGroup": "Black",
+  "units": { "share": "decimal_0_to_1" },
+  "points": [
+    { "precinctId": "SC-P001", "minorityShare": 0.08, "demVoteShare": 0.30, "repVoteShare": 0.67, "totalPopulation": 1740, "minorityPopulation": 139 },
+    { "precinctId": "SC-P002", "minorityShare": 0.14, "demVoteShare": 0.35, "repVoteShare": 0.61, "totalPopulation": 1660, "minorityPopulation": 232 },
+    { "precinctId": "SC-P003", "minorityShare": 0.22, "demVoteShare": 0.39, "repVoteShare": 0.57, "totalPopulation": 1820, "minorityPopulation": 400 },
+    { "precinctId": "SC-P004", "minorityShare": 0.28, "demVoteShare": 0.43, "repVoteShare": 0.53, "totalPopulation": 1950, "minorityPopulation": 546 },
+    { "precinctId": "SC-P005", "minorityShare": 0.34, "demVoteShare": 0.48, "repVoteShare": 0.48, "totalPopulation": 2035, "minorityPopulation": 692 },
+    { "precinctId": "SC-P006", "minorityShare": 0.41, "demVoteShare": 0.54, "repVoteShare": 0.42, "totalPopulation": 1885, "minorityPopulation": 773 },
+    { "precinctId": "SC-P007", "minorityShare": 0.49, "demVoteShare": 0.61, "repVoteShare": 0.35, "totalPopulation": 1780, "minorityPopulation": 872 },
+    { "precinctId": "SC-P008", "minorityShare": 0.56, "demVoteShare": 0.66, "repVoteShare": 0.30, "totalPopulation": 1695, "minorityPopulation": 949 },
+    { "precinctId": "SC-P009", "minorityShare": 0.62, "demVoteShare": 0.72, "repVoteShare": 0.24, "totalPopulation": 1845, "minorityPopulation": 1144 },
+    { "precinctId": "SC-P010", "minorityShare": 0.70, "demVoteShare": 0.77, "repVoteShare": 0.19, "totalPopulation": 1915, "minorityPopulation": 1341 },
+    { "precinctId": "SC-P011", "minorityShare": 0.78, "demVoteShare": 0.82, "repVoteShare": 0.14, "totalPopulation": 1760, "minorityPopulation": 1373 },
+    { "precinctId": "SC-P012", "minorityShare": 0.85, "demVoteShare": 0.87, "repVoteShare": 0.10, "totalPopulation": 1705, "minorityPopulation": 1449 }
+  ]
+}

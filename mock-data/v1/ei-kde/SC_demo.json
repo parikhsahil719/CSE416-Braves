@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "v1",
+  "chartType": "ei-kde",
+  "state": "SC",
+  "totalDistricts": 7,
+  "metricLabel": "Support difference (Black - non-Black) for Hardy",
+  "domain": [-0.5, 1.0],
+  "thresholdX": 0.4,
+  "thresholdLabel": "Prob(difference > 0.40)",
+  "thresholdProbability": 0.89,
+  "series": [
+    { "key": "black", "label": "Black", "points": [
+      { "x": 0.20, "density": 0.2 }, { "x": 0.30, "density": 0.8 }, { "x": 0.40, "density": 1.9 }, { "x": 0.50, "density": 3.4 }, { "x": 0.60, "density": 4.0 }, { "x": 0.70, "density": 2.8 }, { "x": 0.80, "density": 1.0 }
+    ]},
+    { "key": "non_black", "label": "Non-Black", "points": [
+      { "x": -0.05, "density": 0.4 }, { "x": 0.05, "density": 1.3 }, { "x": 0.15, "density": 2.8 }, { "x": 0.25, "density": 3.3 }, { "x": 0.35, "density": 1.7 }, { "x": 0.45, "density": 0.4 }
+    ]}
+  ]
+}
