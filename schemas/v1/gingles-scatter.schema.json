@@ -25,6 +25,31 @@
           "minorityPopulation": { "type": "integer", "minimum": 0 }
         }
       }
+    },
+    "regressionCurves": {
+      "type": "array",
+      "description": "Precomputed best-fit regression curve points for chart display (linear or non-linear).",
+      "items": {
+        "type": "object",
+        "required": ["key", "label", "party", "curveType", "points"],
+        "properties": {
+          "key": { "type": "string" },
+          "label": { "type": "string" },
+          "party": { "enum": ["DEM", "REP"] },
+          "curveType": { "type": "string", "description": "Examples: best_fit, linear_regression, nonlinear_regression" },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["x", "y"],
+              "properties": {
+                "x": { "type": "number", "minimum": 0, "maximum": 1 },
+                "y": { "type": "number", "minimum": 0, "maximum": 1 }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

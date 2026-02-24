@@ -15,6 +15,9 @@
 - `points[].totalPopulation` (integer): total precinct population
 - `points[].minorityPopulation` (integer): selected group count
 
+ - `regressionCurves[]` (array, optional): precomputed best-fit regression curve definitions for display (linear or non-linear)
+ - `regressionCurves[].points[] = { x, y }`: curve points plotted as smooth regression lines
+
 ## GUI-12 EI Support Distribution
 - `series[].points[].xSupportShare` (number `[0,1]`): estimated support share (x-axis)
 - `series[].points[].density` (number `>=0`): EI density/probability curve value (y-axis)

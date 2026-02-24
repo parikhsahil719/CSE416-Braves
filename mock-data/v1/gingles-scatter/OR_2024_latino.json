@@ -19,5 +19,39 @@
     { "precinctId": "OR-P010", "minorityShare": 0.63, "demVoteShare": 0.72, "repVoteShare": 0.22, "totalPopulation": 2060, "minorityPopulation": 1298 },
     { "precinctId": "OR-P011", "minorityShare": 0.69, "demVoteShare": 0.75, "repVoteShare": 0.19, "totalPopulation": 1880, "minorityPopulation": 1297 },
     { "precinctId": "OR-P012", "minorityShare": 0.76, "demVoteShare": 0.79, "repVoteShare": 0.15, "totalPopulation": 1725, "minorityPopulation": 1311 }
+  ],
+  "regressionCurves": [
+    {
+      "key": "dem_nlr",
+      "label": "Democratic best-fit regression",
+      "party": "DEM",
+      "curveType": "best_fit",
+      "points": [
+        { "x": 0.10, "y": 0.47 },
+        { "x": 0.20, "y": 0.51 },
+        { "x": 0.30, "y": 0.56 },
+        { "x": 0.40, "y": 0.60 },
+        { "x": 0.50, "y": 0.65 },
+        { "x": 0.60, "y": 0.70 },
+        { "x": 0.70, "y": 0.75 },
+        { "x": 0.80, "y": 0.80 }
+      ]
+    },
+    {
+      "key": "rep_nlr",
+      "label": "Republican best-fit regression",
+      "party": "REP",
+      "curveType": "best_fit",
+      "points": [
+        { "x": 0.10, "y": 0.50 },
+        { "x": 0.20, "y": 0.45 },
+        { "x": 0.30, "y": 0.40 },
+        { "x": 0.40, "y": 0.36 },
+        { "x": 0.50, "y": 0.31 },
+        { "x": 0.60, "y": 0.25 },
+        { "x": 0.70, "y": 0.19 },
+        { "x": 0.80, "y": 0.13 }
+      ]
+    }
   ]
 }

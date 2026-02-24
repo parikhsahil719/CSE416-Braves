@@ -80,7 +80,11 @@ Important fields:
 
 What you see in the chart:
 - Two plotted point clouds (Dem and Rep) over the same precinct set
-- Fitted trend lines to visually mimic the use-case example style
+- Precomputed best-fit regression curves (linear or non-linear) supplied in JSON
+
+Best-fit regression support:
+- `GUI-9` now renders `regressionCurves[]` supplied in the payload.
+- Curves may be `linear_regression`, `nonlinear_regression`, or a generic `best_fit` selection.
 
 ## GUI-12: EI Support Distribution (`ei-support`)
 Each series represents one racial/demographic group for a selected candidate.
