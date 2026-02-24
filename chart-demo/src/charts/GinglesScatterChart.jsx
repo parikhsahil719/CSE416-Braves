@@ -54,8 +54,8 @@ export default function GinglesScatterChart({ payload }) {
           <YAxis type="number" domain={[0, 1]} tickFormatter={pct} tick={{ fontSize: 12 }} label={{ value: 'Vote Share', angle: -90, position: 'insideLeft' }} />
           <Tooltip content={<CustomTooltip />} />
           <Legend verticalAlign="top" align="right" wrapperStyle={{ fontSize: '12px' }} />
-          <Scatter name="Democratic precinct points" data={demPoints} fill="#3b82f6" fillOpacity={0.35} />
-          <Scatter name="Republican precinct points" data={repPoints} fill="#ef4444" fillOpacity={0.30} />
+          <Scatter name="Democratic precinct points" data={demPoints} dataKey="y" fill="#3b82f6" fillOpacity={0.35} />
+          <Scatter name="Republican precinct points" data={repPoints} dataKey="y" fill="#ef4444" fillOpacity={0.30} />
           {curves.map((curve) => (
             <Line
               key={curve.key}
