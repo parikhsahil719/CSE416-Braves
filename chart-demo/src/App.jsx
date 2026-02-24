@@ -71,13 +71,6 @@ export default function App() {
               ))}
             </tbody>
           </table>
-          <h3>Prototype Notes</h3>
-          <ul>
-            <li>Mock data is schema-accurate and state-shaped for OR (6) and SC (7).</li>
-            <li>Shares are stored as decimals (0..1) and formatted as percentages in UI.</li>
-            <li>Preferred charts are included as stretch/demo-ready components.</li>
-            <li>GUI-14 choropleth is intentionally out of scope for this Recharts-only prototype.</li>
-          </ul>
         </aside>
       </section>
     </div>
