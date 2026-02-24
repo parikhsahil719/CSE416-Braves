@@ -7,11 +7,11 @@ function CustomTooltip({ active, payload }) {
   return (
     <div className="tooltip-card">
       <div><strong>{p.precinctId}</strong></div>
-      <div>Minority share: {pct(p.minorityShare)}</div>
+      <div>Selected group share: {pct(p.minorityShare)}</div>
       <div>Dem vote share: {pct(p.demVoteShare)}</div>
       <div>Rep vote share: {pct(p.repVoteShare)}</div>
-      <div>Total pop: {num(p.totalPopulation)}</div>
-      <div>Minority pop: {num(p.minorityPopulation)}</div>
+      <div>Total population: {num(p.totalPopulation)}</div>
+      <div>Selected-group population: {num(p.minorityPopulation)}</div>
     </div>
   );
 }
@@ -28,15 +28,18 @@ export default function GinglesScatterChart({ payload }) {
         <span>Election: {payload.election}</span>
         <span>Precincts: {payload.points.length}</span>
       </div>
-      <ResponsiveContainer width="100%" height={420}>
-        <ScatterChart margin={{ top: 12, right: 22, left: 8, bottom: 10 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" dataKey="minorityShare" domain={[0, 1]} tickFormatter={pct} label={{ value: 'Selected Group Share in Precinct', position: 'insideBottom', offset: -4 }} />
-          <YAxis type="number" dataKey="y" domain={[0, 1]} tickFormatter={pct} label={{ value: 'Party Vote Share', angle: -90, position: 'insideLeft' }} />
+      <div style={{ textAlign: 'center', fontSize: '0.95rem', marginBottom: 6 }}>
+        {payload.election} precinct-level vote share vs {payload.selectedGroup} share
+      </div>
+      <ResponsiveContainer width="100%" height={430}>
+        <ScatterChart margin={{ top: 8, right: 30, left: 10, bottom: 12 }}>
+          <CartesianGrid stroke="#d1d5db" strokeDasharray="2 2" />
+          <XAxis type="number" dataKey="minorityShare" domain={[0, 1]} tickFormatter={pct} tick={{ fontSize: 12 }} label={{ value: `Percent ${payload.selectedGroup} within Precinct`, position: 'insideBottom', offset: -2 }} />
+          <YAxis type="number" dataKey="y" domain={[0, 1]} tickFormatter={pct} tick={{ fontSize: 12 }} label={{ value: 'Vote Share', angle: -90, position: 'insideLeft' }} />
           <Tooltip content={<CustomTooltip />} />
-          <Legend />
-          <Scatter name="Democratic vote share" data={demPoints} fill="#2b6cb0" />
-          <Scatter name="Republican vote share" data={repPoints} fill="#c53030" />
+          <Legend verticalAlign="top" align="right" wrapperStyle={{ fontSize: '12px' }} />
+          <Scatter name="Democratic" data={demPoints} fill="#3b82f6" fillOpacity={0.35} lineType="fitting" line={{ stroke: '#2563eb', strokeWidth: 2 }} />
+          <Scatter name="Republican" data={repPoints} fill="#ef4444" fillOpacity={0.30} lineType="fitting" line={{ stroke: '#dc2626', strokeWidth: 2 }} />
         </ScatterChart>
       </ResponsiveContainer>
     </div>
