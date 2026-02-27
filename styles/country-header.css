@@ -2,6 +2,9 @@
     /* height: var(--nav-height); */
     display: flex;
     align-items: center;
+    border-bottom: 1px solid var(--color-line);
+    padding: .5rem 0rem .8rem 0rem;
+
     /* padding: 0 24px; */
     /* background: var(--color-bg); */
     /* border-bottom: 1px solid var(--color-nav-border); */
@@ -12,7 +15,7 @@
     font-weight: 700; /* make bolded */
     /* color: var(--color-text-primary); */
     letter-spacing: -0.01em;
-    border-right: 1px solid;
+    border-right: 1px solid var(--color-line);
     padding: 0px 5px;
     /* white-space: nowrap; */
   }
@@ -24,5 +27,5 @@
   } */
 
   .headerBarCountry_tab{
-    margin: 0px 0px 0px 10px;
+    margin: 0rem 0rem 0rem .5rem;
   }

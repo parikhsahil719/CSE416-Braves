@@ -1,0 +1,8 @@
+:root{
+    font-family: 'Inter', sans-serif; /*base fonts, one imported through google*/
+    --color-line: #b3b3b3;
+}
+/* body { PROBABLY SHOULD NOT DO, makes everything have an offset from the outside
+  margin: 0;
+  padding: 0;
+} */

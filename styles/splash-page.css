@@ -1,0 +1,19 @@
+.splashPage{
+
+}
+.splashPage_body{
+    /* Make splash page body shifted down */
+    padding:20% 0% 0% 0%; /* Space away from rest*/
+    display: grid;
+    /* Center its content */
+    justify-content: center; 
+    align-items: center;    
+}
+.splashPage_mapHeader{
+    /* Need to test */
+    /* height: 5%;
+    width: 20%; */
+    font-size: 1.5rem;
+    font-weight: 600;
+    display:block;
+}
