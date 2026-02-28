@@ -56,20 +56,21 @@ import { StateHeaderBar } from './components/StateHeaderBar'
 // }
 export default function App() {
 
-  const [currPage, switchPage] = useState('');
+  const [currPage, switchPage] = useState('Country');
 
   return (
     <>
     <Routes>
-      <Route path='/' element={
+      <Route path='/' element={ //useState: Country
         <>
-          <CountryHeaderBar siteName='VRA Repeal Analysis' tabs={['Cross State Analysis', 'Tab2']}/>
+          <CountryHeaderBar currPage={currPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis', 'Tab2']}/>
           <SplashPage switchPage={switchPage}/>
         </>
       } />
-      <Route path={`/state/:stateName`} element={
+      <Route path={`/state/:stateName`} element={ //useState: State
         <>
-          <StateHeaderBar tabs={['Voting Rights Analysis', 'Minority Analysis', 'Custom State Analysis']} />
+          <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis', 'Tab2']}/>
+          <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={['Voting Rights Analysis', 'Minority Analysis', 'Custom State Analysis']} />
           <StatePage switchPage={switchPage}/>
         </>
       } />
