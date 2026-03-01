@@ -75,7 +75,6 @@ function updateBody(minority, minorityList, minorityData)
 export default function MinorityAnalysis(props)
 {
     // let displayBody = [];
-    const [currentMinority, changeMinority] = useState(""); // Record the option chosen inside 
 
     // Take the minority data and organize it for display
     //Realistically we pass down minority data and derive the groups, probably in some form 
@@ -86,6 +85,8 @@ export default function MinorityAnalysis(props)
     
     // Simplicity of testing, I'm using a dummy minority list
     let minorityList = ['Asian', 'Black', 'Latino'];
+    const [currentMinority, changeMinority] = useState(minorityList[0]); // Record the option chosen inside 
+
     const minorityOptions = minorityList.map((minority)=> <option key={minority} value={minority}>{minority}</option>)
 
     // Display the minority content

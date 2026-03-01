@@ -26,7 +26,7 @@ export function StateHeaderBar(props)
     {
       const tabName= props.tabs[i];
       let classNameTab = props.currPage=== tabName ? "headerBarState_tab chosenPage" : "headerBarState_tab";
-      tabArr.push(<span key={i} className={classNameTab}>{tabName}</span>)
+      tabArr.push(<span key={i} className={classNameTab} onClick={()=> { switchPage(`${tabName}`); navigate(`/state/${stateName}/${tabName}`)}}>{tabName}</span>)
     }
   }
   return (
