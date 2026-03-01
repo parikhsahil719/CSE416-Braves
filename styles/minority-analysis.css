@@ -9,19 +9,36 @@
 
 } */
 .minorityAnalysis_bodyContainer{
+    display:grid;
+    grid-template-rows: 1fr 8fr;
+    margin: 5rem 0 0 0;
+    /* grid-template-columns: 1fr 1fr 1fr; */
+
+    /* display:flex;
+    justify-content: center; */
+}
+.minorityAnalysis_checkboxContainer{
+    grid-row: 1;
+    justify-self: center;
+    margin: 0 0 5rem 0;
+
+    /* grid-column: 2; */
+}
+.minorityAnalysis_dataBodyContainer{
+    grid-row: 2;
     display:flex;
     justify-content: center;
 }
-.minorityAnalysis_boxWhiskersContainer{
+.minorityAnalysis_dataContainer{
     /*Allow data to be displayed with label on top, data on bottom*/
     grid-template-rows: 1fr 1fr; 
     margin: 1rem;
 
 }
-.minorityAnalysis_boxWhiskersLabel{
+.minorityAnalysis_dataLabel{
     grid-row: 1; 
     margin: 1rem 0rem;
 }
-.minorityAnalysis_boxWhiskers{
+.minorityAnalysis_data{
     grid-row: 2;
 }

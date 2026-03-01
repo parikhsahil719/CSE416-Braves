@@ -54,17 +54,17 @@ function updateBody(minority, minorityList, minorityData)
     // let candidateEI2 = <div className={undefined}>Dummy EI</div>
     // let candidateEIWithLabel2 = displayData(<div className="minorityAnalysis_ecologicalInferenceLabel2">Support For INSERT CANDIDATE 2</div>,candidateEI2,"minorityAnalysis_ecologicalInferenceContainer2")
 
-    let minorityHM = <div className="minorityAnalysis_boxWhiskers">{minority} Heat Map</div>
-    let minorityHMWithLabel = displayData(<div className="minorityAnalysis_boxWhiskersLabel">Heat Map of {minority}</div>,minorityHM,"minorityAnalysis_boxWhiskersContainer");
-    let distributionBW = <div className="minorityAnalysis_boxWhiskers">Distribution of {minority} through Box and Whiskers</div>
-    let distributionBWWithLabel = displayData(<div className="minorityAnalysis_boxWhiskersLabel">{minority} Distribution by Precincts in an Ensemble</div>, distributionBW,"minorityAnalysis_boxWhiskersContainer");
-    let candidateEI1 = <div className="minorityAnalysis_boxWhiskers">Dummy EI</div>
-    let candidateEIWithLabel1 = displayData(<div className="minorityAnalysis_boxWhiskersLabel">Support For INSERT CANDIDATE 1</div>,candidateEI1,"minorityAnalysis_boxWhiskersContainer")
-    let candidateEI2 = <div className="minorityAnalysis_boxWhiskers">Dummy EI</div>
-    let candidateEIWithLabel2 = displayData(<div className="minorityAnalysis_boxWhiskersLabel">Support For INSERT CANDIDATE 2</div>,candidateEI2,"minorityAnalysis_boxWhiskersContainer")
+    let minorityHM = <div className="minorityAnalysis_data">{minority} Heat Map</div>
+    let minorityHMWithLabel = displayData(<div className="minorityAnalysis_dataLabel">Heat Map of {minority}</div>,minorityHM,"minorityAnalysis_dataContainer");
+    let distributionBW = <div className="minorityAnalysis_data">Distribution of {minority} through Box and Whiskers</div>
+    let distributionBWWithLabel = displayData(<div className="minorityAnalysis_dataLabel">{minority} Distribution by Precincts in an Ensemble</div>, distributionBW,"minorityAnalysis_dataContainer");
+    let candidateEI1 = <div className="minorityAnalysis_data">Dummy EI</div>
+    let candidateEIWithLabel1 = displayData(<div className="minorityAnalysis_dataLabel">Support For INSERT CANDIDATE 1</div>,candidateEI1,"minorityAnalysis_dataContainer")
+    let candidateEI2 = <div className="minorityAnalysis_data">Dummy EI</div>
+    let candidateEIWithLabel2 = displayData(<div className="minorityAnalysis_dataLabel">Support For INSERT CANDIDATE 2</div>,candidateEI2,"minorityAnalysis_dataContainer")
 
     // Display the minority content
-    let displayBody = (<div className="minorityAnalysis_bodyContainer">
+    let displayBody = (<div className="minorityAnalysis_dataBodyContainer">
                         {minorityHMWithLabel}
                         {distributionBWWithLabel}
                         {candidateEIWithLabel1} {/*Thankfully only 2 candidates EIs */}
@@ -86,15 +86,19 @@ export default function MinorityAnalysis(props)
     
     // Simplicity of testing, I'm using a dummy minority list
     let minorityList = ['Asian', 'Black', 'Latino'];
-    const minorityOptions = minorityList.map((minority)=> <option value={minority}>{minority}</option>)
+    const minorityOptions = minorityList.map((minority)=> <option key={minority} value={minority}>{minority}</option>)
 
     // Display the minority content
     let displayBody = updateBody(currentMinority,minorityList,props.minorityData);
     return(
-    <>
-    <select  value={currentMinority} onChange={(e) => changeMinority(e.target.value)}>
+    <div className="minorityAnalysis_bodyContainer">
+    <div className="minorityAnalysis_checkboxContainer">
+        <label htmlFor="minoritySelector">Choose the Minority to analyze: </label>
+        <select name="minoritySelector" id="minoritySelector" value={currentMinority} onChange={(e) => changeMinority(e.target.value)}>
         {minorityOptions}
-    </select>
+        </select>
+    </div>
+    
     {currentMinority=== "" ? <div></div>: displayBody} {/*Display nothing if not chosen, display minority data once chosen */}
-    </>)
+    </div>)
 }
