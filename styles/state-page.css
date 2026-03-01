@@ -1,4 +1,37 @@
-#map {
-  width: 23rem;
-  height: 20rem;
+#statePageMain {
+  display: flex;
+  height: 85vh;
+  padding: 1rem;
+}
+
+#statePagemap {
+  width: 35rem;
+  height: 30rem;
+}
+
+#statePageMapContainer {
+  height: 100%;
+}
+
+#statePageMapContainer,
+#tableContainer {
+  display: flex;
+  width: 50%;
+  justify-content: center;
+  align-items: center;
+}
+
+table {
+  border-collapse: collapse;
+  border: 1px solid;
+  table-layout: fixed;
+  padding: 1rem;
+}
+
+td,
+th {
+  width: 15rem;
+  padding: 1rem;
+  text-align: center;
+  border: 1px solid;
 }
