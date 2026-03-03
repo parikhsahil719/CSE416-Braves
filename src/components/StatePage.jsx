@@ -97,7 +97,7 @@ export default function StatePage() {
 
 		info.update = function (props) {
 			this._div.innerHTML =
-				"<h4>Congressional District</h4>" +
+				`<h4>${stateName}</h4>` +
 				(props
 					? "<b>" + props + "</b><br />"
 					: "Hover over a district");

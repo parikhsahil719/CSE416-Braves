@@ -8,6 +8,7 @@ import { StateHeaderBar } from './components/StateHeaderBar'
 import MinorityAnalysis from './components/MinorityAnalysis'
 import CrossStateAnalysis from './components/CrossStateAnalysis'
 import VRAAnalysis from './components/VRAAnalysis'
+import MinorityHeatMap from './components/MinorityHeatMap'
 /**
  * Based on the current view (state variable), switch to it. Basically large switch statement
  */
@@ -50,6 +51,12 @@ export default function App() {
           <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis', 'Tab2']}/>
           <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={['Voting Rights Analysis', 'Minority Analysis', 'Custom State Analysis']} />
           <MinorityAnalysis currPage={currPage} switchPage={switchPage} />
+        </>
+      }
+      />
+      <Route path={`/state/:stateName/Minority Heat Map`} element={
+        <>
+          <MinorityHeatMap currPage={currPage} switchPage={switchPage} />
         </>
       }
       />
