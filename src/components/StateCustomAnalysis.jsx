@@ -35,8 +35,17 @@ export function displayData(label=<div>this is label</div>, data=<div>this is da
  * Style the label data format for one chosen data display
  * Account for minority selection
  */
+export function variableOrObjectToString(value)
+{
+    if(typeof value === 'object')
+    {
+        return JSON.stringify(value)
+    }
+    return value
+}
 function updateData(currentData,minoritySelection, secondData, thirdData)
 {
+    const defaultValueForDropdowns = '--';
     switch (currentData) 
     {
         case "GUI-4":
@@ -52,12 +61,27 @@ function updateData(currentData,minoritySelection, secondData, thirdData)
                 {
                     switch (thirdData) // Contains some minority
                     {
-                        case value:
-                            
-                            break;
-                    
+                        case 'Asian':
+                            return displayData(<div className="minorityAnalysis_dataLabel">GUI12-Asian {currentData}</div>, <div className="minorityAnalysis_data">{thirdData} Some data</div>, "minorityAnalysis_dataContainer");
+                        break;
+                        case 'Black':
+                            return displayData(<div className="minorityAnalysis_dataLabel">GUI12-Black {currentData}</div>, <div className="minorityAnalysis_data">{thirdData} Some data</div>, "minorityAnalysis_dataContainer");
+                        break;
+                        case 'Latino':
+                            return displayData(<div className="minorityAnalysis_dataLabel">GUI12-Latino {currentData}</div>, <div className="minorityAnalysis_data">{thirdData} Some data</div>, "minorityAnalysis_dataContainer");
+                        break;
+                        case defaultValueForDropdowns:
+                            return <></>
+                            break;  
                         default:
-                            console.error(`StateCustomAnalysis: updateData: could not discern value of third dropdown ${thirdData}`)
+                            if(typeof thirdData === 'object')
+                            {
+                                console.error(`StateCustomAnalysis: updateData: could not discern value of third dropdown ${thirdData}`)
+                            }
+                            else
+                            {
+                                console.error(`StateCustomAnalysis: updateData: could not discern value of third dropdown ${thirdData}`)
+                            }
                             break;
                     }
                 }
@@ -65,15 +89,27 @@ function updateData(currentData,minoritySelection, secondData, thirdData)
                 {
                     switch (thirdData) // Contains some language group
                     {
-                        case value:
-                            
+                        case 'English':
+                            return displayData(<div className="minorityAnalysis_dataLabel">GUI12-English {currentData}</div>, <div className="minorityAnalysis_data">{thirdData} Some data</div>, "minorityAnalysis_dataContainer");
                             break;
-                    
+                        case 'French':
+                            return displayData(<div className="minorityAnalysis_dataLabel">GUI12-French {currentData}</div>, <div className="minorityAnalysis_data">{thirdData} Some data</div>, "minorityAnalysis_dataContainer");
+                            break;
+                        case 'Spanish':
+                            return displayData(<div className="minorityAnalysis_dataLabel">GUI12-Spanish {currentData}</div>, <div className="minorityAnalysis_data">{thirdData} Some data</div>, "minorityAnalysis_dataContainer");
+                            break;
+                        case defaultValueForDropdowns:
+                            return <></>
+                            break;  
                         default:
                             console.error(`StateCustomAnalysis: updateData: could not discern value of third dropdown ${thirdData}`)
 
                             break;
                     }
+                }
+                else if(secondData === defaultValueForDropdowns)
+                {
+                    break;
                 }
                 else
                 {
@@ -188,31 +224,45 @@ function isMinorityDropdownDisabled(selection1,selection2,selection3,needsMinori
  */
 function returnExtraDropdownsWithLabels(dataIndex,dataSelection, secondData, changeSecondData, thirdData, changeThirdData, ...dataLists)
 {
+    const defaultValueForDropdowns = '--'
     switch (dataSelection) 
     {
         case "GUI-12":
         {   // dataList = [dataList1 = minorityList; dataList2 = languageOptions]
             const [minorityList, languageList] = dataLists
-            const minorityOptions = minorityList.map((minority)=> <option key={`Extra-Select2-${dataIndex}-${minority}`}>{minority}</option>)
-            const languageOptions = languageList.map((language)=> <option key={`Extra-Select2-${dataIndex}-${language}`}>{language}</option>)
+            let tempMinority = [defaultValueForDropdowns, ...minorityList];
+            languageList.unshift("Choose Language");
+            const minorityOptions = tempMinority.map((minority)=> <option key={`Extra-Select2-${dataIndex}-${minority}`} value={minority}>{minority}</option>)
+            const languageOptions = languageList.map((language)=> <option key={`Extra-Select2-${dataIndex}-${language}`} value={language}>{language}</option>)
 
             
             return( 
             <>
                 <label htmlFor="minorityOrLanguage" className="customAnalysis_extraDropdown1_Label">Minority Or Language Group?</label>
-                <select className="customAnalysis_extraDropdown1" name="minorityOrLanguage" id="minorityOrLanguage" value={secondData} onChange={(e) => changeSecondData(e)}>{secondData}
+                <select className="customAnalysis_extraDropdown1" name="minorityOrLanguage" id="minorityOrLanguage" value={secondData} onChange={(e) => changeSecondData(e.target.value)}>{secondData}
+                    <option>{defaultValueForDropdowns}</option>
                     <option>Minority</option>
                     <option>Language</option>
                 </select>
-                <label htmlFor={secondData === "Minority" ? "minorityOptions" : "languageOptions"} className="customAnalysis_extraDropdown2_Label" >{secondData === "Minority" ? "Minority Options" : "Language Options"}</label>
-                {secondData === Minority ? 
-                    <select name="minorityOptions" id="minorityOptions" value={thirdData} onChange={(e) => changeThirdData(e)} className="customAnalysis_extraDropdown2">{thirdData}
+                {secondData === "Minority" ? 
+                    <><label htmlFor={secondData === "Minority" ? "minorityOptions" : "languageOptions"} className="customAnalysis_extraDropdown2_Label" >{secondData === "Minority" ? "Minority Options" : "Language Options"}</label>
+
+                    <select name="minorityOptions" id="minorityOptions" value={thirdData} onChange={(e) => changeThirdData(e.target.value)} className="customAnalysis_extraDropdown2">{thirdData}
                     {minorityOptions}
                     </select>
+                    </>
                 :
-                <select name="languageOptions" id="languageOptions" value={thirdData} onChange={(e) => changeThirdData(e)} className="customAnalysis_extraDropdown2">{thirdData}
+                secondData === "Language" ?
+                <>
+                <label htmlFor={secondData === "Minority" ? "minorityOptions" : "languageOptions"} className="customAnalysis_extraDropdown2_Label" >{secondData === "Minority" ? "Minority Options" : "Language Options"}</label>
+
+                <select name="languageOptions" id="languageOptions" value={thirdData} onChange={(e) => changeThirdData(e.target.value)} className="customAnalysis_extraDropdown2">{thirdData}
                     {languageOptions}
-                </select>}
+                </select>
+                </>
+                :
+                <> </>
+                }
         
 
             </>);
@@ -227,7 +277,7 @@ function returnExtraDropdownsWithLabels(dataIndex,dataSelection, secondData, cha
             return(
                 <div className="">
                     <label htmlFor="VRAOrRaceblind"  className="customAnalysis_extraDropdown1_Label" >{secondData === "Minority" ? "Minority Options" : "Language Options"}</label>
-                    <select name="VRAOrRaceblind" id="VRAOrRaceblind" value={secondData} onChange={(e) => changeSecondData(e)} className="customAnalysis_extraDropdown1">
+                    <select name="VRAOrRaceblind" id="VRAOrRaceblind" value={secondData} onChange={(e) => changeSecondData(e.target.value)} className="customAnalysis_extraDropdown1">
                     <option>
                         {optionList}
                     </option>
@@ -252,6 +302,7 @@ export default function StateCustomAnalysis(props)
     const minorityData = props.minorityData;
     const extraDropDownDatas = [{name: 'GUI-12', numberExtra: 2},{name: 'GUI-16', numberExtra: 1}, {name: 'GUI-17', numberExtra: 1}];
     const needsMinority = ['GUI-4','GUI-9','GUI-12'];
+    const defaultValueForDropdowns = "--"
 
     let data = null;
     for(let d of minorityData)
@@ -280,7 +331,7 @@ export default function StateCustomAnalysis(props)
     let languageList = ["English", "Spanish", "French"];
     console.log(`Minority List ${minorityList} data ${data}`)
 
-    const dataDescriptionList = ["GUI-4","GUI-5", "GUI-6","GUI-7", "GUI-8"]; // The list holding the description of all the charts, graphs, and tables in a ascending GUI usecase order
+    const dataDescriptionList = ["GUI-4","GUI-5", "GUI-6","GUI-7", "GUI-8", "GUI-12"]; // The list holding the description of all the charts, graphs, and tables in a ascending GUI usecase order
     const dataOptions = dataDescriptionList.map((data,index) => <option key={`Data-Descriptions-${index}`} value={data}>{data}</option>)
 
     const minorityOptions = minorityList.map((minority)=> <option key={`Minority-Options-${minority}`} value={minority}>{minority}</option>)
@@ -295,13 +346,13 @@ export default function StateCustomAnalysis(props)
         // Do I? I think its auto-set with the <select value={}> thing
     
     // Second set of dropdowns
-    const [secondData1, changeSecondData1] = useState(null);
-    const [secondData2, changeSecondData2] = useState(null);
-    const [secondData3, changeSecondData3] = useState(null);
+    const [secondData1, changeSecondData1] = useState(defaultValueForDropdowns);
+    const [secondData2, changeSecondData2] = useState(defaultValueForDropdowns);
+    const [secondData3, changeSecondData3] = useState(defaultValueForDropdowns);
     // Third set of dropdowns (MAX 3)
-    const [thirdData1, changeThirdData1] = useState(null);
-    const [thirdData2, changeThirdData2] = useState(null);
-    const [thirdData3, changeThirdData3] = useState(null);
+    const [thirdData1, changeThirdData1] = useState(defaultValueForDropdowns);
+    const [thirdData2, changeThirdData2] = useState(defaultValueForDropdowns);
+    const [thirdData3, changeThirdData3] = useState(defaultValueForDropdowns);
 
 
 
@@ -319,17 +370,17 @@ export default function StateCustomAnalysis(props)
     </div>
     <div className="customAnalysis_dataCheckboxContainer">
         {/* <label htmlFor="dataSelector">Choose the Minority to analyze: </label> */}
-        <select name="dataSelector1" id="dataSelector1" value={currentData1} onChange={(e) => {changeData1(e.target.value); changeSecondData1(null); changeThirdData1(null);}}> {/* Update value and reset extra dropdowns */}
+        <select name="dataSelector1" id="dataSelector1" value={currentData1} onChange={(e) => {changeData1(e.target.value); changeSecondData1(defaultValueForDropdowns); changeThirdData1(defaultValueForDropdowns);}}> {/* Update value and reset extra dropdowns */}
         {dataOptions.filter((data) => excludeDataFromDropdown(data.props.value,currentData2,currentData3))} {/* Block out the values the other ones are using, unless its GUI 12 */}
         </select>
         {returnExtraDropdownsWithLabels(1,currentData1,secondData1,changeSecondData1,thirdData1,changeThirdData1, minorityList, languageList)}
         
-        <select name="dataSelector2" id="dataSelector2" value={currentData2} onChange={(e) => {changeData2(e.target.value); changeSecondData2(null); changeThirdData2(null);}}>
+        <select name="dataSelector2" id="dataSelector2" value={currentData2} onChange={(e) => {changeData2(e.target.value); changeSecondData2(defaultValueForDropdowns); changeThirdData2(defaultValueForDropdowns);}}>
         {dataOptions.filter((data) => excludeDataFromDropdown(data.props.value,currentData1,currentData3))}
         </select>
         {returnExtraDropdownsWithLabels(2,currentData2,secondData2,changeSecondData2,thirdData2,changeThirdData2, minorityList, languageList)}
 
-        <select name="dataSelector3" id="dataSelector3" value={currentData3} onChange={(e) => {changeData3(e.target.value); changeSecondData3(null); changeThirdData3(null);}}>
+        <select name="dataSelector3" id="dataSelector3" value={currentData3} onChange={(e) => {changeData3(e.target.value); changeSecondData3(defaultValueForDropdowns); changeThirdData3(defaultValueForDropdowns);}}>
         {dataOptions.filter((data) => excludeDataFromDropdown(data.props.value,currentData1,currentData2))}
         </select>
         {returnExtraDropdownsWithLabels(3,currentData3,secondData3,changeSecondData3,thirdData3,changeThirdData3, minorityList, languageList)}
