@@ -15,12 +15,15 @@
 
     /* grid-column: 2; */
 }
-.customAnalysis_dataCheckboxContainer{
-    grid-row: 2;
-    justify-self: center;
-    margin: 0 0 5rem 0;
-
-    /* grid-column: 2; */
+.customAnalysis_dataCheckbox{
+    justify-self:center;
+}
+/* .customAnalysis_extraCheckboxContainer{
+    margin:0rem 0rem 0rem .5rem;
+} */
+.customAnalysis_extraDropdown1_Label
+{
+    margin: 0rem .5rem 0rem .5rem;
 }
 .customAnalysis_dataBodyContainer{
     grid-row: 3;
@@ -29,8 +32,8 @@
 }
 .customAnalysis_dataContainer{
     /*Allow data to be displayed with label on top, data on bottom*/
-    grid-template-rows: 1fr 1fr; 
     margin: 1rem;
+    justify-self: center;
 
 }
 
