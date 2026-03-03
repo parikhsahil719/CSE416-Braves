@@ -2,6 +2,7 @@
   display: flex;
   height: 85vh;
   padding: 1rem;
+  gap: 1rem;
 }
 
 .VRAAnalysisGraphs {
@@ -15,4 +16,16 @@
   width: 50%;
   justify-content: center;
   align-items: center;
+  min-width: 0;
+}
+
+@media (max-width: 1000px) {
+  #VRAAnalysisMain {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .VRAAnalysisContainers {
+    width: 100%;
+  }
 }

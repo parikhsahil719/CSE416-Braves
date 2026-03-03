@@ -1,0 +1,70 @@
+.chartFrame {
+  width: 100%;
+  height: 19rem;
+  background: #ffffff;
+}
+
+.chartFrameTall {
+  height: 22.5rem;
+}
+
+.chartFrameBox {
+  height: 21rem;
+}
+
+.chartPanel {
+  width: 100%;
+}
+
+.chartPanelTitle {
+  margin: 0 0 0.5rem 0;
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+.chartPanelMeta {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.chartTooltip {
+  background: #ffffff;
+  border: 1px solid #d4d4d8;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.85rem;
+}
+
+.chartLegend {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.82rem;
+  color: #374151;
+  flex-wrap: wrap;
+}
+
+.chartLegendSwatch {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: 0.35rem;
+  border-radius: 2px;
+}
+
+.chartLegendBox {
+  background: #bfdbfe;
+  border: 1px solid #1d4ed8;
+}
+
+.chartLegendEnacted {
+  background: #dc2626;
+}
+
+.chartLegendProposed {
+  background: #059669;
+}
