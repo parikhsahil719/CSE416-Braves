@@ -15,14 +15,15 @@ function Map({switchPage})
     const map = L.map("countrymap", {
       center: [38.3, -96],
       zoomControl: false,
-      zoom: 5,
-      minZoom: 5,
+      zoom: 4.8,
+      zoomSnap: 0.1,
+      minZoom: 4,
       maxZoom: 5,
       dragging: false,
       scrollWheelZoom: false,
       doubleClickZoom: false,
       keyboard: false,
-      maxBounds: [[49.2, -125.88], [24.84, -66.2]],
+      maxBounds: [[50, -125.88], [24.84, -66.2]],
     });
 
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {

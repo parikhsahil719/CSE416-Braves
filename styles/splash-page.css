@@ -2,7 +2,7 @@
 }
 .splashPage_body {
   /* Make splash page body shifted down */
-  padding: 1% 0% 0% 0%; /* Space away from rest*/
+  padding: 0.5% 0% 0% 0%; /* Space away from rest*/
   display: grid;
   /* Center its content */
   justify-content: center;
@@ -18,12 +18,12 @@
 }
 
 #mapContainer {
-  padding-top: 1%;
+  padding-top: 0.5%;
 }
 
 #countrymap {
   width: 85rem;
-  height: 50rem;
+  height: 85vh;
 }
 
 .info {

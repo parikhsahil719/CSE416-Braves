@@ -1,12 +1,11 @@
 #VRAAnalysisMain {
   display: flex;
-  height: 85vh;
+  height: 80vh;
   padding: 1rem;
   gap: 1rem;
 }
 
 .VRAAnalysisGraphs {
-  height: 30rem;
 }
 
 .VRAAnalysisContainers {
