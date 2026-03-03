@@ -6,6 +6,7 @@ import '../styles/main.css'
 import { Routes, Route, useParams } from 'react-router-dom'
 import { StateHeaderBar } from './components/StateHeaderBar'
 import StateMinorityAnalysis from './components/StateMinorityAnalysis'
+import StateCustomAnalysis from './components/StateCustomAnalysis'
 /**
  * Based on the current view (state variable), switch to it. Basically large switch statement
  */
@@ -88,6 +89,14 @@ export default function App() {
           <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis', 'Tab2']}/>
           <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={['Voting Rights Analysis', 'Minority Analysis', 'Custom State Analysis']} />
           <StateMinorityAnalysis currPage={currPage} minorityData={minorityData} switchPage={switchPage} />
+        </>
+      }
+      />
+      <Route path={`/state/:stateName/Custom State Analysis`} element={
+        <>
+          <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis', 'Tab2']}/>
+          <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={['Voting Rights Analysis', 'Minority Analysis', 'Custom State Analysis']} />
+          <StateCustomAnalysis currPage={currPage} minorityData={minorityData} switchPage={switchPage} />
         </>
       }
       />

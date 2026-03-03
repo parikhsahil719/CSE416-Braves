@@ -261,8 +261,12 @@ function excludeDataFromDropdown(original,comparison1,comparison2)
 {
     const extraDropDownDatas = [{name: 'GUI-12', numberExtra: 2},{name: 'GUI-16', numberExtra: 1}, {name: 'GUI-17', numberExtra: 1}];
 
-    return ((comparison1 == "GUI-12")|| (original != comparison1)) &&
-        ((original != comparison2 )|| (comparison2 == "GUI-12"))
+        if (original === comparison1 || original === comparison2) 
+        {
+            return (extraDropDownDatas.some(item => item.name === original));
+        }
+        return true;
+        
 }
 /**
  * 
@@ -369,7 +373,7 @@ export default function StateCustomAnalysis(props)
     const { stateName } = useParams();
     // Find the relevant data for a minority given the state
     const minorityData = props.minorityData;
-    const extraDropDownDatas = [{name: 'GUI-12', numberExtra: 2},{name: 'GUI-16', numberExtra: 1}, {name: 'GUI-17', numberExtra: 1}];
+    // const extraDropDownDatas = [{name: 'GUI-12', numberExtra: 2},{name: 'GUI-16', numberExtra: 1}, {name: 'GUI-17', numberExtra: 1}];
     const needsMinority = ['GUI-4','GUI-9','GUI-12'];
     const defaultValueForDropdowns = "--"
 
@@ -432,7 +436,7 @@ export default function StateCustomAnalysis(props)
     return(
     <div className="customAnalysis_bodyContainer">
         <div className="customAnalysis_minorityCheckboxContainer">
-            <label htmlFor="minoritySelector">Choose the Minority to analyze: </label>
+            <label htmlFor="minoritySelector">Choose the Minority to analyze <span style={{color: 'gray', fontStyle: 'italic'}}>(if applicable)</span>: </label>
             <select name="minoritySelector" id="minoritySelector" disabled={isMinorityDropdownDisabled(currentData1,currentData2,currentData3, needsMinority)} value={currentMinority} onChange={(e) => changeMinority(e.target.value)}>
                 {minorityOptions}
             </select>
