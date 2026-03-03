@@ -2,7 +2,7 @@ import React, {useEffect} from 'react'
 import '../../styles/splash-page.css'
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import statesData from "../../data/us-states.js";
+import statesData from "../data/us-states.js";
 import { useNavigate } from 'react-router-dom';
 // ─────────────────────────────────────────────
 // SplashPage
@@ -113,8 +113,7 @@ function Map({switchPage})
           '<i style="background:' +
           getColor(grade) +
           '"></i>' +
-          (grade ? "Active" : "Inactive") +
-          "<br>";
+          (grade ? "Active" + "<br><br>": "Inactive")
       });
 
       return div;

@@ -21,7 +21,7 @@ function StateSection({ title, stateKey }) {
   return (
     <div id={stateKey === 'OR' ? 'oregonContainer' : 'SCContainer'} className="stateContainer">
       <div className="ginglesContainer crossStateContainer">
-        <h1>{title}</h1>
+        <h2 className="crossStateTitle">{title}</h2>
         <GinglesScatterChart payload={payload} />
       </div>
       <div className="crossStateDropdownContainer crossStateContainer">

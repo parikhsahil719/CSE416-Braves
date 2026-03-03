@@ -10,7 +10,12 @@
 
 .stateContainer {
   display: flex;
-  padding: 1.25rem 0;
+  padding: 0;
+}
+
+.crossStateTitle {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0;
 }
 
 .crossStateContainer {
@@ -33,8 +38,7 @@
   display: grid;
   grid-template-rows: 1fr 8fr;
   margin: 4rem 0 0 0;
-  padding-top: 0.5rem;
-  padding-right: 4rem;
+  padding-top: 0.3rem;
 }
 
 .racialGroupSelector {
@@ -49,7 +53,7 @@
 }
 
 .crossStateTable {
-  width: 100%;
+  /* width: 100%; */
   border-collapse: collapse;
 }
 
