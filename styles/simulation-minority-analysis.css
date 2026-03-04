@@ -1,7 +1,7 @@
 .simulationMinority_bodyContainer {
   display: grid;
   grid-template-rows: auto 1fr;
-  height: calc(100vh - 8.75rem);
+  height: calc(100dvh - 8.75rem);
   margin: 0;
   padding: 0.75rem 1rem 0.75rem;
   box-sizing: border-box;
@@ -19,10 +19,14 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.25rem;
   min-height: 0;
+  align-items: stretch;
 }
 
 .simulationMinority_chartPanel {
   min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .simulationMinority_chartEyebrow {
@@ -46,15 +50,28 @@
   text-align: center;
   font-size: 0.92rem;
   color: #4b5563;
+  flex: 0 0 auto;
+}
+
+.simulationMinority_chartPanel .chartPanelBoxWhisker {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.simulationMinority_chartPanel .chartLegend {
+  flex: 0 0 auto;
 }
 
 .simulationMinority_chartPanel .chartFrameBox {
-  min-height: 31rem;
-  height: 31rem;
+  flex: 1 1 auto;
+  min-height: clamp(18rem, 42vh, 31rem);
+  height: auto;
 }
 
 .simulationMinority_placeholderCard {
-  min-height: 31rem;
+  min-height: clamp(18rem, 42vh, 31rem);
   border: 1px solid #d4d4d8;
   background: #ffffff;
   display: flex;
@@ -88,7 +105,7 @@
 
   .simulationMinority_chartPanel .chartFrameBox,
   .simulationMinority_placeholderCard {
-    min-height: 26rem;
-    height: 26rem;
+    min-height: 24rem;
+    height: 24rem;
   }
 }

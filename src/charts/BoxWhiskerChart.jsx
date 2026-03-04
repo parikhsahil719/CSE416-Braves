@@ -19,13 +19,23 @@ function BoxWhiskerSvg({ payload }) {
       {[0, 0.25, 0.5, 0.75, 1].map((tick) => (
         <g key={tick}>
           <line x1={margin.left} x2={width - margin.right} y1={y(tick)} y2={y(tick)} stroke="#cbd5e1" strokeDasharray="3 3" />
-          <text x={12} y={y(tick) + 4} fontSize="13" fill="#334155">{pct(tick, 0)}</text>
+          <text x={10} y={y(tick) + 5} fontSize="15" fontWeight="600" fill="#0f172a">{pct(tick, 0)}</text>
         </g>
       ))}
-      <line x1={margin.left} x2={margin.left} y1={margin.top} y2={height - margin.bottom} stroke="#334155" />
-      <line x1={margin.left} x2={width - margin.right} y1={height - margin.bottom} y2={height - margin.bottom} stroke="#334155" />
-      <text x={14} y={margin.top - 4} fontSize="13" fill="#334155">Share</text>
-      <text x={width / 2} y={height - 10} fontSize="13" textAnchor="middle" fill="#334155">District rank</text>
+      <line x1={margin.left} x2={margin.left} y1={margin.top} y2={height - margin.bottom} stroke="#475569" strokeWidth="1.2" />
+      <line x1={margin.left} x2={width - margin.right} y1={height - margin.bottom} y2={height - margin.bottom} stroke="#475569" strokeWidth="1.2" />
+      <text
+        x={margin.left - 58}
+        y={margin.top + innerHeight / 2}
+        fontSize="16"
+        fontWeight="700"
+        fill="#0f172a"
+        textAnchor="middle"
+        transform={`rotate(-90 ${margin.left - 58} ${margin.top + innerHeight / 2})`}
+      >
+        Share
+      </text>
+      <text x={width / 2} y={height - 10} fontSize="16" fontWeight="700" textAnchor="middle" fill="#0f172a">District rank</text>
       {rows.map((row, index) => {
         const centerX = margin.left + xStep * index + xStep / 2;
         return (
@@ -57,7 +67,7 @@ function BoxWhiskerSvg({ payload }) {
                 transform={`rotate(45 ${centerX} ${y(row.proposedValue)})`}
               />
             ) : null}
-            <text x={centerX} y={height - margin.bottom + 20} fontSize="13" textAnchor="middle" fill="#334155">{row.districtRank}</text>
+            <text x={centerX} y={height - margin.bottom + 21} fontSize="14" fontWeight="600" textAnchor="middle" fill="#0f172a">{row.districtRank}</text>
           </g>
         );
       })}
