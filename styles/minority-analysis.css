@@ -10,8 +10,8 @@
 .minorityAnalysis_bodyContainer{
     display:grid;
     grid-template-rows: auto auto;
-    margin: 1.5rem 0 0 0;
-    padding: 0 1rem 2rem;
+    margin: 0.5rem 0 0 0;
+    padding: 0 1rem 0.75rem;
     box-sizing: border-box;
     width: 100%;
     /* grid-template-columns: 1fr 1fr 1fr; */
@@ -22,7 +22,7 @@
 .minorityAnalysis_checkboxContainer{
     grid-row: 1;
     justify-self: center;
-    margin: 0 0 1.25rem 0;
+    margin: 0 0 0.75rem 0;
 
     /* grid-column: 2; */
 }
@@ -36,7 +36,7 @@
 }
 .minorityAnalysis_dataContainer{
     grid-template-rows: 1fr 1fr; 
-    margin: 1rem;
+    margin: 0.35rem 0.5rem 0;
     width: 30%;
     min-width: 0;
 }
