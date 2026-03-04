@@ -3,14 +3,14 @@ import '../../styles/chart-integration.css';
 import { pct } from '../utils/chartFormat.js';
 
 function BoxWhiskerSvg({ payload }) {
-  const width = 1080;
-  const height = 580;
-  const margin = { top: 20, right: 20, bottom: 54, left: 56 };
+  const width = 920;
+  const height = 620;
+  const margin = { top: 20, right: 24, bottom: 56, left: 58 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
   const rows = payload.rankSummaries;
   const xStep = innerWidth / rows.length;
-  const boxWidth = Math.min(68, xStep * 0.72);
+  const boxWidth = Math.min(54, xStep * 0.66);
   const y = (value) => margin.top + (1 - value) * innerHeight;
 
   return (
