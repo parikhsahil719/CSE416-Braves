@@ -1,55 +1,38 @@
-/* .minorityAnalysis_ecologicalInferenceContainer1{
-
-}
-
-
-
-.minorityAnalysis_heatMapLabel{
-
-} */
 .minorityAnalysis_bodyContainer{
     display:grid;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto auto;
     height: calc(100vh - 8.75rem);
     margin: 0;
-    padding: 0.25rem 1rem 0;
+    padding: 0.25rem 1rem 0.5rem;
     box-sizing: border-box;
     width: 100%;
     overflow: hidden;
 }
 .minorityAnalysis_checkboxContainer{
-    grid-row: 1;
     justify-self: center;
-    margin: 0 0 0.35rem 0;
+    margin: 0 0 0.6rem 0;
 }
 .minorityAnalysis_dataBodyContainer{
-    grid-row: 2;
-    display:flex;
+    display:grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
     justify-content: center;
     align-items: stretch;
-    gap: 1rem;
+    gap: 1.25rem;
     width: 100%;
     min-height: 0;
     overflow: hidden;
 }
 .minorityAnalysis_dataContainer{
-    grid-template-rows: 1fr 1fr;
-    margin: 0.15rem 0.5rem 0;
-    width: 30%;
+    margin: 0.15rem 0 0;
     min-width: 0;
 }
 .minorityAnalysis_dataLabel{
-    grid-row: 1;
-    margin: 0.4rem 0rem;
+    margin: 0.3rem 0 0.55rem;
     text-align: center;
     font-weight: 600;
 }
-.minorityAnalysis_data{
-    grid-row: 2;
-}
-
 .minorityAnalysis_placeholder{
-    height: 21rem;
+    height: 27rem;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -57,78 +40,44 @@
     background:#ffffff;
     color:#4b5563;
 }
-
-.minorityAnalysis_leftColumn,
-.minorityAnalysis_middleColumn,
-.minorityAnalysis_rightColumn{
-    width: 31%;
-}
-
-@media (max-width: 1100px) {
-    .minorityAnalysis_dataBodyContainer{
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .minorityAnalysis_dataContainer,
-    .minorityAnalysis_leftColumn,
-    .minorityAnalysis_middleColumn,
-    .minorityAnalysis_rightColumn{
-        width: 90%;
-    }
-}
-
 .minorityAnalysis_dataLabelSmall{
-    margin: 0.35rem 0 0.6rem;
+    margin: 0.3rem 0 0.45rem;
     font-size: 0.82rem;
     letter-spacing: 0.08em;
     color:#4b5563;
 }
-
 .minorityAnalysis_chartStack{
     width:100%;
 }
-
 .minorityAnalysis_chartTitle{
-    margin: 0 0 0.35rem;
+    margin: 0 0 0.3rem;
     text-align:center;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: 700;
 }
-
 .minorityAnalysis_chartSubtitle{
-    margin: 0 0 0.7rem;
+    margin: 0 0 0.55rem;
     text-align:center;
     font-size: 0.95rem;
     color:#4b5563;
 }
-
-.minorityAnalysis_middleColumn .chartFrameBox {
-    min-height: 31rem;
-    height: 31rem;
+.minorityAnalysis_rightColumn .chartFrameEi {
+    min-height: 27rem;
+    height: 27rem;
 }
-
-.minorityAnalysis_middleColumn .chartLegend {
-    margin-bottom: 0.35rem;
-}
-
-.minorityAnalysis_middleColumn .chartPanel {
-    width: 100%;
-}
-
 @media (max-width: 1100px) {
-  .minorityAnalysis_bodyContainer{
-      height: auto;
-      overflow: visible;
-      padding: 0.25rem 1rem 0.75rem;
-  }
-
-  .minorityAnalysis_dataBodyContainer{
-      overflow: visible;
-  }
-
-  .minorityAnalysis_middleColumn .chartFrameBox {
-      min-height: 26rem;
-      height: 26rem;
-  }
+    .minorityAnalysis_bodyContainer{
+        height: auto;
+        overflow: visible;
+        padding: 0.25rem 1rem 0.75rem;
+    }
+    .minorityAnalysis_dataBodyContainer{
+        grid-template-columns: 1fr;
+        overflow: visible;
+    }
+    .minorityAnalysis_placeholder,
+    .minorityAnalysis_rightColumn .chartFrameEi {
+        min-height: 24rem;
+        height: 24rem;
+    }
 }

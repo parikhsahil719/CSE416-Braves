@@ -1,0 +1,94 @@
+.simulationMinority_bodyContainer {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: calc(100vh - 8.75rem);
+  margin: 0;
+  padding: 0.75rem 1rem 0.75rem;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+}
+
+.simulationMinority_selectorContainer {
+  justify-self: center;
+  margin: 0 0 0.85rem;
+}
+
+.simulationMinority_chartGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  min-height: 0;
+}
+
+.simulationMinority_chartPanel {
+  min-width: 0;
+}
+
+.simulationMinority_chartEyebrow {
+  margin: 0 0 0.2rem;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #4b5563;
+}
+
+.simulationMinority_chartTitle {
+  margin: 0 0 0.2rem;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.simulationMinority_chartSubtitle {
+  margin: 0 0 0.55rem;
+  text-align: center;
+  font-size: 0.92rem;
+  color: #4b5563;
+}
+
+.simulationMinority_chartPanel .chartFrameBox {
+  min-height: 31rem;
+  height: 31rem;
+}
+
+.simulationMinority_placeholderCard {
+  min-height: 31rem;
+  border: 1px solid #d4d4d8;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 1.25rem;
+}
+
+.simulationMinority_placeholderTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.simulationMinority_placeholderLine {
+  color: #4b5563;
+  line-height: 1.45;
+}
+
+@media (max-width: 1100px) {
+  .simulationMinority_bodyContainer {
+    height: auto;
+    overflow: visible;
+  }
+
+  .simulationMinority_chartGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .simulationMinority_chartPanel .chartFrameBox,
+  .simulationMinority_placeholderCard {
+    min-height: 26rem;
+    height: 26rem;
+  }
+}

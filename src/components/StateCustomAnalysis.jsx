@@ -4,7 +4,7 @@ import '../../styles/custom-analysis.css';
 import EiSupportChart from "../charts/EiSupportChart.jsx";
 import SingleEnsembleSplitsChart from "../charts/SingleEnsembleSplitsChart.jsx";
 import BoxWhiskerChart from "../charts/BoxWhiskerChart.jsx";
-import { getBoxWhiskerPayload, getEiSupportPayload, getEnsembleSplitsPayload } from "../data/chartPayloads.js";
+import { getBoxWhiskerPayloads, getEiSupportPayload, getEnsembleSplitsPayload } from "../data/chartPayloads.js";
 import Oregon from "../data/oregon.js";
 import SouthCarolina from "../data/sc.js";
 
@@ -243,8 +243,8 @@ function updateData(currentData, minoritySelection, secondData, thirdData, state
       );
     }
     case 'GUI-17': {
-      const payload = payloads.boxWhisker;
-      if (!payload) {
+      const payloadSet = payloads.boxWhiskers;
+      if (!payloadSet) {
         return displayData(
           <div className="customAnalysis_dataLabel">GUI-17</div>,
           renderPlaceholderCard('GUI-17', ['Box-and-whisker payload is not available for this state.']),
@@ -265,6 +265,8 @@ function updateData(currentData, minoritySelection, secondData, thirdData, state
           'customAnalysis_dataContainer'
         );
       }
+      const isVra = secondData === 'Voting Rights Act';
+      const payload = isVra ? payloadSet.vraConstrained : payloadSet.raceBlind;
       if (minoritySelection !== payload.selectedGroup) {
         return displayData(
           <div className="customAnalysis_dataLabel">GUI-17</div>,
@@ -279,7 +281,7 @@ function updateData(currentData, minoritySelection, secondData, thirdData, state
         <div className="customAnalysis_dataLabel">GUI-17</div>,
         <div className="customAnalysis_chartWrapper">
           <div className="customAnalysis_chartTitle">{payload.metricLabel}</div>
-          <div className="customAnalysis_chartSubtitle">{secondData} ensemble • {payload.selectedGroup}</div>
+          <div className="customAnalysis_chartSubtitle">{isVra ? 'VRA-Constrained' : 'Race-Blind'} ensemble • {payload.selectedGroup}</div>
           <BoxWhiskerChart
             payload={payload}
             showHeader={false}
@@ -432,13 +434,14 @@ export default function StateCustomAnalysis(props) {
   const payloads = useMemo(() => ({
     eiSupport: safePayloadLookup(getEiSupportPayload, stateName),
     ensembleSplits: safePayloadLookup(getEnsembleSplitsPayload, stateName),
-    boxWhisker: safePayloadLookup(getBoxWhiskerPayload, stateName),
+    boxWhiskers: safePayloadLookup(getBoxWhiskerPayloads, stateName),
   }), [stateName]);
 
   const minorityList = useMemo(() => {
     const list = new Set(configuredMinorityList);
     if (payloads.eiSupport?.selectedGroup) list.add(payloads.eiSupport.selectedGroup);
-    if (payloads.boxWhisker?.selectedGroup) list.add(payloads.boxWhisker.selectedGroup);
+    if (payloads.boxWhiskers?.vraConstrained?.selectedGroup) list.add(payloads.boxWhiskers.vraConstrained.selectedGroup);
+    if (payloads.boxWhiskers?.raceBlind?.selectedGroup) list.add(payloads.boxWhiskers.raceBlind.selectedGroup);
     return [...list];
   }, [configuredMinorityList, payloads]);
 

@@ -4,8 +4,10 @@ import orEnsembleSplits from '../../mock-data/v1/ensemble-splits/OR_compare.json
 import scEnsembleSplits from '../../mock-data/v1/ensemble-splits/SC_compare.json';
 import orEiSupport from '../../mock-data/v1/ei-support/OR_2024_president.json';
 import scEiSupport from '../../mock-data/v1/ei-support/SC_2024_president.json';
-import orBoxWhisker from '../../mock-data/v1/box-whisker/OR_latino_cvap.json';
-import scBoxWhisker from '../../mock-data/v1/box-whisker/SC_black_cvap.json';
+import orBoxWhiskerVra from '../../mock-data/v1/box-whisker/OR_latino_cvap_vra.json';
+import orBoxWhiskerRaceBlind from '../../mock-data/v1/box-whisker/OR_latino_cvap_race_blind.json';
+import scBoxWhiskerVra from '../../mock-data/v1/box-whisker/SC_black_cvap_vra.json';
+import scBoxWhiskerRaceBlind from '../../mock-data/v1/box-whisker/SC_black_cvap_race_blind.json';
 
 const stateMap = {
   oregon: 'OR',
@@ -25,13 +27,19 @@ const payloads = {
     gingles: orGingles,
     ensembleSplits: orEnsembleSplits,
     eiSupport: orEiSupport,
-    boxWhisker: orBoxWhisker,
+    boxWhiskers: {
+      vraConstrained: orBoxWhiskerVra,
+      raceBlind: orBoxWhiskerRaceBlind,
+    },
   },
   SC: {
     gingles: scGingles,
     ensembleSplits: scEnsembleSplits,
     eiSupport: scEiSupport,
-    boxWhisker: scBoxWhisker,
+    boxWhiskers: {
+      vraConstrained: scBoxWhiskerVra,
+      raceBlind: scBoxWhiskerRaceBlind,
+    },
   },
 };
 
@@ -55,6 +63,10 @@ export function getEiSupportPayload(state) {
   return getPayload(state, 'eiSupport');
 }
 
+export function getBoxWhiskerPayloads(state) {
+  return getPayload(state, 'boxWhiskers');
+}
+
 export function getBoxWhiskerPayload(state) {
-  return getPayload(state, 'boxWhisker');
+  return getBoxWhiskerPayloads(state).vraConstrained;
 }

@@ -7,6 +7,7 @@ import { Routes, Route, useParams } from 'react-router-dom'
 import { StateHeaderBar } from './components/StateHeaderBar'
 import StateMinorityAnalysis from './components/StateMinorityAnalysis'
 import StateCustomAnalysis from './components/StateCustomAnalysis'
+import StateSimulationMinorityData from './components/StateSimulationMinorityData'
 import CrossStateAnalysis from './components/CrossStateAnalysis'
 import VRAAnalysis from './components/VRAAnalysis'
 /**
@@ -20,9 +21,9 @@ export default function App() {
   // Minority data
   const minorityData = [
     {stateName: 'Oregon',
-     minorityData: {minorityList: ['Asian', 'Black']}},
+     minorityData: {minorityList: ['Latino', 'Asian', 'Black']}},
     {stateName: 'South Carolina',
-    minorityData: {minorityList: ['Latino', 'Black']}}]
+    minorityData: {minorityList: ['Black', 'Latino']}}]
   // Probably not ensemble data
   const stateTabs = ['Voting Rights Analysis', 'Minority Analysis', 'Custom State Analysis', 'Simulation Minority Data'];
 
@@ -76,7 +77,7 @@ export default function App() {
         <>
           <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis']}/>
           <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={stateTabs} />
-          {/* <StateCustomAnalysis currPage={currPage} minorityData={minorityData} switchPage={switchPage} /> */}
+          <StateSimulationMinorityData currPage={currPage} minorityData={minorityData} switchPage={switchPage} />
         </>
       }
       />

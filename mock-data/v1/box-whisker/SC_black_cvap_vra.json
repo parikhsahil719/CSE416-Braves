@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "v1",
+  "chartType": "box-whisker",
+  "state": "SC",
+  "totalDistricts": 7,
+  "election": "2024 Presidential",
+  "ensembleType": "vra_constrained",
+  "selectedGroup": "Black",
+  "metricLabel": "Black CVAP share",
+  "units": { "share": "decimal_0_to_1" },
+  "rankSummaries": [
+    { "districtRank": 1, "min": 0.05, "q1": 0.08, "median": 0.10, "q3": 0.13, "max": 0.18, "enactedValue": 0.11, "proposedValue": 0.12 },
+    { "districtRank": 2, "min": 0.09, "q1": 0.12, "median": 0.16, "q3": 0.19, "max": 0.25, "enactedValue": 0.17, "proposedValue": 0.18 },
+    { "districtRank": 3, "min": 0.14, "q1": 0.18, "median": 0.22, "q3": 0.26, "max": 0.33, "enactedValue": 0.24, "proposedValue": 0.23 },
+    { "districtRank": 4, "min": 0.20, "q1": 0.25, "median": 0.30, "q3": 0.34, "max": 0.40, "enactedValue": 0.31, "proposedValue": 0.33 },
+    { "districtRank": 5, "min": 0.27, "q1": 0.33, "median": 0.39, "q3": 0.44, "max": 0.50, "enactedValue": 0.42, "proposedValue": 0.40 },
+    { "districtRank": 6, "min": 0.35, "q1": 0.42, "median": 0.49, "q3": 0.55, "max": 0.62, "enactedValue": 0.53, "proposedValue": 0.51 },
+    { "districtRank": 7, "min": 0.48, "q1": 0.56, "median": 0.64, "q3": 0.71, "max": 0.80, "enactedValue": 0.69, "proposedValue": 0.66 }
+  ]
+}

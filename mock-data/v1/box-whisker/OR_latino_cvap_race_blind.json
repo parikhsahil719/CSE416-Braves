@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "v1",
+  "chartType": "box-whisker",
+  "state": "OR",
+  "totalDistricts": 6,
+  "election": "2024 Presidential",
+  "ensembleType": "race_blind",
+  "selectedGroup": "Latino",
+  "metricLabel": "Latino CVAP share",
+  "units": { "share": "decimal_0_to_1" },
+  "rankSummaries": [
+    { "districtRank": 1, "min": 0.06, "q1": 0.09, "median": 0.11, "q3": 0.15, "max": 0.20, "enactedValue": 0.12, "proposedValue": 0.13 },
+    { "districtRank": 2, "min": 0.10, "q1": 0.14, "median": 0.18, "q3": 0.22, "max": 0.28, "enactedValue": 0.19, "proposedValue": 0.21 },
+    { "districtRank": 3, "min": 0.16, "q1": 0.21, "median": 0.25, "q3": 0.30, "max": 0.36, "enactedValue": 0.27, "proposedValue": 0.29 },
+    { "districtRank": 4, "min": 0.22, "q1": 0.28, "median": 0.33, "q3": 0.38, "max": 0.44, "enactedValue": 0.34, "proposedValue": 0.37 },
+    { "districtRank": 5, "min": 0.28, "q1": 0.35, "median": 0.40, "q3": 0.46, "max": 0.53, "enactedValue": 0.44, "proposedValue": 0.41 },
+    { "districtRank": 6, "min": 0.38, "q1": 0.46, "median": 0.53, "q3": 0.60, "max": 0.69, "enactedValue": 0.57, "proposedValue": 0.59 }
+  ]
+}
