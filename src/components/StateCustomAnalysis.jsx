@@ -167,27 +167,34 @@ function updateData(currentData, minoritySelection, secondData, thirdData, state
         );
       }
       if (secondData === 'Language') {
+        if (thirdData === DEFAULT_DROPDOWN_VALUE) {
+          return displayData(
+            <div className="customAnalysis_dataLabel">GUI-12</div>,
+            renderPlaceholderCard('GUI-12', ['Select a language to continue.']),
+            'customAnalysis_dataContainer'
+          );
+        }
         return displayData(
           <div className="customAnalysis_dataLabel">GUI-12</div>,
           renderPlaceholderCard('GUI-12', [
             'Language-based ecological inference support is not yet wired.',
-            `Selected language: ${thirdData === DEFAULT_DROPDOWN_VALUE ? 'None' : thirdData}`,
+            `Selected language: ${thirdData}`,
           ]),
           'customAnalysis_dataContainer'
         );
       }
-      if (thirdData === DEFAULT_DROPDOWN_VALUE) {
+      if (minoritySelection === DEFAULT_DROPDOWN_VALUE) {
         return displayData(
           <div className="customAnalysis_dataLabel">GUI-12</div>,
-          renderPlaceholderCard('GUI-12', ['Select a minority group to continue.']),
+          renderPlaceholderCard('GUI-12', ['Select a minority to continue.']),
           'customAnalysis_dataContainer'
         );
       }
-      if (thirdData !== payload.selectedGroup) {
+      if (minoritySelection !== payload.selectedGroup) {
         return displayData(
           <div className="customAnalysis_dataLabel">GUI-12</div>,
           renderPlaceholderCard('GUI-12', [
-            `No mock EI payload is available for ${thirdData}.`,
+            `No mock EI payload is available for ${minoritySelection}.`,
             `Available mock group: ${payload.selectedGroup}`,
           ]),
           'customAnalysis_dataContainer'
@@ -195,7 +202,9 @@ function updateData(currentData, minoritySelection, secondData, thirdData, state
       }
       return displayData(
         <div className="customAnalysis_dataLabel">GUI-12</div>,
-        <EiSupportChart payload={payload} />,
+        <div className="customAnalysis_chartWrapper">
+          <EiSupportChart payload={payload} />
+        </div>,
         'customAnalysis_dataContainer'
       );
     }
@@ -275,9 +284,6 @@ function isMinorityDropdownDisabled(selection1, selection2, selection3) {
 function returnExtraDropdownsWithLabels(dataIndex, dataSelection, secondData, changeSecondData, thirdData, changeThirdData, minorityList, languageList) {
   switch (dataSelection) {
     case 'GUI-12': {
-      const minorityOptions = [DEFAULT_DROPDOWN_VALUE, ...minorityList].map((minority) => (
-        <option key={`gui12-minority-${dataIndex}-${minority}`} value={minority}>{minority}</option>
-      ));
       const languageOptions = [DEFAULT_DROPDOWN_VALUE, ...languageList].map((language) => (
         <option key={`gui12-language-${dataIndex}-${language}`} value={language}>{language}</option>
       ));
@@ -301,20 +307,6 @@ function returnExtraDropdownsWithLabels(dataIndex, dataSelection, secondData, ch
               <option value="Language">Language</option>
             </select>
           </div>
-          {secondData === 'Minority' ? (
-            <div className="customAnalysis_extraCheckboxSubContainer">
-              <label htmlFor={`minorityOptions-${dataIndex}`} className="customAnalysis_extraDropdown1_Label">Minority Options</label>
-              <select
-                name={`minorityOptions-${dataIndex}`}
-                id={`minorityOptions-${dataIndex}`}
-                value={thirdData}
-                onChange={(event) => changeThirdData(event.target.value)}
-                className="customAnalysis_extraDropdown2"
-              >
-                {minorityOptions}
-              </select>
-            </div>
-          ) : null}
           {secondData === 'Language' ? (
             <div className="customAnalysis_extraCheckboxSubContainer">
               <label htmlFor={`languageOptions-${dataIndex}`} className="customAnalysis_extraDropdown1_Label">Language Options</label>

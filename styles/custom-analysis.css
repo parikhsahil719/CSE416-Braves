@@ -1,17 +1,21 @@
 .customAnalysis_bodyContainer{
     display:grid;
-    grid-template-rows: 1fr 8fr;
-    margin: 5rem 0 0 0;
+    grid-template-rows: auto 1fr;
+    margin: 3rem 0 0 0;
+    padding: 0 1.5rem 2rem;
+    box-sizing: border-box;
+    width: 100%;
 }
 .customAnalysis_minorityCheckboxContainer{
     grid-row: 1;
     justify-self: center;
-    margin: 0 0 2.5rem 0;
+    margin: 0 0 2rem 0;
 }
 .customAnalysis_dataWithCheckbox{
-    margin: 0rem 1rem 0rem 0rem;
-    width: 31%;
-    min-width: 0;
+    margin: 0;
+    flex: 1 1 28rem;
+    max-width: 38rem;
+    min-width: 24rem;
 }
 .customAnalysis_dataCheckbox{
     display: flex;
@@ -40,14 +44,18 @@
 .customAnalysis_dataBodyContainer{
     grid-row: 2;
     display:flex;
+    flex-wrap: wrap;
     justify-content: center;
-    align-items: flex-start;
-    gap: 1rem;
+    align-items: stretch;
+    gap: 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 .customAnalysis_dataContainer{
     margin: 1rem 0 0 0;
     justify-self: center;
-    min-height: 25rem;
+    min-height: 34rem;
+    width: 100%;
 }
 
 .customAnalysis_dataLabel{
@@ -62,7 +70,7 @@
 
 .customAnalysis_placeholderCard,
 .customAnalysis_summaryCard {
-    min-height: 20rem;
+    min-height: 28rem;
     border: 1px solid #d4d4d8;
     background: #ffffff;
     padding: 1.25rem;
@@ -106,6 +114,29 @@
 
 .customAnalysis_chartWrapper {
     width: 100%;
+    min-height: 34rem;
+}
+
+.customAnalysis_dataContainer .chartPanelTitle {
+    font-size: 1rem;
+    margin-bottom: 0.35rem;
+}
+
+.customAnalysis_dataContainer .chartPanelMeta {
+    margin-bottom: 0.6rem;
+    font-size: 0.95rem;
+}
+
+.customAnalysis_dataContainer .chartFrame,
+.customAnalysis_dataContainer .chartFrameTall,
+.customAnalysis_dataContainer .chartFrameBox {
+    min-height: 26rem;
+    height: 26rem;
+}
+
+.customAnalysis_dataContainer .recharts-wrapper,
+.customAnalysis_dataContainer .recharts-surface {
+    overflow: visible;
 }
 
 .customAnalysis_chartSubtitle {
@@ -116,13 +147,33 @@
 }
 
 @media (max-width: 1150px) {
+    .customAnalysis_bodyContainer {
+        padding: 0 1rem 2rem;
+    }
+
     .customAnalysis_dataBodyContainer {
         flex-direction: column;
         align-items: center;
     }
 
     .customAnalysis_dataWithCheckbox {
-        width: 90%;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
         margin-right: 0;
+    }
+
+    .customAnalysis_dataContainer,
+    .customAnalysis_chartWrapper,
+    .customAnalysis_placeholderCard,
+    .customAnalysis_summaryCard {
+        min-height: 28rem;
+    }
+
+    .customAnalysis_dataContainer .chartFrame,
+    .customAnalysis_dataContainer .chartFrameTall,
+    .customAnalysis_dataContainer .chartFrameBox {
+        min-height: 22rem;
+        height: 22rem;
     }
 }
