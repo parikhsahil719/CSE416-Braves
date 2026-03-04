@@ -1,0 +1,188 @@
+.customAnalysis_bodyContainer{
+    display:grid;
+    grid-template-rows: auto 1fr;
+    height: calc(100vh - 8.75rem);
+    margin: 0;
+    padding: 0.5rem 1.5rem 0.75rem;
+    box-sizing: border-box;
+    width: 100%;
+    overflow: hidden;
+}
+.customAnalysis_minorityCheckboxContainer{
+    grid-row: 1;
+    justify-self: center;
+    margin: 0 0 0.9rem 0;
+}
+.customAnalysis_dataWithCheckbox{
+    margin: 0;
+    min-width: 0;
+    width: 100%;
+}
+.customAnalysis_dataCheckbox{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.65rem;
+}
+.customAnalysis_extraCheckboxContainer{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+.customAnalysis_extraCheckboxSubContainer{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+.customAnalysis_extraDropdown1_Label
+{
+    margin: 0rem;
+    text-align: center;
+    font-size: 0.88rem;
+}
+.customAnalysis_dataBodyContainer{
+    grid-row: 2;
+    display:grid;
+    grid-template-columns: repeat(3, minmax(22rem, 1fr));
+    align-items: stretch;
+    gap: 1.25rem;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    min-height: 0;
+    overflow: hidden;
+}
+.customAnalysis_dataContainer{
+    margin: 0.35rem 0 0 0;
+    justify-self: center;
+    min-height: 0;
+    width: 100%;
+}
+
+.customAnalysis_dataLabel{
+    margin: 0 0 0.45rem 0;
+    text-align: center;
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #4b5563;
+}
+.customAnalysis_data{
+    min-height: 20rem;
+}
+
+.customAnalysis_placeholderCard,
+.customAnalysis_summaryCard {
+    min-height: 28rem;
+    border: 1px solid #d4d4d8;
+    background: #ffffff;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.customAnalysis_placeholderTitle {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.85rem;
+}
+
+.customAnalysis_placeholderLine {
+    color: #4b5563;
+    line-height: 1.45;
+    margin-bottom: 0.3rem;
+}
+
+.customAnalysis_summaryTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.customAnalysis_summaryTable th,
+.customAnalysis_summaryTable td {
+    border: 1px solid #d4d4d8;
+    padding: 0.55rem 0.7rem;
+    text-align: left;
+    vertical-align: top;
+    font-size: 0.92rem;
+}
+
+.customAnalysis_summaryTable th {
+    width: 42%;
+    background: #f8fafc;
+}
+
+.customAnalysis_chartWrapper {
+    width: 100%;
+    min-height: 0;
+}
+
+.customAnalysis_dataContainer .chartPanelTitle {
+    font-size: 1rem;
+    margin-bottom: 0.35rem;
+}
+
+.customAnalysis_dataContainer .chartPanelMeta {
+    margin-bottom: 0.6rem;
+    font-size: 0.95rem;
+}
+
+.customAnalysis_dataContainer .chartFrame,
+.customAnalysis_dataContainer .chartFrameTall,
+.customAnalysis_dataContainer .chartFrameBox {
+    min-height: 22rem;
+    height: 22rem;
+}
+
+.customAnalysis_dataContainer .recharts-wrapper,
+.customAnalysis_dataContainer .recharts-surface {
+    overflow: visible;
+}
+
+.customAnalysis_chartTitle {
+    text-align: center;
+    font-size: 1.28rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.customAnalysis_chartSubtitle {
+    text-align: center;
+    font-size: 0.82rem;
+    color: #4b5563;
+    margin-bottom: 0.35rem;
+    line-height: 1.35;
+}
+
+@media (max-width: 1150px) {
+    .customAnalysis_bodyContainer {
+        height: auto;
+        overflow: visible;
+        padding: 0.75rem 1rem 1rem;
+    }
+
+    .customAnalysis_dataBodyContainer {
+        grid-template-columns: 1fr;
+        min-width: 0;
+        overflow: visible;
+    }
+
+    .customAnalysis_dataContainer,
+    .customAnalysis_chartWrapper,
+    .customAnalysis_placeholderCard,
+    .customAnalysis_summaryCard {
+        min-height: 28rem;
+    }
+
+    .customAnalysis_dataContainer .chartFrame,
+    .customAnalysis_dataContainer .chartFrameTall,
+    .customAnalysis_dataContainer .chartFrameBox {
+        min-height: 22rem;
+        height: 22rem;
+    }
+}

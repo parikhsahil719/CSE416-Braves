@@ -42,7 +42,7 @@ function mergeCurveData(curves = []) {
   return [...map.values()].sort((a, b) => a.x - b.x);
 }
 
-export default function GinglesScatterChart({ payload }) {
+export default function GinglesScatterChart({ payload, compact = false }) {
   const demPoints = payload.points.map((point) => ({
     ...point,
     x: point.minorityShare,
@@ -57,29 +57,29 @@ export default function GinglesScatterChart({ payload }) {
   const curveData = mergeCurveData(curves);
 
   return (
-    <div className="chartFrame chartFrameTall">
+    <div className={`chartFrame chartFrameTall ${compact ? 'ginglesChartCompact' : ''}`}>
       <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart margin={{ top: 12, right: 22, left: 4, bottom: 12 }}>
+        <ComposedChart margin={compact ? { top: 8, right: 8, left: 0, bottom: 6 } : { top: 12, right: 22, left: 4, bottom: 12 }}>
           <CartesianGrid stroke="#d4d4d8" strokeDasharray="2 2" />
           <XAxis
             type="number"
             dataKey="x"
             domain={[0, 1]}
             tickFormatter={(value) => pct(value, 0)}
-            tick={{ fontSize: 11 }}
-            label={{ value: `Percent ${payload.selectedGroup}`, position: 'insideBottom', offset: -6 }}
+            tick={{ fontSize: compact ? 10 : 11 }}
+            label={compact ? undefined : { value: `Percent ${payload.selectedGroup}`, position: 'insideBottom', offset: -6 }}
           />
           <YAxis
             type="number"
             domain={[0, 1]}
             tickFormatter={(value) => pct(value, 0)}
-            tick={{ fontSize: 11 }}
-            label={{ value: 'Vote Share', angle: -90, position: 'insideLeft' }}
+            tick={{ fontSize: compact ? 10 : 11 }}
+            label={compact ? undefined : { value: 'Vote Share', angle: -90, position: 'insideLeft' }}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Legend verticalAlign="middle" align="right" layout="vertical" wrapperStyle={{ fontSize: '11px', paddingLeft: '12px' }} />
-          <Scatter name="Democratic precinct points" data={demPoints} dataKey="y" fill="#3b82f6" fillOpacity={0.24} />
-          <Scatter name="Republican precinct points" data={repPoints} dataKey="y" fill="#ef4444" fillOpacity={0.22} />
+          <Legend verticalAlign={compact ? 'top' : 'middle'} align={compact ? 'center' : 'right'} layout={compact ? 'horizontal' : 'vertical'} wrapperStyle={compact ? { fontSize: '10px', paddingBottom: '6px' } : { fontSize: '11px', paddingLeft: '12px' }} />
+          <Scatter name="Democratic precinct points" data={demPoints} dataKey="y" fill="#3b82f6" fillOpacity={0.24} shape={compact ? 'circle' : undefined} />
+          <Scatter name="Republican precinct points" data={repPoints} dataKey="y" fill="#ef4444" fillOpacity={0.22} shape={compact ? 'circle' : undefined} />
           {curves.map((curve) => (
             <Line
               key={curve.key}

@@ -9,38 +9,38 @@
 } */
 .minorityAnalysis_bodyContainer{
     display:grid;
-    grid-template-rows: 1fr 8fr;
-    margin: 5rem 0 0 0;
-    /* grid-template-columns: 1fr 1fr 1fr; */
-
-    /* display:flex;
-    justify-content: center; */
+    grid-template-rows: auto 1fr;
+    height: calc(100vh - 8.75rem);
+    margin: 0;
+    padding: 0.25rem 1rem 0;
+    box-sizing: border-box;
+    width: 100%;
+    overflow: hidden;
 }
 .minorityAnalysis_checkboxContainer{
     grid-row: 1;
     justify-self: center;
-    margin: 0 0 5rem 0;
-
-    /* grid-column: 2; */
+    margin: 0 0 0.35rem 0;
 }
 .minorityAnalysis_dataBodyContainer{
     grid-row: 2;
     display:flex;
     justify-content: center;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 1rem;
+    width: 100%;
+    min-height: 0;
+    overflow: hidden;
 }
 .minorityAnalysis_dataContainer{
-    /*Allow data to be displayed with label on top, data on bottom*/
-    grid-template-rows: 1fr 1fr; 
-    margin: 1rem;
+    grid-template-rows: 1fr 1fr;
+    margin: 0.15rem 0.5rem 0;
     width: 30%;
     min-width: 0;
-
 }
 .minorityAnalysis_dataLabel{
-    grid-row: 1; 
-    margin: 1rem 0rem;
+    grid-row: 1;
+    margin: 0.4rem 0rem;
     text-align: center;
     font-weight: 600;
 }
@@ -76,4 +76,59 @@
     .minorityAnalysis_rightColumn{
         width: 90%;
     }
+}
+
+.minorityAnalysis_dataLabelSmall{
+    margin: 0.35rem 0 0.6rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    color:#4b5563;
+}
+
+.minorityAnalysis_chartStack{
+    width:100%;
+}
+
+.minorityAnalysis_chartTitle{
+    margin: 0 0 0.35rem;
+    text-align:center;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.minorityAnalysis_chartSubtitle{
+    margin: 0 0 0.7rem;
+    text-align:center;
+    font-size: 0.95rem;
+    color:#4b5563;
+}
+
+.minorityAnalysis_middleColumn .chartFrameBox {
+    min-height: 31rem;
+    height: 31rem;
+}
+
+.minorityAnalysis_middleColumn .chartLegend {
+    margin-bottom: 0.35rem;
+}
+
+.minorityAnalysis_middleColumn .chartPanel {
+    width: 100%;
+}
+
+@media (max-width: 1100px) {
+  .minorityAnalysis_bodyContainer{
+      height: auto;
+      overflow: visible;
+      padding: 0.25rem 1rem 0.75rem;
+  }
+
+  .minorityAnalysis_dataBodyContainer{
+      overflow: visible;
+  }
+
+  .minorityAnalysis_middleColumn .chartFrameBox {
+      min-height: 26rem;
+      height: 26rem;
+  }
 }

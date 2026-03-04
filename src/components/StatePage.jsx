@@ -130,9 +130,11 @@ export default function StatePage() {
   return (
 		<span id="statePageMain">
 			<div id="statePageMapContainer">
+				<div className="statePageMapLabel">District View of the State</div>
 				<div id="statePagemap"></div>
 			</div>
 			<div id="tableContainer">
+			<div className="statePageTableLabel">State Population Data</div>
 			<table>
 				<tbody>
 					<tr>
