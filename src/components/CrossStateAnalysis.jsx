@@ -4,7 +4,7 @@ import GinglesScatterChart from '../charts/GinglesScatterChart.jsx';
 import { getGinglesPayload } from '../data/chartPayloads.js';
 import { num, pct } from '../utils/chartFormat.js';
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 6;
 
 function StateSection({ title, stateKey }) {
   const payload = getGinglesPayload(stateKey);
@@ -19,12 +19,12 @@ function StateSection({ title, stateKey }) {
   const nextPage = () => setPage((current) => Math.min(totalPages, current + 1));
 
   return (
-    <section id={stateKey === 'OR' ? 'oregonContainer' : 'SCContainer'} className="crossStateSection">
+    <section className="crossStateCard">
       <div className="crossStateHeader">
         <h2 className="crossStateHeaderTitle">{title}</h2>
         <div className="crossStateHeaderControls">
           <label htmlFor={`${stateKey}-racialGroupSelector`} className="crossStateControlLabel">
-            Choose a racial group to analyze:
+            Group:
           </label>
           <select
             name={`${stateKey}-racialGroupSelector`}
@@ -41,7 +41,7 @@ function StateSection({ title, stateKey }) {
       </div>
 
       <div className="crossStateChartContainer">
-        <GinglesScatterChart payload={payload} />
+        <GinglesScatterChart payload={payload} compact />
       </div>
 
       <div className="crossStateTableSection">
@@ -51,10 +51,10 @@ function StateSection({ title, stateKey }) {
             <tbody>
               <tr>
                 <th className="crossStateTableCell">Precinct</th>
-                <th className="crossStateTableCell">Total Population</th>
-                <th className="crossStateTableCell">Minority Population</th>
-                <th className="crossStateTableCell">Republican Vote Share</th>
-                <th className="crossStateTableCell">Democratic Vote Share</th>
+                <th className="crossStateTableCell">Total Pop.</th>
+                <th className="crossStateTableCell">Minority Pop.</th>
+                <th className="crossStateTableCell">Rep %</th>
+                <th className="crossStateTableCell">Dem %</th>
               </tr>
               {rows.map((row) => (
                 <tr key={row.precinctId}>

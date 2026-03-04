@@ -1,47 +1,48 @@
 #crossStateMain {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  padding: 0.75rem 1.25rem 1rem;
+  width: 100%;
+  min-height: calc(100vh - 10rem);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.crossStateCard {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  padding: 1rem 3rem 2rem;
-  width: 100%;
-  box-sizing: border-box;
-  overflow-x: hidden;
-}
-
-#oregonContainer {
-  border-bottom: 1px dashed var(--color-line);
-}
-
-.crossStateSection {
-  width: 100%;
   min-width: 0;
-  padding-bottom: 2rem;
+  min-height: 0;
+  background: #f7f7f7;
+  border: 1px solid #d4d4d8;
+  padding: 0.9rem 1rem 0.85rem;
+  box-sizing: border-box;
 }
 
 .crossStateHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
-  margin-bottom: 1rem;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
 }
 
 .crossStateHeaderTitle {
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.65rem;
   line-height: 1.1;
 }
 
 .crossStateHeaderControls {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 0.75rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
 }
 
 .crossStateControlLabel {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 500;
 }
 
@@ -52,12 +53,13 @@
 
 .crossStateChartContainer {
   width: 100%;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.75rem;
+  min-height: 0;
 }
 
 .crossStateChartContainer .chartFrameTall {
-  min-height: 32rem;
-  height: 32rem;
+  min-height: 19rem;
+  height: 19rem;
 }
 
 .crossStateChartContainer .recharts-wrapper,
@@ -67,17 +69,18 @@
 
 .crossStateTableSection {
   width: 100%;
+  min-height: 0;
 }
 
 .crossStateTableHeading {
-  margin: 0 0 0.75rem;
-  font-size: 1.6rem;
+  margin: 0 0 0.45rem;
+  font-size: 1.1rem;
   text-align: left;
 }
 
 .crossStateTableWrapper {
   width: 100%;
-  overflow-x: auto;
+  overflow: hidden;
   border: 1px solid #d4d4d8;
   background: #ffffff;
 }
@@ -89,17 +92,17 @@
 }
 
 .crossStateTableCell {
-  padding: 0.75rem 0.85rem;
+  padding: 0.48rem 0.45rem;
   border: 1px solid #d4d4d8;
-  font-size: 0.95rem;
+  font-size: 0.82rem;
   text-align: center;
 }
 
 .tablePageContainer {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
+  gap: 0.45rem;
+  margin-top: 0.45rem;
 }
 
 .tablePageArrow:hover {
@@ -107,26 +110,23 @@
 }
 
 .tablePageText {
-  font-size: 0.9rem;
-  padding: 0px 2px;
+  font-size: 0.78rem;
+  padding: 0;
+  margin: 0;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1400px) {
   #crossStateMain {
-    padding: 1rem 1.25rem 2rem;
+    grid-template-columns: 1fr;
+    overflow-y: auto;
   }
 
-  .crossStateHeader {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .crossStateHeaderControls {
-    justify-content: flex-start;
+  .crossStateCard {
+    min-height: auto;
   }
 
   .crossStateChartContainer .chartFrameTall {
-    min-height: 26rem;
-    height: 26rem;
+    min-height: 24rem;
+    height: 24rem;
   }
 }
