@@ -62,10 +62,12 @@
 }
 
 .customAnalysis_dataLabel{
-    margin: 0 0 0.85rem 0;
+    margin: 0 0 0.45rem 0;
     text-align: center;
-    font-size: 1.1rem;
+    font-size: 0.86rem;
     font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #4b5563;
 }
 .customAnalysis_data{
     min-height: 20rem;
@@ -144,16 +146,17 @@
 
 .customAnalysis_chartTitle {
     text-align: center;
-    font-size: 1.08rem;
+    font-size: 1.28rem;
     font-weight: 700;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.25rem;
 }
 
 .customAnalysis_chartSubtitle {
     text-align: center;
-    font-size: 0.9rem;
+    font-size: 0.82rem;
     color: #4b5563;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.35rem;
+    line-height: 1.35;
 }
 
 @media (max-width: 1150px) {

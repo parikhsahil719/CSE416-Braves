@@ -279,7 +279,7 @@ function updateData(currentData, minoritySelection, secondData, thirdData, state
         <div className="customAnalysis_dataLabel">GUI-17</div>,
         <div className="customAnalysis_chartWrapper">
           <div className="customAnalysis_chartTitle">{payload.metricLabel}</div>
-          <div className="customAnalysis_chartSubtitle">{secondData} ensemble • Ordered district ranks for {payload.selectedGroup}</div>
+          <div className="customAnalysis_chartSubtitle">{secondData} ensemble • {payload.selectedGroup}</div>
           <BoxWhiskerChart
             payload={payload}
             showHeader={false}
