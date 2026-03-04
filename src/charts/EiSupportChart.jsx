@@ -91,7 +91,7 @@ export default function EiSupportChart({ payload, showHeader = true, title, eyeb
       ) : null}
       <div className="chartFrame chartFrameEi">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 18, right: 22, left: 8, bottom: 14 }}>
+          <AreaChart data={data} margin={{ top: 12, right: 18, left: 12, bottom: 30 }}>
             <CartesianGrid stroke="#d4d4d8" strokeDasharray="3 3" />
             <XAxis
               dataKey="xSupportShare"
@@ -99,15 +99,15 @@ export default function EiSupportChart({ payload, showHeader = true, title, eyeb
               domain={[0, 1]}
               tickFormatter={(value) => pct(value, 0)}
               tick={{ fontSize: 12 }}
-              label={{ value: 'Estimated Support', position: 'insideBottom', offset: -4, fontSize: 12 }}
+              label={{ value: 'Estimated Support', position: 'bottom', offset: 8, fontSize: 12 }}
             />
             <YAxis
               domain={[0, yMax]}
               tick={{ fontSize: 12 }}
-              label={{ value: 'Density', angle: -90, position: 'insideLeft', style: { fontSize: 12 } }}
+              label={{ value: 'Density', angle: -90, position: 'insideLeft', offset: -2, style: { fontSize: 12 } }}
             />
             <Tooltip content={<SupportTooltip />} cursor={false} />
-            <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ fontSize: '12px', paddingBottom: '0.4rem' }} />
+            <Legend verticalAlign="top" align="center" iconType="circle" wrapperStyle={{ fontSize: '12px', paddingBottom: '0.25rem' }} />
             {payload.series.map((series, index) => (
               <Area
                 key={series.key}

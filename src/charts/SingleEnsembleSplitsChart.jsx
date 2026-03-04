@@ -43,7 +43,7 @@ export default function SingleEnsembleSplitsChart({ eyebrow, title, subtitle, bu
       </div>
       <div className="chartFrame chartFrameEnsemble">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={buckets} margin={{ top: 16, right: 12, left: 4, bottom: 20 }}>
+          <BarChart data={buckets} margin={{ top: 12, right: 12, left: 8, bottom: 28 }}>
             <CartesianGrid stroke="#d4d4d8" strokeDasharray="3 3" />
             <XAxis dataKey="splitLabel" tick={{ fontSize: 12 }} />
             <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
