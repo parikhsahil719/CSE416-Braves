@@ -96,6 +96,139 @@ function renderSummaryCard(stateName) {
   );
 }
 
+const CONGRESSIONAL_DATA = {
+  Oregon: {
+    districts: [
+      { districtNumber: 1, representative: 'Suzanne Bonamici', party: 'Democrat',    racialEthnicGroup: 'White',  voteMargin2024: 24.1  },
+      { districtNumber: 2, representative: 'Cliff Bentz',       party: 'Republican', racialEthnicGroup: 'White',  voteMargin2024: -33.7 },
+      { districtNumber: 3, representative: 'Maxine Dexter',     party: 'Democrat',   racialEthnicGroup: 'White',  voteMargin2024: 46.2  },
+      { districtNumber: 4, representative: 'Val Hoyle',         party: 'Democrat',   racialEthnicGroup: 'White',  voteMargin2024: 8.9   },
+      { districtNumber: 5, representative: 'Janelle Bynum',     party: 'Democrat',   racialEthnicGroup: 'Black',  voteMargin2024: 3.2   },
+      { districtNumber: 6, representative: 'Andrea Salinas',    party: 'Democrat',   racialEthnicGroup: 'Latino', voteMargin2024: 5.4   },
+    ],
+  },
+  SouthCarolina: {
+    districts: [
+      { districtNumber: 1, representative: 'Nancy Mace',      party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -13.8 },
+      { districtNumber: 2, representative: 'Joe Wilson',      party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -22.4 },
+      { districtNumber: 3, representative: 'Sheri Biggs',     party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -31.5 },
+      { districtNumber: 4, representative: 'William Timmons', party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -28.6 },
+      { districtNumber: 5, representative: 'Ralph Norman',    party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -26.1 },
+      { districtNumber: 6, representative: 'James Clyburn',   party: 'Democrat',   racialEthnicGroup: 'Black', voteMargin2024: 15.3  },
+      { districtNumber: 7, representative: 'Russell Fry',     party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -24.9 },
+    ],
+  },
+};
+
+function VoteMarginBadge({ margin }) {
+  const isDem = margin >= 0;
+  const absMargin = Math.abs(margin).toFixed(1);
+  const label = isDem ? `D+${absMargin}%` : `R+${absMargin}%`;
+  return (
+    <span
+      className={`congTable_marginBadge ${isDem ? 'congTable_marginBadge--dem' : 'congTable_marginBadge--rep'}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+function PartyDot({ party }) {
+  const cls =
+    party === 'Democrat'
+      ? 'congTable_partyDot congTable_partyDot--dem'
+      : party === 'Republican'
+      ? 'congTable_partyDot congTable_partyDot--rep'
+      : 'congTable_partyDot congTable_partyDot--ind';
+  return <span className={cls} title={party} />;
+}
+
+/**
+ * CongressionalRepresentationTable
+ *
+ * Props:
+ *   stateName: string  — e.g. "Oregon" or "South Carolina"
+ */
+export function CongressionalRepresentationTable({ stateName }) 
+{
+
+const CONGRESSIONAL_DATA = {
+  Oregon: {
+    districts: [
+      { districtNumber: 1, representative: 'Suzanne Bonamici', party: 'Democrat',    racialEthnicGroup: 'White',  voteMargin2024: 24.1  },
+      { districtNumber: 2, representative: 'Cliff Bentz',       party: 'Republican', racialEthnicGroup: 'White',  voteMargin2024: -33.7 },
+      { districtNumber: 3, representative: 'Maxine Dexter',     party: 'Democrat',   racialEthnicGroup: 'White',  voteMargin2024: 46.2  },
+      { districtNumber: 4, representative: 'Val Hoyle',         party: 'Democrat',   racialEthnicGroup: 'White',  voteMargin2024: 8.9   },
+      { districtNumber: 5, representative: 'Janelle Bynum',     party: 'Democrat',   racialEthnicGroup: 'Black',  voteMargin2024: 3.2   },
+      { districtNumber: 6, representative: 'Andrea Salinas',    party: 'Democrat',   racialEthnicGroup: 'Latino', voteMargin2024: 5.4   },
+    ],
+  },
+  SouthCarolina: {
+    districts: [
+      { districtNumber: 1, representative: 'Nancy Mace',      party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -13.8 },
+      { districtNumber: 2, representative: 'Joe Wilson',      party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -22.4 },
+      { districtNumber: 3, representative: 'Sheri Biggs',     party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -31.5 },
+      { districtNumber: 4, representative: 'William Timmons', party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -28.6 },
+      { districtNumber: 5, representative: 'Ralph Norman',    party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -26.1 },
+      { districtNumber: 6, representative: 'James Clyburn',   party: 'Democrat',   racialEthnicGroup: 'Black', voteMargin2024: 15.3  },
+      { districtNumber: 7, representative: 'Russell Fry',     party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -24.9 },
+    ],
+  },
+};
+  const normalizedName = stateName?.replaceAll(' ', '');
+  const stateData = CONGRESSIONAL_DATA[normalizedName];
+
+  if (!stateData) {
+    return (
+      <div className="congTable_unavailable">
+        Congressional representation data is not available for <strong>{stateName}</strong>.
+      </div>
+    );
+  }
+
+  const { districts } = stateData;
+
+  return (
+    <div className="congTable_root">
+      {/* ── Main table ── */}
+      <div className="congTable_tableWrapper">
+        <table className="congTable_table">
+          <thead>
+            <tr>
+              <th className="congTable_th congTable_th--district">District</th>
+              <th className="congTable_th--rep">Representative</th>
+              <th className="congTable_th congTable_th--party">Party</th>
+              <th className="congTable_th">Race / Ethnicity</th>
+              <th className="congTable_th congTable_th--margin">
+                Vote Margin
+                <span className="congTable_electionTag">2024 Presidential</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {districts.map((district) => (
+              <tr key={district.districtNumber} className="congTable_row">
+                <td className="congTable_td congTable_td--district">
+                  <span className="congTable_districtBadge">{district.districtNumber}</span>
+                </td>
+                <td className="congTable_td congTable_td--rep">{district.representative}</td>
+                <td className="congTable_td congTable_td--partyCell">
+                  <PartyDot party={district.party} />
+                  <span className="congTable_partyLabel">{district.party}</span>
+                </td>
+                <td className="congTable_td">{district.racialEthnicGroup}</td>
+                <td className="congTable_td congTable_td--marginCell">
+                  <VoteMarginBadge margin={district.voteMargin2024} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function safePayloadLookup(getter, stateName) {
   try {
     return getter(stateName);
@@ -129,7 +262,7 @@ function updateData(currentData, minoritySelection, secondData, thirdData, state
     case 'GUI-6':
       return displayData(
         <div className="customAnalysis_dataLabel">Congressional Representation by District</div>,
-        renderSummaryCard(stateName),
+        <CongressionalRepresentationTable stateName={stateName}/>,
         'customAnalysis_dataContainer'
       );
     case 'GUI-7':

@@ -30,7 +30,7 @@ export default function App() {
       minorityData: { minorityList: ['Black', 'Latino'] }
     }]
   // Probably not ensemble data
-  const stateTabs = ['Voting Rights Analysis', 'Minority Analysis', 'Custom State Analysis', 'Simulation Minority Data'];
+  const stateTabs = ['Voting Rights Analysis', 'Minority Analysis',  'Simulation Minority Data', 'Custom State Analysis',];
 
   return (
     <>

@@ -227,3 +227,173 @@
         flex: none;
     }
 }
+
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   CongressionalRepresentationTable — congressional-representation-table.css
+   Matches the existing app's design language (custom-analysis.css style).
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   CongressionalRepresentationTable — congressional-representation-table.css
+   Styled to match state-page.css design language.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Root container ── */
+.congTable_root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  font-family: inherit;
+}
+
+/* ── Unavailable state ── */
+.congTable_unavailable {
+  padding: 1.25rem;
+  color: #6b7280;
+  font-style: italic;
+  font-size: clamp(0.8rem, 0.9vw, 1rem);
+}
+
+/* ── Table wrapper ── */
+.congTable_tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* ── Table — mirrors .statePageTable ── */
+.congTable_table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid;
+  table-layout: fixed;
+  background: #fff;
+  min-width: 480px;
+}
+
+/* ── Header & cells — mirrors .statePageTable td, th ── */
+.congTable_th,
+.congTable_td {
+  padding: clamp(0.35rem, 0.65vw, 0.75rem);
+  text-align: center;
+  font-size: clamp(0.8rem, 0.9vw, 1rem);
+  line-height: 1.1;
+  border: 1px solid;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  vertical-align: middle;
+}
+
+/* Header-specific weight */
+.congTable_th {
+  font-weight: 600;
+  background: #f9fafb;
+}
+
+/* Data cell weight — mirrors .statePageTable td */
+.congTable_td {
+  font-weight: 500;
+}
+
+/* ── Column width hints ── */
+.congTable_th--district,
+.congTable_td--district {
+  width: 9%;
+  white-space: nowrap;
+}
+
+.congTable_th--rep,
+.congTable_td--rep {
+  width: 28%;
+  white-space: nowrap;
+}
+
+.congTable_th--party,
+.congTable_td--partyCell {
+  width: 15%;
+}
+
+.congTable_th--margin,
+.congTable_td--marginCell {
+  width: 18%;
+}
+
+/* ── Election subtitle inside margin header ── */
+.congTable_electionTag {
+  display: block;
+  font-size: clamp(0.65rem, 0.7vw, 0.78rem);
+  font-weight: 400;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* ── Body rows ── */
+.congTable_row:hover {
+  background: #f3f4f6;
+}
+
+.congTable_row:nth-child(even) {
+  background: #fafafa;
+}
+
+/* ── Representative cell ── */
+.congTable_td--rep {
+  font-weight: 600;
+}
+
+/* ── District number badge ── */
+
+
+/* ── Party dot ── */
+.congTable_partyDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.3rem;
+  vertical-align: middle;
+}
+
+/* .congTable_partyDot--dem { background: #3b82f6; }
+.congTable_partyDot--rep { background: #ef4444; }
+.congTable_partyDot--ind { background: #a855f7; } */
+
+.congTable_partyLabel {
+  vertical-align: middle;
+}
+
+/* ── Vote margin badge ── */
+.congTable_marginBadge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: clamp(0.7rem, 0.8vw, 0.875rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+/* .congTable_marginBadge--dem {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.congTable_marginBadge--rep {
+  background: #fee2e2;
+  color: #b91c1c;
+} */
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  .congTable_table {
+    min-width: 420px;
+  }
+}
+
+@media (max-width: 640px) {
+  .congTable_th,
+  .congTable_td {
+    padding: 0.4rem 0.5rem;
+  }
+}
