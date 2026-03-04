@@ -12,7 +12,8 @@ export default function VRAAnalysis() {
     <span id="VRAAnalysisMain">
       <div className="VRAAnalysisContainers">
         <SingleEnsembleSplitsChart
-          title="GUI 16 VRA"
+          eyebrow="GUI-16"
+          title="VRA-Constrained Ensemble"
           buckets={payload.series.vraConstrained}
           totalDistricts={payload.totalDistricts}
           ensembleSize={payload.ensembleSize}
@@ -20,7 +21,8 @@ export default function VRAAnalysis() {
       </div>
       <div className="VRAAnalysisContainers">
         <SingleEnsembleSplitsChart
-          title="Race Blind"
+          eyebrow="GUI-16"
+          title="Race-Blind Ensemble"
           buckets={payload.series.raceBlind}
           totalDistricts={payload.totalDistricts}
           ensembleSize={payload.ensembleSize}
