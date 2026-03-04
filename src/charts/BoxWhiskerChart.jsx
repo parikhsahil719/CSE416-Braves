@@ -3,14 +3,14 @@ import '../../styles/chart-integration.css';
 import { pct } from '../utils/chartFormat.js';
 
 function BoxWhiskerSvg({ payload }) {
-  const width = 920;
-  const height = 500;
-  const margin = { top: 24, right: 28, bottom: 58, left: 62 };
+  const width = 1080;
+  const height = 580;
+  const margin = { top: 20, right: 20, bottom: 54, left: 56 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
   const rows = payload.rankSummaries;
   const xStep = innerWidth / rows.length;
-  const boxWidth = Math.min(54, xStep * 0.66);
+  const boxWidth = Math.min(68, xStep * 0.72);
   const y = (value) => margin.top + (1 - value) * innerHeight;
 
   return (
@@ -19,13 +19,13 @@ function BoxWhiskerSvg({ payload }) {
       {[0, 0.25, 0.5, 0.75, 1].map((tick) => (
         <g key={tick}>
           <line x1={margin.left} x2={width - margin.right} y1={y(tick)} y2={y(tick)} stroke="#cbd5e1" strokeDasharray="3 3" />
-          <text x={14} y={y(tick) + 4} fontSize="12" fill="#334155">{pct(tick, 0)}</text>
+          <text x={12} y={y(tick) + 4} fontSize="13" fill="#334155">{pct(tick, 0)}</text>
         </g>
       ))}
       <line x1={margin.left} x2={margin.left} y1={margin.top} y2={height - margin.bottom} stroke="#334155" />
       <line x1={margin.left} x2={width - margin.right} y1={height - margin.bottom} y2={height - margin.bottom} stroke="#334155" />
-      <text x={18} y={margin.top - 6} fontSize="12" fill="#334155">Share</text>
-      <text x={width / 2} y={height - 12} fontSize="12" textAnchor="middle" fill="#334155">District rank</text>
+      <text x={14} y={margin.top - 4} fontSize="13" fill="#334155">Share</text>
+      <text x={width / 2} y={height - 10} fontSize="13" textAnchor="middle" fill="#334155">District rank</text>
       {rows.map((row, index) => {
         const centerX = margin.left + xStep * index + xStep / 2;
         return (
@@ -46,7 +46,7 @@ function BoxWhiskerSvg({ payload }) {
             <line x1={centerX - boxWidth / 2} x2={centerX + boxWidth / 2} y1={y(row.median)} y2={y(row.median)} stroke="#1f2937" strokeWidth="2" />
             <circle cx={centerX} cy={y(row.enactedValue)} r="5" fill="#dc2626" />
             {row.proposedValue != null ? <circle cx={centerX} cy={y(row.proposedValue)} r="5" fill="#059669" /> : null}
-            <text x={centerX} y={height - margin.bottom + 20} fontSize="12" textAnchor="middle" fill="#334155">{row.districtRank}</text>
+            <text x={centerX} y={height - margin.bottom + 20} fontSize="13" textAnchor="middle" fill="#334155">{row.districtRank}</text>
           </g>
         );
       })}

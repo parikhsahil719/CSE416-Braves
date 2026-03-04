@@ -10,7 +10,7 @@
 .minorityAnalysis_bodyContainer{
     display:grid;
     grid-template-rows: auto 1fr;
-    margin: 3rem 0 0 0;
+    margin: 1.5rem 0 0 0;
     padding: 0 1rem 2rem;
     box-sizing: border-box;
     width: 100%;
@@ -22,22 +22,23 @@
 .minorityAnalysis_checkboxContainer{
     grid-row: 1;
     justify-self: center;
-    margin: 0 0 2rem 0;
+    margin: 0 0 1.2rem 0;
 
     /* grid-column: 2; */
 }
 .minorityAnalysis_dataBodyContainer{
     grid-row: 2;
-    display:flex;
-    justify-content: center;
-    align-items: stretch;
-    gap: 1rem;
+    display:grid;
+    grid-template-columns: minmax(16rem, 0.85fr) minmax(24rem, 1.2fr) minmax(24rem, 1.2fr);
+    justify-content: stretch;
+    align-items: start;
+    gap: 1.1rem;
     width: 100%;
 }
 .minorityAnalysis_dataContainer{
     grid-template-rows: 1fr 1fr; 
-    margin: 1rem;
-    width: 30%;
+    margin: 0.5rem 0;
+    width: 100%;
     min-width: 0;
 }
 .minorityAnalysis_dataLabel{
@@ -51,7 +52,7 @@
 }
 
 .minorityAnalysis_placeholder{
-    height: 21rem;
+    height: 30rem;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -63,20 +64,19 @@
 .minorityAnalysis_leftColumn,
 .minorityAnalysis_middleColumn,
 .minorityAnalysis_rightColumn{
-    width: 31%;
+    width: 100%;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
     .minorityAnalysis_dataBodyContainer{
-        flex-direction: column;
-        align-items: center;
+        grid-template-columns: 1fr;
     }
 
     .minorityAnalysis_dataContainer,
     .minorityAnalysis_leftColumn,
     .minorityAnalysis_middleColumn,
     .minorityAnalysis_rightColumn{
-        width: 90%;
+        width: 100%;
     }
 }
 
@@ -103,4 +103,27 @@
     text-align:center;
     font-size: 0.95rem;
     color:#4b5563;
+}
+
+.minorityAnalysis_middleColumn .chartFrameBox,
+.minorityAnalysis_rightColumn .chartFrameEi {
+    min-height: 32rem;
+    height: 32rem;
+}
+
+.minorityAnalysis_middleColumn .chartLegend {
+    margin-bottom: 0.35rem;
+}
+
+.minorityAnalysis_middleColumn .chartPanel,
+.minorityAnalysis_rightColumn .chartPanel {
+    width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .minorityAnalysis_middleColumn .chartFrameBox,
+  .minorityAnalysis_rightColumn .chartFrameEi {
+      min-height: 26rem;
+      height: 26rem;
+  }
 }
