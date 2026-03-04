@@ -30,26 +30,26 @@ export default function App() {
     <Routes>
       <Route path='/' element={
         <>
-          <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis', 'Tab2']}/>
+          <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis']}/>
           <SplashPage currPage={currPage} switchPage={switchPage}/>
         </>
       } />
       <Route path='/Cross State Analysis' element={
         <>
-          <CountryHeaderBar currPage={currPage} switchPage={switchPage}  siteName='VRA Repeal Analysis' tabs={['Cross State Analysis', 'Tab2']}/>
+          <CountryHeaderBar currPage={currPage} switchPage={switchPage}  siteName='VRA Repeal Analysis' tabs={['Cross State Analysis']}/>
           <CrossStateAnalysis currPage={currPage} switchPage={switchPage}/>
         </>
       } />
       <Route path={`/state/:stateName`} element={
         <>
-          <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis', 'Tab2']}/>
+          <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis']}/>
           <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={['Voting Rights Analysis', 'Minority Analysis', 'Custom State Analysis']} />
           <StatePage currPage={currPage} switchPage={switchPage}/>
         </>
       } />
       <Route path={`/state/:stateName/Voting Rights Analysis`} element={
         <>
-          <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis', 'Tab2']}/>
+          <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis']}/>
           <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={['Voting Rights Analysis', 'Minority Analysis', 'Custom State Analysis']} />
           <VRAAnalysis currPage={currPage} switchPage={switchPage} />
         </>
@@ -57,7 +57,7 @@ export default function App() {
       />
       <Route path={`/state/:stateName/Minority Analysis`} element={
         <>
-          <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis', 'Tab2']}/>
+          <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis']}/>
           <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={['Voting Rights Analysis', 'Minority Analysis', 'Custom State Analysis']} />
           <StateMinorityAnalysis currPage={currPage} minorityData={minorityData} switchPage={switchPage} />
         </>
@@ -65,7 +65,7 @@ export default function App() {
       />
       <Route path={`/state/:stateName/Custom State Analysis`} element={
         <>
-          <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis', 'Tab2']}/>
+          <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis']}/>
           <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={['Voting Rights Analysis', 'Minority Analysis', 'Custom State Analysis']} />
           <StateCustomAnalysis currPage={currPage} minorityData={minorityData} switchPage={switchPage} />
         </>
