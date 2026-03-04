@@ -162,7 +162,7 @@ function updateData(currentData, minoritySelection, secondData, thirdData, state
       if (secondData === DEFAULT_DROPDOWN_VALUE) {
         return displayData(
           <div className="customAnalysis_dataLabel">GUI-12</div>,
-          renderPlaceholderCard('GUI-12', ['Select Minority or Language to continue.']),
+          renderPlaceholderCard('GUI-12', ['Select Race / Ethnicity or Language to continue.']),
           'customAnalysis_dataContainer'
         );
       }
@@ -186,7 +186,7 @@ function updateData(currentData, minoritySelection, secondData, thirdData, state
       if (minoritySelection === DEFAULT_DROPDOWN_VALUE) {
         return displayData(
           <div className="customAnalysis_dataLabel">GUI-12</div>,
-          renderPlaceholderCard('GUI-12', ['Select a minority to continue.']),
+          renderPlaceholderCard('GUI-12', ['Select a race / ethnicity group to continue.']),
           'customAnalysis_dataContainer'
         );
       }
@@ -194,8 +194,8 @@ function updateData(currentData, minoritySelection, secondData, thirdData, state
         return displayData(
           <div className="customAnalysis_dataLabel">GUI-12</div>,
           renderPlaceholderCard('GUI-12', [
-            `No mock EI payload is available for ${minoritySelection}.`,
-            `Available mock group: ${payload.selectedGroup}`,
+            `No mock GUI-12 payload is available for ${minoritySelection}.`,
+            `Available race / ethnicity group: ${payload.selectedGroup}`,
           ]),
           'customAnalysis_dataContainer'
         );
@@ -264,7 +264,7 @@ function updateData(currentData, minoritySelection, secondData, thirdData, state
           <div className="customAnalysis_dataLabel">GUI-17</div>,
           renderPlaceholderCard('GUI-17', [
             `No mock GUI-17 payload is available for ${minoritySelection}.`,
-            `Available mock group: ${payload.selectedGroup}`,
+            `Available race / ethnicity group: ${payload.selectedGroup}`,
           ]),
           'customAnalysis_dataContainer'
         );
@@ -312,7 +312,7 @@ function returnExtraDropdownsWithLabels(dataIndex, dataSelection, secondData, ch
       return (
         <span className="customAnalysis_extraCheckboxContainer">
           <div className="customAnalysis_extraCheckboxSubContainer">
-            <label htmlFor={`minorityOrLanguage-${dataIndex}`} className="customAnalysis_extraDropdown1_Label">Minority Or Language Group?</label>
+            <label htmlFor={`minorityOrLanguage-${dataIndex}`} className="customAnalysis_extraDropdown1_Label">Race / Ethnicity or Language?</label>
             <select
               className="customAnalysis_extraDropdown1"
               name={`minorityOrLanguage-${dataIndex}`}
@@ -324,7 +324,7 @@ function returnExtraDropdownsWithLabels(dataIndex, dataSelection, secondData, ch
               }}
             >
               <option value={DEFAULT_DROPDOWN_VALUE}>{DEFAULT_DROPDOWN_VALUE}</option>
-              <option value="Minority">Minority</option>
+              <option value="Race / Ethnicity">Race / Ethnicity</option>
               <option value="Language">Language</option>
             </select>
           </div>
