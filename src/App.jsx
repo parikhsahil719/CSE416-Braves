@@ -24,6 +24,7 @@ export default function App() {
     {stateName: 'South Carolina',
     minorityData: {minorityList: ['Latino', 'Black']}}]
   // Probably not ensemble data
+  const stateTabs = ['Voting Rights Analysis', 'Minority Analysis', 'Custom State Analysis', 'Simulation Minority Data'];
 
   return (
     <>
@@ -43,14 +44,14 @@ export default function App() {
       <Route path={`/state/:stateName`} element={
         <>
           <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis']}/>
-          <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={['Voting Rights Analysis', 'Minority Analysis', 'Custom State Analysis']} />
+          <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={stateTabs} />
           <StatePage currPage={currPage} switchPage={switchPage}/>
         </>
       } />
       <Route path={`/state/:stateName/Voting Rights Analysis`} element={
         <>
           <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis']}/>
-          <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={['Voting Rights Analysis', 'Minority Analysis', 'Custom State Analysis']} />
+          <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={stateTabs} />
           <VRAAnalysis currPage={currPage} switchPage={switchPage} />
         </>
       }
@@ -58,7 +59,7 @@ export default function App() {
       <Route path={`/state/:stateName/Minority Analysis`} element={
         <>
           <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis']}/>
-          <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={['Voting Rights Analysis', 'Minority Analysis', 'Custom State Analysis']} />
+          <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={stateTabs} />
           <StateMinorityAnalysis currPage={currPage} minorityData={minorityData} switchPage={switchPage} />
         </>
       }
@@ -66,8 +67,16 @@ export default function App() {
       <Route path={`/state/:stateName/Custom State Analysis`} element={
         <>
           <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis']}/>
-          <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={['Voting Rights Analysis', 'Minority Analysis', 'Custom State Analysis']} />
+          <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={stateTabs} />
           <StateCustomAnalysis currPage={currPage} minorityData={minorityData} switchPage={switchPage} />
+        </>
+      }
+      />
+      <Route path={`/state/:stateName/Simulation Minority Data`} element={
+        <>
+          <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' tabs={['Cross State Analysis']}/>
+          <StateHeaderBar currPage={currPage} switchPage={switchPage} tabs={stateTabs} />
+          {/* <StateCustomAnalysis currPage={currPage} minorityData={minorityData} switchPage={switchPage} /> */}
         </>
       }
       />
