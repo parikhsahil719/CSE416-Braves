@@ -87,15 +87,17 @@
 
 .crossStateTable {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
 }
 
 .crossStateTableCell {
-  width: 15rem;
-  padding: 0.48rem 0.45rem;
+  width: 20%;
+  padding: 0.5rem 0.45rem;
   border: 1px solid #d4d4d8;
   font-size: 0.82rem;
   text-align: center;
+  white-space: nowrap;
 }
 
 .tablePageContainer {
