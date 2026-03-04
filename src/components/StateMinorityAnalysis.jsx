@@ -41,12 +41,12 @@ function updateBody(minority, stateName)
         "minorityAnalysis_dataContainer minorityAnalysis_leftColumn"
     );
     const distributionBWWithLabel = displayData(
-        <div className="minorityAnalysis_dataLabel">GUI 17</div>,
+        <div className="minorityAnalysis_dataLabel">GUI-17</div>,
         <BoxWhiskerChart payload={boxPayload} />,
         "minorityAnalysis_dataContainer minorityAnalysis_middleColumn"
     );
     const candidateEIWithLabel1 = displayData(
-        <div className="minorityAnalysis_dataLabel">GUI 12 (race only)</div>,
+        <div className="minorityAnalysis_dataLabel">GUI-12</div>,
         <EiSupportChart payload={eiPayload} />,
         "minorityAnalysis_dataContainer minorityAnalysis_rightColumn"
     );

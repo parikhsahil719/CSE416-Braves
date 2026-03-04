@@ -73,3 +73,43 @@
 .chartLegendProposed {
   background: #059669;
 }
+
+.chartPanelEyebrow {
+  margin: 0 0 0.35rem;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #4b5563;
+}
+
+.chartPanelSubtitle {
+  margin: -0.15rem 0 0.6rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.chartFrameEi {
+  min-height: 22rem;
+  height: 22rem;
+}
+
+.chartTooltipWide {
+  min-width: 12rem;
+}
+
+.chartTooltipTitle {
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.chartTooltipRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.chartTooltipSeries {
+  font-weight: 600;
+}

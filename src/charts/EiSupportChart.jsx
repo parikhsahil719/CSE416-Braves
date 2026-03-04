@@ -50,6 +50,25 @@ function flattenSeries(series) {
   return [...rows.values()].sort((a, b) => a.xSupportShare - b.xSupportShare);
 }
 
+function SupportTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+
+  const visibleSeries = payload.filter((entry) => entry.value != null);
+  return (
+    <div className="chartTooltip chartTooltipWide">
+      <div className="chartTooltipTitle">Estimated Support {pct(label)}</div>
+      {visibleSeries.map((entry) => (
+        <div key={entry.name} className="chartTooltipRow">
+          <span className="chartTooltipSeries" style={{ color: entry.color }}>
+            {entry.name}
+          </span>
+          <span>{Number(entry.value).toFixed(3)} density</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function EiSupportChart({ payload }) {
   const data = flattenSeries(payload.series);
   const colors = [
@@ -58,17 +77,33 @@ export default function EiSupportChart({ payload }) {
     { stroke: '#264653', fill: '#2646534d' },
   ];
 
+  const maxDensity = Math.max(0, ...payload.series.flatMap((series) => (series.points ?? []).map((point) => point.density)));
+  const yMax = Math.max(1, Math.ceil(maxDensity * 1.15));
+
   return (
-    <div className="chartPanel">
+    <div className="chartPanel chartPanelEi">
+      <div className="chartPanelEyebrow">GUI-12</div>
       <h3 className="chartPanelTitle">Support for {payload.selectedCandidate}</h3>
-      <div className="chartFrame">
+      <p className="chartPanelSubtitle">Estimated support distribution by group</p>
+      <div className="chartFrame chartFrameEi">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 8, right: 18, left: 0, bottom: 8 }}>
-            <CartesianGrid stroke="#d4d4d8" strokeDasharray="2 2" />
-            <XAxis dataKey="xSupportShare" type="number" domain={[0, 1]} tickFormatter={(value) => pct(value, 0)} tick={{ fontSize: 11 }} />
-            <YAxis tick={{ fontSize: 11 }} label={{ value: 'Density', angle: -90, position: 'insideLeft' }} />
-            <Tooltip formatter={(value) => [Number(value).toFixed(3), 'Density']} labelFormatter={(value) => `Support ${pct(value)}`} />
-            <Legend verticalAlign="top" align="right" wrapperStyle={{ fontSize: '11px' }} />
+          <AreaChart data={data} margin={{ top: 18, right: 22, left: 8, bottom: 14 }}>
+            <CartesianGrid stroke="#d4d4d8" strokeDasharray="3 3" />
+            <XAxis
+              dataKey="xSupportShare"
+              type="number"
+              domain={[0, 1]}
+              tickFormatter={(value) => pct(value, 0)}
+              tick={{ fontSize: 12 }}
+              label={{ value: 'Estimated Support', position: 'insideBottom', offset: -4, fontSize: 12 }}
+            />
+            <YAxis
+              domain={[0, yMax]}
+              tick={{ fontSize: 12 }}
+              label={{ value: 'Density', angle: -90, position: 'insideLeft', style: { fontSize: 12 } }}
+            />
+            <Tooltip content={<SupportTooltip />} />
+            <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ fontSize: '12px', paddingBottom: '0.4rem' }} />
             {payload.series.map((series, index) => (
               <Area
                 key={series.key}
@@ -79,7 +114,8 @@ export default function EiSupportChart({ payload }) {
                 fill={colors[index % colors.length].fill}
                 fillOpacity={1}
                 dot={false}
-                strokeWidth={1.7}
+                activeDot={{ r: 5, strokeWidth: 1, fill: colors[index % colors.length].stroke }}
+                strokeWidth={2.3}
                 isAnimationActive={false}
                 connectNulls
               />
