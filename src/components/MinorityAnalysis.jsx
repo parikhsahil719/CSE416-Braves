@@ -4,9 +4,9 @@ import '../../styles/minority-analysis.css'
 import BoxWhiskerChart from "../charts/BoxWhiskerChart.jsx";
 import EiSupportChart from "../charts/EiSupportChart.jsx";
 import { getBoxWhiskerPayload, getEiSupportPayload } from "../data/chartPayloads.js";
+import MinorityHeatMap from './components/MinorityHeatMap'
 
-export function displayData(label = <div>this is label</div>, data = <div>this is data</div>, containerClassName = "", widthOfData = null, heightOfData = null)
-{
+export function displayData(label = <div>this is label</div>, data = <div>this is data</div>, containerClassName = "", widthOfData = null, heightOfData = null) {
     let style = {};
     if (widthOfData) {
         style['width'] = widthOfData + 'rem';
@@ -25,14 +25,13 @@ export function displayData(label = <div>this is label</div>, data = <div>this i
     )
 }
 
-function updateBody(minority, stateName)
-{
+function updateBody(minority, stateName) {
     const boxPayload = getBoxWhiskerPayload(stateName);
     const eiPayload = getEiSupportPayload(stateName);
 
     const minorityHM = (
         <div className="minorityAnalysis_placeholder">
-            Heat Map Placeholder
+            <MinorityHeatMap />
         </div>
     );
     const minorityHMWithLabel = displayData(
@@ -60,8 +59,7 @@ function updateBody(minority, stateName)
     );
 }
 
-export default function MinorityAnalysis(props)
-{
+export default function MinorityAnalysis(props) {
     const { stateName } = useParams();
     const boxPayload = getBoxWhiskerPayload(stateName);
     const eiPayload = getEiSupportPayload(stateName);
