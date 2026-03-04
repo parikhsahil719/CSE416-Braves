@@ -62,16 +62,18 @@
 }
 
 .chartLegendBox {
-  background: #bfdbfe;
-  border: 1px solid #1d4ed8;
+  background: #93c5fd;
+  border: 1px solid #1e3a8a;
 }
 
 .chartLegendEnacted {
   background: #dc2626;
+  border: 1px solid #111827;
 }
 
 .chartLegendProposed {
-  background: #059669;
+  background: #facc15;
+  border: 1px solid #111827;
 }
 
 .chartPanelEyebrow {

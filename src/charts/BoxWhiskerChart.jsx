@@ -38,14 +38,25 @@ function BoxWhiskerSvg({ payload }) {
               y={y(row.q3)}
               width={boxWidth}
               height={Math.max(1, y(row.q1) - y(row.q3))}
-              fill="#bfdbfe"
-              stroke="#1d4ed8"
-              strokeWidth="1.2"
-              opacity="0.88"
+              fill="#93c5fd"
+              stroke="#1e3a8a"
+              strokeWidth="1.5"
+              opacity="0.92"
             />
             <line x1={centerX - boxWidth / 2} x2={centerX + boxWidth / 2} y1={y(row.median)} y2={y(row.median)} stroke="#1f2937" strokeWidth="2" />
-            <circle cx={centerX} cy={y(row.enactedValue)} r="5" fill="#dc2626" />
-            {row.proposedValue != null ? <circle cx={centerX} cy={y(row.proposedValue)} r="5" fill="#059669" /> : null}
+            <circle cx={centerX} cy={y(row.enactedValue)} r="6" fill="#dc2626" stroke="#111827" strokeWidth="1.5" />
+            {row.proposedValue != null ? (
+              <rect
+                x={centerX - 5}
+                y={y(row.proposedValue) - 5}
+                width="10"
+                height="10"
+                fill="#facc15"
+                stroke="#111827"
+                strokeWidth="1.5"
+                transform={`rotate(45 ${centerX} ${y(row.proposedValue)})`}
+              />
+            ) : null}
             <text x={centerX} y={height - margin.bottom + 20} fontSize="13" textAnchor="middle" fill="#334155">{row.districtRank}</text>
           </g>
         );
