@@ -1,20 +1,52 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import "../../styles/cross-state-analysis.css";
 import GinglesScatterChart from '../charts/GinglesScatterChart.jsx';
 import { getGinglesPayload } from '../data/chartPayloads.js';
 import { num, pct } from '../utils/chartFormat.js';
 
-const PAGE_SIZE = 6;
-
 function StateSection({ title, stateKey, stateData }) {
   const payload = getGinglesPayload(stateKey);
   const options = useMemo(() => [payload.selectedGroup], [payload.selectedGroup]);
   // const options = stateData.minorityData.minorityList;
+  const tableWrapperRef = useRef(null);
+  const tableRef = useRef(null);
   const [currentGroup, changeGroup] = useState(options[0]);
+  const [pageSize, setPageSize] = useState(4);
   const [page, setPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil(payload.points.length / PAGE_SIZE));
-  const start = (page - 1) * PAGE_SIZE;
-  const rows = payload.points.slice(start, start + PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(payload.points.length / pageSize));
+  const start = (page - 1) * pageSize;
+  const rows = payload.points.slice(start, start + pageSize);
+
+  useEffect(() => {
+    const wrapper = tableWrapperRef.current;
+    const table = tableRef.current;
+    if (!wrapper || !table) return undefined;
+
+    function updatePageSize() {
+      const headerRow = table.querySelector('tr');
+      const bodyRow = table.querySelector('tbody tr:nth-child(2)');
+
+      if (!headerRow || !bodyRow) return;
+
+      const wrapperHeight = wrapper.clientHeight;
+      const headerHeight = headerRow.getBoundingClientRect().height;
+      const rowHeight = bodyRow.getBoundingClientRect().height;
+      const availableBodyHeight = Math.max(0, wrapperHeight - headerHeight);
+      const fullRowsThatFit = Math.floor(availableBodyHeight / rowHeight);
+
+      setPageSize(Math.max(1, Math.min(payload.points.length, fullRowsThatFit)));
+    }
+
+    updatePageSize();
+    const observer = new ResizeObserver(updatePageSize);
+    observer.observe(wrapper);
+    observer.observe(table);
+    return () => observer.disconnect();
+  }, [payload.points.length]);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, totalPages));
+  }, [totalPages]);
 
   const prevPage = () => setPage((current) => Math.max(1, current - 1));
   const nextPage = () => setPage((current) => Math.min(totalPages, current + 1));
@@ -47,8 +79,8 @@ function StateSection({ title, stateKey, stateData }) {
 
       <div className="crossStateTableSection">
         <h3 className="crossStateTableHeading">Precinct Data</h3>
-        <div className="crossStateTableWrapper">
-          <table className="crossStateTable">
+        <div ref={tableWrapperRef} className="crossStateTableWrapper">
+          <table ref={tableRef} className="crossStateTable">
             <tbody>
               <tr>
                 <th className="crossStateTableCell">Precinct</th>

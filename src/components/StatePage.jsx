@@ -135,7 +135,7 @@ export default function StatePage() {
 			</div>
 			<div id="tableContainer">
 				<div className="statePageTableLabel">State Population Data</div>
-				<table>
+				<table className="statePageTable">
 					<tbody>
 						<tr>
 							<th>State Population</th>
