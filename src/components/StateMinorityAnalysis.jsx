@@ -36,7 +36,7 @@ function updateBody(minority, stateName)
         </div>
     );
     const minorityHMWithLabel = displayData(
-        <div className="minorityAnalysis_dataLabel">Heat Map of {minority}</div>,
+        <div className="minorityAnalysis_dataLabel">GUI-4</div>,
         minorityHM,
         "minorityAnalysis_dataContainer minorityAnalysis_leftColumn"
     );

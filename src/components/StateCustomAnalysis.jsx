@@ -21,7 +21,7 @@ const dataDescriptionList = [
   { id: 'GUI-8', label: 'GUI-8', needsMinority: false, extraDropdowns: 0, implemented: false },
   { id: 'GUI-12', label: 'GUI-12', needsMinority: true, extraDropdowns: 2, implemented: true },
   { id: 'GUI-16', label: 'GUI-16', needsMinority: false, extraDropdowns: 1, implemented: true },
-  { id: 'GUI-17', label: 'GUI-17', needsMinority: false, extraDropdowns: 1, implemented: true },
+  { id: 'GUI-17', label: 'GUI-17', needsMinority: true, extraDropdowns: 1, implemented: true },
 ];
 
 const useCaseById = Object.fromEntries(dataDescriptionList.map((item) => [item.id, item]));
@@ -248,15 +248,36 @@ function updateData(currentData, minoritySelection, secondData, thirdData, state
       if (secondData === DEFAULT_DROPDOWN_VALUE) {
         return displayData(
           <div className="customAnalysis_dataLabel">GUI-17</div>,
-          renderPlaceholderCard('GUI-17', ['Select Voting Rights Act or Race Blind to continue.']),
+          renderPlaceholderCard('GUI-17', ['Select an ensemble type to continue.']),
+          'customAnalysis_dataContainer'
+        );
+      }
+      if (minoritySelection === DEFAULT_DROPDOWN_VALUE) {
+        return displayData(
+          <div className="customAnalysis_dataLabel">GUI-17</div>,
+          renderPlaceholderCard('GUI-17', ['Select a minority to continue.']),
+          'customAnalysis_dataContainer'
+        );
+      }
+      if (minoritySelection !== payload.selectedGroup) {
+        return displayData(
+          <div className="customAnalysis_dataLabel">GUI-17</div>,
+          renderPlaceholderCard('GUI-17', [
+            `No mock GUI-17 payload is available for ${minoritySelection}.`,
+            `Available mock group: ${payload.selectedGroup}`,
+          ]),
           'customAnalysis_dataContainer'
         );
       }
       return displayData(
         <div className="customAnalysis_dataLabel">GUI-17</div>,
         <div className="customAnalysis_chartWrapper">
-          <div className="customAnalysis_chartSubtitle">Selection: {secondData}</div>
-          <BoxWhiskerChart payload={payload} />
+          <div className="customAnalysis_chartSubtitle">{secondData} ensemble • Ordered district ranks for {payload.selectedGroup}</div>
+          <BoxWhiskerChart
+            payload={payload}
+            title="GUI-17: Box-and-Whisker"
+            subtitle={payload.metricLabel}
+          />
         </div>,
         'customAnalysis_dataContainer'
       );
@@ -327,10 +348,11 @@ function returnExtraDropdownsWithLabels(dataIndex, dataSelection, secondData, ch
     case 'GUI-16':
     case 'GUI-17': {
       const options = [DEFAULT_DROPDOWN_VALUE, 'Voting Rights Act', 'Race Blind'];
+      const label = dataSelection === 'GUI-17' ? 'Ensemble Type' : 'Voting Rights Act or Race Blind?';
       return (
         <span className="customAnalysis_extraCheckboxContainer">
           <div className="customAnalysis_extraCheckboxSubContainer">
-            <label htmlFor={`vraOrRaceBlind-${dataIndex}`} className="customAnalysis_extraDropdown1_Label">Voting Rights Act or Race Blind?</label>
+            <label htmlFor={`vraOrRaceBlind-${dataIndex}`} className="customAnalysis_extraDropdown1_Label">{label}</label>
             <select
               name={`vraOrRaceBlind-${dataIndex}`}
               id={`vraOrRaceBlind-${dataIndex}`}
