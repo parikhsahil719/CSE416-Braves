@@ -13,9 +13,8 @@
 }
 .customAnalysis_dataWithCheckbox{
     margin: 0;
-    flex: 1 1 28rem;
-    max-width: 38rem;
-    min-width: 24rem;
+    min-width: 0;
+    width: 100%;
 }
 .customAnalysis_dataCheckbox{
     display: flex;
@@ -43,9 +42,8 @@
 }
 .customAnalysis_dataBodyContainer{
     grid-row: 2;
-    display:flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    display:grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     align-items: stretch;
     gap: 1.5rem;
     width: 100%;
@@ -146,21 +144,19 @@
     margin-bottom: 0.5rem;
 }
 
+@media (max-width: 1500px) {
+    .customAnalysis_dataBodyContainer {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 @media (max-width: 1150px) {
     .customAnalysis_bodyContainer {
         padding: 0 1rem 2rem;
     }
 
     .customAnalysis_dataBodyContainer {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .customAnalysis_dataWithCheckbox {
-        width: 100%;
-        max-width: 100%;
-        min-width: 0;
-        margin-right: 0;
+        grid-template-columns: 1fr;
     }
 
     .customAnalysis_dataContainer,
