@@ -139,6 +139,13 @@
     overflow: visible;
 }
 
+.customAnalysis_chartTitle {
+    text-align: center;
+    font-size: 1.08rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+}
+
 .customAnalysis_chartSubtitle {
     text-align: center;
     font-size: 0.9rem;

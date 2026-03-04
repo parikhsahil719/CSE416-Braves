@@ -86,3 +86,21 @@
     letter-spacing: 0.08em;
     color:#4b5563;
 }
+
+.minorityAnalysis_chartStack{
+    width:100%;
+}
+
+.minorityAnalysis_chartTitle{
+    margin: 0 0 0.35rem;
+    text-align:center;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.minorityAnalysis_chartSubtitle{
+    margin: 0 0 0.7rem;
+    text-align:center;
+    font-size: 0.95rem;
+    color:#4b5563;
+}

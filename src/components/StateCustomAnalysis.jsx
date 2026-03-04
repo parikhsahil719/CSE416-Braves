@@ -203,7 +203,9 @@ function updateData(currentData, minoritySelection, secondData, thirdData, state
       return displayData(
         <div className="customAnalysis_dataLabel">GUI-12</div>,
         <div className="customAnalysis_chartWrapper">
-          <EiSupportChart payload={payload} />
+          <div className="customAnalysis_chartTitle">Support for {payload.selectedCandidate}</div>
+          <div className="customAnalysis_chartSubtitle">Estimated support distribution by group</div>
+          <EiSupportChart payload={payload} showHeader={false} />
         </div>,
         'customAnalysis_dataContainer'
       );
@@ -227,12 +229,16 @@ function updateData(currentData, minoritySelection, secondData, thirdData, state
       const isVra = secondData === 'Voting Rights Act';
       return displayData(
         <div className="customAnalysis_dataLabel">GUI-16</div>,
-        <SingleEnsembleSplitsChart
-          title={isVra ? 'GUI-16: VRA-Constrained' : 'GUI-16: Race-Blind'}
+        <div className="customAnalysis_chartWrapper">
+          <div className="customAnalysis_chartTitle">{isVra ? 'VRA-Constrained Ensemble' : 'Race-Blind Ensemble'}</div>
+          <SingleEnsembleSplitsChart
+          showHeader={false}
+          title={isVra ? 'VRA-Constrained Ensemble' : 'Race-Blind Ensemble'}
           buckets={isVra ? payload.series.vraConstrained : payload.series.raceBlind}
           totalDistricts={payload.totalDistricts}
           ensembleSize={payload.ensembleSize}
-        />,
+        />
+        </div>,
         'customAnalysis_dataContainer'
       );
     }
@@ -272,11 +278,11 @@ function updateData(currentData, minoritySelection, secondData, thirdData, state
       return displayData(
         <div className="customAnalysis_dataLabel">GUI-17</div>,
         <div className="customAnalysis_chartWrapper">
+          <div className="customAnalysis_chartTitle">{payload.metricLabel}</div>
           <div className="customAnalysis_chartSubtitle">{secondData} ensemble • Ordered district ranks for {payload.selectedGroup}</div>
           <BoxWhiskerChart
             payload={payload}
-            title="GUI-17: Box-and-Whisker"
-            subtitle={payload.metricLabel}
+            showHeader={false}
           />
         </div>,
         'customAnalysis_dataContainer'

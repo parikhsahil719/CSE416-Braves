@@ -42,12 +42,19 @@ function updateBody(minority, stateName)
     );
     const distributionBWWithLabel = displayData(
         <div className="minorityAnalysis_dataLabel minorityAnalysis_dataLabelSmall">GUI-17</div>,
-        <BoxWhiskerChart payload={boxPayload} eyebrow="GUI-17" title={boxPayload.metricLabel} />,
+        <div className="minorityAnalysis_chartStack">
+          <div className="minorityAnalysis_chartTitle">{boxPayload.metricLabel}</div>
+          <BoxWhiskerChart payload={boxPayload} showHeader={false} />
+        </div>,
         "minorityAnalysis_dataContainer minorityAnalysis_middleColumn"
     );
     const candidateEIWithLabel1 = displayData(
-        <div className="minorityAnalysis_dataLabel">GUI-12</div>,
-        <EiSupportChart payload={eiPayload} />,
+        <div className="minorityAnalysis_dataLabel minorityAnalysis_dataLabelSmall">GUI-12</div>,
+        <div className="minorityAnalysis_chartStack">
+          <div className="minorityAnalysis_chartTitle">Support for {eiPayload.selectedCandidate}</div>
+          <div className="minorityAnalysis_chartSubtitle">Estimated support distribution by group</div>
+          <EiSupportChart payload={eiPayload} showHeader={false} />
+        </div>,
         "minorityAnalysis_dataContainer minorityAnalysis_rightColumn"
     );
 

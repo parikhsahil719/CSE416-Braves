@@ -54,12 +54,16 @@ function BoxWhiskerSvg({ payload }) {
   );
 }
 
-export default function BoxWhiskerChart({ payload, eyebrow, title, subtitle }) {
+export default function BoxWhiskerChart({ payload, eyebrow, title, subtitle, showHeader = true }) {
   return (
     <div className="chartPanel chartPanelBoxWhisker">
-      {eyebrow ? <div className="chartPanelEyebrow">{eyebrow}</div> : null}
-      <h3 className="chartPanelTitle">{title ?? payload.metricLabel}</h3>
-      {subtitle ? <div className="chartPanelMeta"><span>{subtitle}</span></div> : null}
+      {showHeader ? (
+        <>
+          {eyebrow ? <div className="chartPanelEyebrow">{eyebrow}</div> : null}
+          <h3 className="chartPanelTitle">{title ?? payload.metricLabel}</h3>
+          {subtitle ? <div className="chartPanelMeta"><span>{subtitle}</span></div> : null}
+        </>
+      ) : null}
       <div className="chartLegend">
         <span><i className="chartLegendSwatch chartLegendBox" /> Ensemble distribution</span>
         <span><i className="chartLegendSwatch chartLegendEnacted" /> Enacted plan</span>

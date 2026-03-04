@@ -69,7 +69,7 @@ function SupportTooltip({ active, payload, label }) {
   );
 }
 
-export default function EiSupportChart({ payload }) {
+export default function EiSupportChart({ payload, showHeader = true, title, eyebrow, subtitle }) {
   const data = flattenSeries(payload.series);
   const colors = [
     { stroke: '#2a9d8f', fill: '#2a9d8f66' },
@@ -82,9 +82,13 @@ export default function EiSupportChart({ payload }) {
 
   return (
     <div className="chartPanel chartPanelEi">
-      <div className="chartPanelEyebrow">GUI-12</div>
-      <h3 className="chartPanelTitle">Support for {payload.selectedCandidate}</h3>
-      <p className="chartPanelSubtitle">Estimated support distribution by group</p>
+      {showHeader ? (
+        <>
+          <div className="chartPanelEyebrow">{eyebrow ?? "GUI-12"}</div>
+          <h3 className="chartPanelTitle">{title ?? `Support for ${payload.selectedCandidate}`}</h3>
+          <p className="chartPanelSubtitle">{subtitle ?? "Estimated support distribution by group"}</p>
+        </>
+      ) : null}
       <div className="chartFrame chartFrameEi">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 18, right: 22, left: 8, bottom: 14 }}>
@@ -102,19 +106,19 @@ export default function EiSupportChart({ payload }) {
               tick={{ fontSize: 12 }}
               label={{ value: 'Density', angle: -90, position: 'insideLeft', style: { fontSize: 12 } }}
             />
-            <Tooltip content={<SupportTooltip />} />
+            <Tooltip content={<SupportTooltip />} cursor={false} />
             <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ fontSize: '12px', paddingBottom: '0.4rem' }} />
             {payload.series.map((series, index) => (
               <Area
                 key={series.key}
-                type="basis"
+                type="monotone"
                 dataKey={series.key}
                 name={series.label}
                 stroke={colors[index % colors.length].stroke}
                 fill={colors[index % colors.length].fill}
                 fillOpacity={1}
                 dot={false}
-                activeDot={{ r: 5, strokeWidth: 1, fill: colors[index % colors.length].stroke }}
+                activeDot={false}
                 strokeWidth={2.3}
                 isAnimationActive={false}
                 connectNulls

@@ -27,12 +27,16 @@ function SplitTooltip({ active, payload, label }) {
   );
 }
 
-export default function SingleEnsembleSplitsChart({ eyebrow, title, subtitle, buckets, totalDistricts, ensembleSize }) {
+export default function SingleEnsembleSplitsChart({ eyebrow, title, subtitle, buckets, totalDistricts, ensembleSize, showHeader = true }) {
   return (
     <div className="chartPanel chartPanelEnsemble">
-      {eyebrow ? <div className="chartPanelEyebrow">{eyebrow}</div> : null}
-      <h3 className="chartPanelTitle">{title}</h3>
-      {subtitle ? <div className="chartPanelSubtitle">{subtitle}</div> : null}
+      {showHeader ? (
+        <>
+          {eyebrow ? <div className="chartPanelEyebrow">{eyebrow}</div> : null}
+          <h3 className="chartPanelTitle">{title}</h3>
+          {subtitle ? <div className="chartPanelSubtitle">{subtitle}</div> : null}
+        </>
+      ) : null}
       <div className="chartPanelMeta">
         <span>{totalDistricts} districts</span>
         <span>{num(ensembleSize)} plans</span>
