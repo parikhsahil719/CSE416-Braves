@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api")
 @Validated
 public class StateController {
     private final BackendDataService dataService;
