@@ -83,6 +83,7 @@ public class SeedDataLoader implements ApplicationRunner {
 
         Path root = ProjectPathResolver.resolveRoot(configuredRootPath);
         validatePrecinctCounts(root);
+        validatePopulationRealism(root);
         seedStates();
         seedDistrictMaps(root);
         seedStateSummaries();
@@ -107,6 +108,56 @@ public class SeedDataLoader implements ApplicationRunner {
             throw new IllegalStateException("Precinct realism validation failed: OR=" + orCount + ", SC=" + scCount);
         }
         LOG.info("Precinct realism check passed: OR={}, SC={}", orCount, scCount);
+    }
+
+    private void validatePopulationRealism(Path root) throws IOException {
+        int orPopulation = 4_272_371;
+        int scPopulation = 5_478_831;
+
+        validateStatePopulation("OR", orPopulation, root.resolve("src/data/OR-precincts-with-results.json"), 3_500_000, 5_000_000);
+        validateStatePopulation("SC", scPopulation, root.resolve("src/data/SC-precincts-with-results.json"), 4_500_000, 6_500_000);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void validateStatePopulation(
+            String stateId,
+            int population,
+            Path precinctPath,
+            int minExpectedPopulation,
+            int maxExpectedPopulation
+    ) throws IOException {
+        Map<String, Object> topo = readJsonMap(precinctPath);
+        Map<String, Object> objects = (Map<String, Object>) topo.get("objects");
+        Map<String, Object> stateObj = (Map<String, Object>) objects.get(stateId);
+        List<Map<String, Object>> geometries = (List<Map<String, Object>>) stateObj.get("geometries");
+
+        long totalVotes = 0L;
+        for (Map<String, Object> geometry : geometries) {
+            Map<String, Object> properties = (Map<String, Object>) geometry.get("properties");
+            Object votesTotal = properties.get("votes_total");
+            if (votesTotal instanceof Number number) {
+                totalVotes += number.longValue();
+            }
+        }
+
+        if (population < minExpectedPopulation || population > maxExpectedPopulation) {
+            throw new IllegalStateException("Population realism validation failed for " + stateId
+                    + ": population=" + population + ", expectedRange=[" + minExpectedPopulation + "," + maxExpectedPopulation + "]");
+        }
+
+        if (totalVotes <= 0L || population <= totalVotes) {
+            throw new IllegalStateException("Population realism validation failed for " + stateId
+                    + ": population=" + population + ", totalVotes=" + totalVotes);
+        }
+
+        double popToVotesRatio = (double) population / (double) totalVotes;
+        if (popToVotesRatio < 1.2 || popToVotesRatio > 3.0) {
+            throw new IllegalStateException("Population realism validation failed for " + stateId
+                    + ": populationToVotesRatio=" + popToVotesRatio);
+        }
+
+        LOG.info("{} population realism check passed: population={}, totalVotes={}, ratio={}",
+                stateId, population, totalVotes, String.format(Locale.US, "%.3f", popToVotesRatio));
     }
 
     @SuppressWarnings("unchecked")
