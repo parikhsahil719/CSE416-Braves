@@ -18,8 +18,6 @@ Also available:
 - `GET /health`
 - `GET /health/db`
 
-Other backend collections may exist as skeleton data for future use cases, but they should not be treated as fully implemented client/server flows.
-
 ## Prerequisites
 
 Install these locally:

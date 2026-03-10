@@ -1,23 +1,19 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import '../../styles/state-page.css'
 import { useParams } from "react-router-dom";
+import axios from "axios";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Oregon from "../data/oregon.js";
 import SouthCarolina from "../data/sc.js";
-import OregonDistrictData from "../data/oregonCongressionalDistricts.js"
-import SCDistrictData from "../data/scCongressionalDistricts.js"
 
 const dataMap = { Oregon, SouthCarolina }
 
 export default function StatePage() {
 	const { stateName } = useParams()
 	const data = dataMap[stateName?.replaceAll(' ', '')]
-	const fallbackDistrictData = useMemo(
-		() => (data === Oregon ? OregonDistrictData : SCDistrictData),
-		[data]
-	);
 	const [districtData, setDistrictData] = useState(null);
+	const [districtLoadFailed, setDistrictLoadFailed] = useState(false);
 
 	if (!data) {
 		return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: State not found</div>;
@@ -28,23 +24,26 @@ export default function StatePage() {
 		const stateCode = stateName === "Oregon" ? "OR" : stateName === "South Carolina" ? "SC" : null;
 
 		if (!stateCode) {
-			setDistrictData(fallbackDistrictData);
+			setDistrictData(null);
+			setDistrictLoadFailed(true);
 			return undefined;
 		}
 
+		setDistrictData(null);
+		setDistrictLoadFailed(false);
+
 		(async () => {
 			try {
-				const response = await fetch(`/api/states/${stateCode}/districts/enacted/geojson`);
-				if (!response.ok) {
-					throw new Error(`Request failed with status ${response.status}`);
-				}
-				const payload = await response.json();
+				const response = await axios.get(`/api/states/${stateCode}/districts/enacted/geojson`);
+				const payload = response.data;
 				if (isActive) {
 					setDistrictData(payload);
+					setDistrictLoadFailed(false);
 				}
 			} catch (error) {
 				if (isActive) {
-					setDistrictData(fallbackDistrictData);
+					setDistrictData(null);
+					setDistrictLoadFailed(true);
 				}
 			}
 		})();
@@ -52,7 +51,7 @@ export default function StatePage() {
 		return () => {
 			isActive = false;
 		};
-	}, [stateName, fallbackDistrictData]);
+	}, [stateName]);
 
 	useEffect(() => {
 		if (!districtData) {
@@ -171,6 +170,9 @@ export default function StatePage() {
 			<div id="statePageMapContainer">
 				<div className="statePageMapLabel">District View of the State</div>
 				<div id="statePagemap"></div>
+				{districtLoadFailed ? (
+					<div style={{ marginTop: "0.5rem", fontWeight: "bold" }}>Unable to load district map</div>
+				) : null}
 			</div>
 			<div id="tableContainer">
 				<div className="statePageTableLabel">State Population Data</div>
