@@ -5,8 +5,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.Index;
+import org.springframework.data.mongodb.core.index.IndexInfo;
 
 import jakarta.annotation.PostConstruct;
+
+import java.util.List;
 
 @Configuration
 public class MongoIndexConfig {
@@ -24,8 +27,7 @@ public class MongoIndexConfig {
         mongoTemplate.indexOps(StateSummaryDocument.class)
                 .ensureIndex(new Index().on("stateId", Sort.Direction.ASC));
 
-        mongoTemplate.indexOps(DistrictMapDocument.class)
-                .ensureIndex(new Index().on("stateId", Sort.Direction.ASC));
+        ensureUniqueDistrictMapStateIndex();
 
         mongoTemplate.indexOps(DistrictTableDocument.class)
                 .ensureIndex(new Index()
@@ -67,5 +69,21 @@ public class MongoIndexConfig {
 
         mongoTemplate.indexOps(IngestManifestDocument.class)
                 .ensureIndex(new Index().on("sourceManifestId", Sort.Direction.ASC));
+    }
+
+    private void ensureUniqueDistrictMapStateIndex() {
+        List<IndexInfo> existingIndexes = mongoTemplate.indexOps(DistrictMapDocument.class).getIndexInfo();
+        for (IndexInfo indexInfo : existingIndexes) {
+            if ("stateId_1".equals(indexInfo.getName()) && !indexInfo.isUnique()) {
+                mongoTemplate.indexOps(DistrictMapDocument.class).dropIndex(indexInfo.getName());
+                break;
+            }
+        }
+
+        mongoTemplate.indexOps(DistrictMapDocument.class)
+                .ensureIndex(new Index()
+                        .named("district_maps_stateId_unique")
+                        .on("stateId", Sort.Direction.ASC)
+                        .unique());
     }
 }
