@@ -10,30 +10,30 @@
 }
 
 #statePageMapContainer,
-#tableContainer {
+#statePageDataMainContainer {
   min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
 #statePageMapContainer {
   gap: 0.5rem;
-}
-
-#tableContainer {
-  gap: 0.5rem;
-  overflow: hidden;
+  align-items: center;
 }
 
 .statePageMapLabel,
-.statePageTableLabel {
+.statePageDataLabel {
   flex: 0 0 auto;
   font-size: clamp(1.05rem, 1.6vw, 1.9rem);
   font-weight: 600;
   text-align: center;
   letter-spacing: -0.01em;
+  margin: 0.5rem 0rem;
+}
+
+#statePageDataMainContainer {
+  margin-right: 10%;
 }
 
 #statePagemap {
@@ -44,7 +44,86 @@
   border: 1px solid var(--color-line);
 }
 
-.statePageTable {
+.statePageLabelsContainer {
+  display: flex;
+}
+
+.statePageLeftDataLabel {
+  border-top-left-radius: 1rem;
+}
+
+.statePageDataTab {
+  font-weight: bold;
+  font-size: 1.25rem;
+  padding: 0.5rem 2rem;
+  border: solid 1px black;
+  margin-left: -1px;
+}
+
+.statePageDataTab:hover {
+  cursor: pointer;
+}
+
+#statePageDataContainer {
+  width: min(100%, 46rem);
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background-color: #e8eaec;
+  border-radius: 0rem 0rem 1rem 1rem;
+  padding: clamp(1rem, 0.65vw, 3rem) clamp(1.5rem, 0.65vw, 2rem);
+}
+
+.statePagePopulationDataContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.statePageDataBubble {
+  min-width: 30%;
+  max-width: fit-content;
+  background-color: #fafeff;
+  font-size: 1.2rem;
+  padding: 1rem 2rem;
+  border-radius: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  box-shadow: 0px 4px 10px;
+}
+
+.statePageDataBubbleLabel, .statePageData {
+  margin: 0rem;
+}
+
+.statePageDataBubbleLabel {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.statePageData {
+  font-size: 1rem;
+}
+
+.statePageDataNum {
+  text-align: end;
+}
+
+.statePageActiveTab {
+  background-color: #e8eaec;
+  border: solid 3px black;
+}
+
+#statePageDataFooter {
+  font-size: 0.9rem;
+  color: rgb(0, 90, 126);
+  margin: 0.5rem;
+  padding-left: 1rem;
+}
+
+/* .statePageTable {
   flex: 1 1 auto;
   width: min(100%, 46rem);
   height: auto;
@@ -68,7 +147,7 @@
 
 .statePageTable td {
   font-weight: 500;
-}
+} */
 
 @media (max-width: 1400px) {
   #statePageMain {
@@ -77,7 +156,7 @@
     padding-inline: 0.75rem;
   }
 
-  .statePageTable {
+  .statePageMainContainer {
     width: 100%;
   }
 
@@ -103,7 +182,7 @@
     height: min(28rem, 55vh);
   }
 
-  .statePageTable {
+  .statePageDataMainContainer {
     height: auto;
   }
 }
