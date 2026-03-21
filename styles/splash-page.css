@@ -1,5 +1,21 @@
 .splashPage {
+  display: flex;
 }
+
+.onboarding {
+  background-color: rgb(229, 233, 235);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: max(10rem, 12.5vw);
+  margin: 2.25% 2% 0.25% 2%;
+  padding: 3%;
+  font-size: larger;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.8);
+  border-radius: 12px;
+  gap: max(0.5rem, 4vw);
+}
+
 .splashPage_body {
   /* Make splash page body shifted down */
   padding: 0.5% 0% 0% 0%; /* Space away from rest*/
@@ -21,7 +37,7 @@
 }
 
 #countrymap {
-  width: 85rem;
+  width: 75vw;
   height: 85vh;
 }
 

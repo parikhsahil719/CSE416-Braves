@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react'
+import React, { useEffect } from 'react'
 import '../../styles/splash-page.css'
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -7,8 +7,7 @@ import { useNavigate } from 'react-router-dom';
 // ─────────────────────────────────────────────
 // SplashPage
 // ─────────────────────────────────────────────
-function Map({switchPage})
-{
+function Map({ switchPage }) {
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -31,7 +30,7 @@ function Map({switchPage})
     }).addTo(map);
 
     function getColor(isActive) {
-      return isActive ? "#008000ff" : "#0a0a0aff";
+      return isActive ? "rgb(0, 150, 0)" : "rgb(80, 80, 80)";
     }
 
     function style(feature) {
@@ -98,7 +97,7 @@ function Map({switchPage})
         "<h4>US State</h4>" +
         (props
           ? "<b>" + props.name + "</b><br />"
-          : "Hover over a state");
+          : "Click on a state");
     };
 
     info.addTo(map);
@@ -114,7 +113,7 @@ function Map({switchPage})
           '<i style="background:' +
           getColor(grade) +
           '"></i>' +
-          (grade ? "Active" + "<br><br>": "Inactive")
+          (grade ? "Active" + "<br><br>" : "Inactive")
       });
 
       return div;
@@ -137,14 +136,20 @@ function Map({switchPage})
   );
 }
 
-export default function SplashPage({switchPage}) {
+export default function SplashPage({ switchPage }) {
   return (
-  <div className="splashPage">
-    <div className="splashPage_body">
-      {/* <h1 className="splashPage__title">Voting Rights Act Repeal Analysis</h1> */}
-      <div className='splashPage_mapHeader'>Country Map</div>
-      <Map switchPage={switchPage}/>
+    <div className="splashPage">
+      <div className="onboarding">
+        <h1>About</h1>
+        This web application conducts an analysis on how minority groups could be affected by a repeal of the Voting Rights Act. Specifically, one preclearance state (South Carolina)
+        and one non-preclearance state (Oregon) are analyzed using demographic, ensemble, and historical electoral data.
+        <div>Click on one of these states on the map to get started.</div>
+      </div>
+      <div className="splashPage_body">
+        {/* <h1 className="splashPage__title">Voting Rights Act Repeal Analysis</h1> */}
+        <div className='splashPage_mapHeader'>Country Map</div>
+        <Map switchPage={switchPage} />
+      </div>
     </div>
-  </div>
   )
 };
