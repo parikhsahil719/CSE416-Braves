@@ -9,6 +9,8 @@ This appendix catalogs the concrete JSON and GeoJSON payloads used to demonstrat
 - where the response payload comes from
 - whether the route is currently `Live` or only a `Seeded contract`
 
+For the payload-backed analytical routes, the response body is the Mongo `payload` value itself. The server does not return the full Mongo document wrapper.
+
 ## Catalog
 
 | Use Case | Server Route | State | Query Variant | Returned From | Sample JSON Source | Notes |

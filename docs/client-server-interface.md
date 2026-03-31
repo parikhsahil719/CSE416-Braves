@@ -7,7 +7,7 @@ This document is the professor-facing reference for the Braves project client/se
 - the use case number tied to each endpoint
 - the exact URL pattern requested by the client
 - the parameters passed to the server
-- the JSON or GeoJSON form returned by the backend
+- the exact JSON or GeoJSON response body returned by the backend
 - the MongoDB collection that stores the returned payload
 - whether the route is `Live` or a `Seeded contract`
 
@@ -36,22 +36,23 @@ Status labels used throughout this packet:
 - The server returns:
   - JSON for summary and analytical payloads
   - GeoJSON for enacted district maps
+- For the payload-backed analytical routes, the backend returns the Mongo `payload` field directly. It does not return the enclosing Mongo document metadata such as `_id`, `createdAt`, or `sourceManifestId`.
 
 ## Interface Summary
 
-| Use Case | Purpose | Method | URL | Parameters | Response JSON | Status | Mongo collection |
+| Use Case | Purpose | Method | URL | Parameters | Response Body | Status | Mongo collection |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| OPS-1 | Service health | `GET` | `/health` | None | `{ status, service }` | `Live` | N/A |
-| OPS-2 | Database health | `GET` | `/health/db` | None | `{ status, service, database, mongoStatus, collections, availableCollections }` | `Live` | Mongo metadata |
-| GUI-1 | List supported states | `GET` | `/api/states` | None | `StateOptionResponse[]` | `Live` | `states` |
-| GUI-2 | Enacted district map | `GET` | `/api/states/{stateId}/districts/enacted/geojson` | `stateId` | GeoJSON `FeatureCollection` | `Live` | `district_maps` |
-| GUI-3 | State summary | `GET` | `/api/states/{stateId}/summary` | `stateId` | state summary object | `Seeded contract` | `state_summaries` |
-| GUI-4 | Precinct heatmap bins | `GET` | `/api/states/{stateId}/heatmap/precincts?group=...` | `stateId`, `group` | heatmap config object | `Seeded contract` | `heatmap_bins` |
-| GUI-6 | Congressional representation table | `GET` | `/api/states/{stateId}/districts/enacted/table?election=2024_pres` | `stateId`, `election` | district table object | `Seeded contract` | `district_tables` |
-| GUI-9 | Gingles analysis | `GET` | `/api/states/{stateId}/analysis/gingles?group=...&election=2024_pres` | `stateId`, `group`, `election` | Gingles scatter payload | `Seeded contract` | `gingles_results` |
-| GUI-12 | EI support distribution | `GET` | `/api/states/{stateId}/analysis/ei-support?groups=...&election=2024_pres&party=DEM|REP` | `stateId`, `groups`, `election`, `party` | EI support payload | `Seeded contract` | `ei_support_results` |
-| GUI-16 | Ensemble splits | `GET` | `/api/states/{stateId}/ensembles/splits?ensembleSize=final&election=2024_pres` | `stateId`, `ensembleSize`, `election` | ensemble split payload | `Seeded contract` | `ensemble_splits` |
-| GUI-17 | Box-and-whisker ensemble summary | `GET` | `/api/states/{stateId}/ensembles/box-whisker?group=...&ensembleType=...&metric=...` | `stateId`, `group`, `ensembleType`, `metric` | box-and-whisker payload | `Seeded contract` | `box_whisker_results` |
+| OPS-1 | Service health | `GET` | `/health` | None | `{"status":"ok","service":"braves-server"}` | `Live` | N/A |
+| OPS-2 | Database health | `GET` | `/health/db` | None | `{"status":"ok","service":"braves-server","database":"cse416_braves","mongoStatus":"ok","collections":{...},"availableCollections":[...]}` | `Live` | Mongo metadata |
+| GUI-1 | List supported states | `GET` | `/api/states` | None | `[{"stateId":"OR","stateName":"Oregon","totalDistricts":6}]` | `Live` | `states` |
+| GUI-2 | Enacted district map | `GET` | `/api/states/{stateId}/districts/enacted/geojson` | `stateId` | `{"type":"FeatureCollection","features":[...]}` | `Live` | `district_maps` |
+| GUI-3 | State summary | `GET` | `/api/states/{stateId}/summary` | `stateId` | `{"schemaVersion":"v1","state":"OR","totalDistricts":6,"population":"4,272,371",...,"ensembleSummary":{...}}` | `Seeded contract` | `state_summaries` |
+| GUI-4 | Precinct heatmap bins | `GET` | `/api/states/{stateId}/heatmap/precincts?group=...` | `stateId`, `group` | `{"schemaVersion":"v1","state":"SC","group":"Black","binUnit":"percent","bins":[...],"precomputed":true}` | `Seeded contract` | `heatmap_bins` |
+| GUI-6 | Congressional representation table | `GET` | `/api/states/{stateId}/districts/enacted/table?election=2024_pres` | `stateId`, `election` | `{"schemaVersion":"v1","state":"OR","election":"2024_pres","districts":[...]}` | `Seeded contract` | `district_tables` |
+| GUI-9 | Gingles analysis | `GET` | `/api/states/{stateId}/analysis/gingles?group=...&election=2024_pres` | `stateId`, `group`, `election` | `{"schemaVersion":"v1","chartType":"gingles-scatter","state":"OR","totalDistricts":6,"election":"2024 Presidential",...}` | `Seeded contract` | `gingles_results` |
+| GUI-12 | EI support distribution | `GET` | `/api/states/{stateId}/analysis/ei-support?groups=...&election=2024_pres&party=DEM|REP` | `stateId`, `groups`, `election`, `party` | `{"schemaVersion":"v1","chartType":"ei-support","state":"OR","totalDistricts":6,"election":"2024 Presidential",...}` | `Seeded contract` | `ei_support_results` |
+| GUI-16 | Ensemble splits | `GET` | `/api/states/{stateId}/ensembles/splits?ensembleSize=final&election=2024_pres` | `stateId`, `ensembleSize`, `election` | `{"schemaVersion":"v1","chartType":"ensemble-splits","state":"OR","totalDistricts":6,"ensembleSize":250,...}` | `Seeded contract` | `ensemble_splits` |
+| GUI-17 | Box-and-whisker ensemble summary | `GET` | `/api/states/{stateId}/ensembles/box-whisker?group=...&ensembleType=...&metric=...` | `stateId`, `group`, `ensembleType`, `metric` | `{"schemaVersion":"v1","chartType":"box-whisker","state":"OR","totalDistricts":6,"ensembleType":"vra_constrained",...}` | `Seeded contract` | `box_whisker_results` |
 
 ## Operational Endpoints
 
@@ -118,8 +119,8 @@ Status labels used throughout this packet:
 - URL pattern: `GET /api/states`
 - Example request URL: `http://localhost:8080/api/states`
 - Parameters: none
-- Response JSON summary:
-  - array of objects with `stateId`, `stateName`, and `totalDistricts`
+- Actual response body fields:
+  - array entries include `stateId`, `stateName`, and `totalDistricts`
 - Example JSON:
 
 ```json
@@ -149,7 +150,7 @@ Status labels used throughout this packet:
   - `http://localhost:8080/api/states/SC/districts/enacted/geojson`
 - Parameters:
   - path `stateId`: normalized state code, currently `OR` or `SC`
-- Response JSON summary:
+- Actual response body fields:
   - GeoJSON `FeatureCollection`
   - top-level fields include `type`, `features`, and district geometry/properties entries
 - Example JSON snippet:
@@ -188,12 +189,16 @@ Status labels used throughout this packet:
   - `http://localhost:8080/api/states/SC/summary`
 - Parameters:
   - path `stateId`: `OR` or `SC`
-- Response JSON summary:
+- Actual response body fields:
   - `schemaVersion`
   - `state`
   - `totalDistricts`
-  - statewide population and vote-share summary
-  - current party control and list of representatives
+  - `population`
+  - `voterDistributionDem`
+  - `voterDistributionRep`
+  - `partyControl`
+  - `democratReps`
+  - `republicanReps`
   - `feasibleGroups`
   - `ensembleSummary`
 - Example JSON snippet:
@@ -207,6 +212,8 @@ Status labels used throughout this packet:
   "voterDistributionDem": "1,228,410 (55.6%)",
   "voterDistributionRep": "910,702 (41.3%)",
   "partyControl": "Democrat",
+  "democratReps": "Suzanne Bonamici, Maxine Dexter, Val Hoyle, Janelle Bynum, Andrea Salinas",
+  "republicanReps": "Cliff Bentz",
   "feasibleGroups": ["Latino", "Asian", "White"],
   "ensembleSummary": {
     "available": true,
@@ -230,7 +237,7 @@ Status labels used throughout this packet:
 - Parameters:
   - path `stateId`: `OR` or `SC`
   - query `group`: normalized minority group key such as `latino`, `asian`, or `black`
-- Response JSON summary:
+- Actual response body fields:
   - `schemaVersion`
   - `state`
   - `group`
@@ -269,7 +276,7 @@ Status labels used throughout this packet:
 - Parameters:
   - path `stateId`: `OR` or `SC`
   - query `election`: election identifier, currently seeded as `2024_pres`
-- Response JSON summary:
+- Actual response body fields:
   - `schemaVersion`
   - `state`
   - `election`
@@ -308,10 +315,16 @@ Status labels used throughout this packet:
   - path `stateId`: `OR` or `SC`
   - query `group`: seeded as `latino` for Oregon and `black` for South Carolina
   - query `election`: seeded as `2024_pres`
-- Response JSON summary:
+- Actual response body fields:
+  - `schemaVersion`
   - `chartType: "gingles-scatter"`
-  - precinct-level points with minority share and party vote share
-  - optional regression curve definitions for chart rendering
+  - `state`
+  - `totalDistricts`
+  - `election`
+  - `selectedGroup`
+  - `units.share`
+  - `points[]` with `precinctId`, `minorityShare`, `demVoteShare`, `repVoteShare`, `totalPopulation`, `minorityPopulation`
+  - `regressionCurves[]` with `key`, `label`, `party`, `curveType`, `points[]`
 - Example JSON snippet:
 
 ```json
@@ -319,13 +332,31 @@ Status labels used throughout this packet:
   "schemaVersion": "v1",
   "chartType": "gingles-scatter",
   "state": "OR",
+  "totalDistricts": 6,
+  "election": "2024 Presidential",
   "selectedGroup": "Latino",
+  "units": {
+    "share": "decimal_0_to_1"
+  },
   "points": [
     {
       "precinctId": "OR-P001",
       "minorityShare": 0.12,
       "demVoteShare": 0.46,
-      "repVoteShare": 0.5
+      "repVoteShare": 0.5,
+      "totalPopulation": 1820,
+      "minorityPopulation": 218
+    }
+  ],
+  "regressionCurves": [
+    {
+      "key": "dem_nlr",
+      "label": "Democratic best-fit regression",
+      "party": "DEM",
+      "curveType": "best_fit",
+      "points": [
+        { "x": 0.1, "y": 0.47 }
+      ]
     }
   ]
 }
@@ -350,11 +381,16 @@ Status labels used throughout this packet:
   - query `groups`: comma-separated group list; the current seeded examples use a single group per state
   - query `election`: seeded as `2024_pres`
   - query `party`: documented by the controller as `DEM` or `REP`
-- Response JSON summary:
+- Actual response body fields:
+  - `schemaVersion`
   - `chartType: "ei-support"`
-  - selected candidate / party of choice context
-  - `series[]` entries with density curve points
-  - optional `confidenceScore` per group
+  - `state`
+  - `totalDistricts`
+  - `election`
+  - `selectedCandidate`
+  - `units.share`
+  - `series[]` entries with `key`, `label`, `confidenceScore`, and density curve `points[]`
+  - `selectedGroup`
 - Example JSON snippet:
 
 ```json
@@ -362,10 +398,16 @@ Status labels used throughout this packet:
   "schemaVersion": "v1",
   "chartType": "ei-support",
   "state": "OR",
+  "totalDistricts": 6,
+  "election": "2024 Presidential",
   "selectedCandidate": "Hardy",
+  "units": {
+    "share": "decimal_0_to_1"
+  },
   "series": [
     {
       "key": "latino",
+      "label": "Latino",
       "confidenceScore": 0.82,
       "points": [
         { "xSupportShare": 0.2, "density": 0.1 }
@@ -394,8 +436,14 @@ Status labels used throughout this packet:
   - path `stateId`: `OR` or `SC`
   - query `ensembleSize`: controller default is `final`
   - query `election`: seeded as `2024_pres`
-- Response JSON summary:
+- Actual response body fields:
+  - `schemaVersion`
   - `chartType: "ensemble-splits"`
+  - `state`
+  - `totalDistricts`
+  - `ensembleSize`
+  - `election`
+  - `units.share`
   - `series.raceBlind[]`
   - `series.vraConstrained[]`
   - each bucket contains `splitLabel`, `repWins`, `demWins`, `frequency`, `shareOfEnsemble`
@@ -406,7 +454,12 @@ Status labels used throughout this packet:
   "schemaVersion": "v1",
   "chartType": "ensemble-splits",
   "state": "OR",
+  "totalDistricts": 6,
   "ensembleSize": 250,
+  "election": "2024 Presidential",
+  "units": {
+    "share": "decimal_0_to_1"
+  },
   "series": {
     "raceBlind": [
       { "splitLabel": "1R/5D", "repWins": 1, "demWins": 5, "frequency": 28, "shareOfEnsemble": 0.112 }
@@ -439,11 +492,16 @@ Status labels used throughout this packet:
   - query `group`: seeded as `latino` for Oregon and `black` for South Carolina
   - query `ensembleType`: seeded as `vra_constrained` or `race_blind`
   - query `metric`: seeded repository key is `minority_share`
-- Response JSON summary:
+- Actual response body fields:
+  - `schemaVersion`
   - `chartType: "box-whisker"`
+  - `state`
+  - `totalDistricts`
+  - `election`
   - `ensembleType`
   - `selectedGroup`
   - `metricLabel`
+  - `units.share`
   - `rankSummaries[]` with quartile values per ranked district
 - Example JSON snippet:
 
@@ -452,16 +510,24 @@ Status labels used throughout this packet:
   "schemaVersion": "v1",
   "chartType": "box-whisker",
   "state": "OR",
+  "totalDistricts": 6,
+  "election": "2024 Presidential",
   "ensembleType": "vra_constrained",
   "selectedGroup": "Latino",
   "metricLabel": "Latino CVAP share",
+  "units": {
+    "share": "decimal_0_to_1"
+  },
   "rankSummaries": [
     {
       "districtRank": 1,
       "min": 0.07,
+      "q1": 0.1,
       "median": 0.13,
+      "q3": 0.16,
       "max": 0.22,
-      "enactedValue": 0.12
+      "enactedValue": 0.12,
+      "proposedValue": 0.14
     }
   ]
 }
