@@ -12,6 +12,6 @@ public class OpenApiConfig {
         return new OpenAPI().info(new Info()
                 .title("CSE 416 Braves API")
                 .version("v1")
-                .description("Backend API for required CSE 416 use cases"));
+                .description("Live technical reference for Braves client/server routes, including currently live endpoints and seeded-contract routes documented for professor review."));
     }
 }
