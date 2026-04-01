@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "v1",
+  "chartType": "minority-effectiveness-histogram",
+  "state": "OR",
+  "election": "2024 Presidential",
+  "totalDistricts": 6,
+  "selectedGroup": "Latino",
+  "ensembleSize": 250,
+  "units": {
+    "count": "plans"
+  },
+  "series": {
+    "raceBlind": [
+      { "effectiveDistricts": 0, "frequency": 52, "shareOfEnsemble": 0.208 },
+      { "effectiveDistricts": 1, "frequency": 121, "shareOfEnsemble": 0.484 },
+      { "effectiveDistricts": 2, "frequency": 63, "shareOfEnsemble": 0.252 },
+      { "effectiveDistricts": 3, "frequency": 14, "shareOfEnsemble": 0.056 }
+    ],
+    "vraConstrained": [
+      { "effectiveDistricts": 0, "frequency": 11, "shareOfEnsemble": 0.044 },
+      { "effectiveDistricts": 1, "frequency": 74, "shareOfEnsemble": 0.296 },
+      { "effectiveDistricts": 2, "frequency": 129, "shareOfEnsemble": 0.516 },
+      { "effectiveDistricts": 3, "frequency": 36, "shareOfEnsemble": 0.144 }
+    ]
+  }
+}

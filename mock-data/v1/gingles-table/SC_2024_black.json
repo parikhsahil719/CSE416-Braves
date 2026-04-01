@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "v1",
+  "tableType": "gingles-precinct-table",
+  "state": "SC",
+  "election": "2024 Presidential",
+  "selectedGroup": "Black",
+  "rows": [
+    {
+      "precinctId": "SC-P003",
+      "precinctName": "Columbia 3",
+      "totalPopulation": 1940,
+      "minorityPopulation": 756,
+      "republicanVotes": 650,
+      "democraticVotes": 989,
+      "minorityShare": 0.39,
+      "repVoteShare": 0.40,
+      "demVoteShare": 0.60
+    },
+    {
+      "precinctId": "SC-P007",
+      "precinctName": "Charleston 7",
+      "totalPopulation": 2015,
+      "minorityPopulation": 1189,
+      "republicanVotes": 423,
+      "democraticVotes": 1441,
+      "minorityShare": 0.59,
+      "repVoteShare": 0.23,
+      "demVoteShare": 0.77
+    },
+    {
+      "precinctId": "SC-P011",
+      "precinctName": "Orangeburg 11",
+      "totalPopulation": 1860,
+      "minorityPopulation": 1302,
+      "republicanVotes": 260,
+      "democraticVotes": 1479,
+      "minorityShare": 0.70,
+      "repVoteShare": 0.15,
+      "demVoteShare": 0.85
+    }
+  ]
+}

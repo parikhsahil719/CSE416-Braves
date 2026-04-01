@@ -7,12 +7,27 @@ This README is the reproducible local setup guide for teammates. It covers:
 - local MongoDB setup
 - backend test and run commands
 - endpoint checks
-- how to run the frontend against the backend for the GUI-2 district-loading flow
+- how to run the frontend against the backend for the current contract routes
 
 ## Current Scope
 
 Implemented end-to-end:
+- `GET /api/states` (GUI-1)
 - `GET /api/states/{stateId}/districts/enacted/geojson` (GUI-2)
+- `GET /api/states/{stateId}/summary` (GUI-3)
+- `GET /api/states/{stateId}/heatmap/precincts?group=...` (GUI-4)
+- `GET /api/states/{stateId}/districts/enacted/table?election=...` (GUI-6)
+- `GET /api/states/{stateId}/analysis/gingles?group=...&election=...` (GUI-9)
+- `GET /api/states/{stateId}/analysis/gingles/table?group=...&election=...` (GUI-10)
+- `GET /api/states/{stateId}/analysis/ei-support?groups=...&election=...&party=...` (GUI-12)
+- `GET /api/states/{stateId}/analysis/ei-precinct-bar-ci?group=...&election=...&party=...` (GUI-13)
+- `GET /api/states/{stateId}/analysis/ei-kde?group=...&election=...&metric=...` (GUI-15)
+- `GET /api/states/{stateId}/ensembles/splits?ensembleSize=...&election=...` (GUI-16)
+- `GET /api/states/{stateId}/ensembles/box-whisker?group=...&ensembleType=...&metric=...` (GUI-17)
+- `GET /api/states/{stateId}/districts/interesting?planId=...` (GUI-19)
+- `GET /api/states/{stateId}/analysis/vra-impact-thresholds?group=...&election=...` (GUI-20)
+- `GET /api/states/{stateId}/analysis/minority-effectiveness/box-whisker?election=...` (GUI-21)
+- `GET /api/states/{stateId}/analysis/minority-effectiveness/histogram?group=...&election=...` (GUI-22)
 
 Also available:
 - `GET /health`
@@ -115,8 +130,12 @@ Open a second terminal and run:
 ```bash
 curl http://localhost:8080/health
 curl http://localhost:8080/health/db
+curl http://localhost:8080/api/states
 curl http://localhost:8080/api/states/OR/districts/enacted/geojson
 curl http://localhost:8080/api/states/SC/districts/enacted/geojson
+curl "http://localhost:8080/api/states/OR/analysis/gingles/table?group=latino&election=2024_pres"
+curl "http://localhost:8080/api/states/OR/analysis/ei-support?groups=latino&election=2024_pres&party=DEM"
+curl "http://localhost:8080/api/states/OR/analysis/vra-impact-thresholds?group=latino&election=2024_pres"
 ```
 
 Expected responses:
@@ -124,8 +143,12 @@ Expected responses:
   - returns `{"status":"ok","service":"braves-server"}`
 - `/health/db`
   - returns Mongo health info, DB name, collection list, and `district_maps` count
+- `/api/states`
+  - returns supported state options
 - district GeoJSON endpoints
   - return enacted district map JSON for `OR` and `SC`
+- summary and analysis endpoints
+  - return seeded professor-facing JSON payloads for the implemented GUI use cases
 
 ## Verify MongoDB in Compass
 
@@ -158,10 +181,10 @@ Then open the local Vite URL shown in the terminal, usually:
 http://localhost:5173
 ```
 
-For GUI-2 verification:
+For contract verification:
 - select a supported state
-- confirm the frontend requests `/api/states/{stateId}/districts/enacted/geojson`
-- confirm the district map renders
+- confirm the frontend requests the expected `/api/...` route for the chosen GUI
+- confirm the payload shape matches the docs under `/docs`
 
 ## Typical Full Local Workflow
 

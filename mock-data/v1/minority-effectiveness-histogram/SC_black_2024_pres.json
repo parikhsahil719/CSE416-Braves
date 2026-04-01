@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "v1",
+  "chartType": "minority-effectiveness-histogram",
+  "state": "SC",
+  "election": "2024 Presidential",
+  "totalDistricts": 7,
+  "selectedGroup": "Black",
+  "ensembleSize": 250,
+  "units": {
+    "count": "plans"
+  },
+  "series": {
+    "raceBlind": [
+      { "effectiveDistricts": 0, "frequency": 40, "shareOfEnsemble": 0.16 },
+      { "effectiveDistricts": 1, "frequency": 110, "shareOfEnsemble": 0.44 },
+      { "effectiveDistricts": 2, "frequency": 79, "shareOfEnsemble": 0.316 },
+      { "effectiveDistricts": 3, "frequency": 21, "shareOfEnsemble": 0.084 }
+    ],
+    "vraConstrained": [
+      { "effectiveDistricts": 0, "frequency": 8, "shareOfEnsemble": 0.032 },
+      { "effectiveDistricts": 1, "frequency": 56, "shareOfEnsemble": 0.224 },
+      { "effectiveDistricts": 2, "frequency": 123, "shareOfEnsemble": 0.492 },
+      { "effectiveDistricts": 3, "frequency": 63, "shareOfEnsemble": 0.252 }
+    ]
+  }
+}

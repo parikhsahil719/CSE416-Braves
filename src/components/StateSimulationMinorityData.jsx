@@ -1,14 +1,14 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import '../../styles/simulation-minority-analysis.css';
+import axios from "axios";
+import "../../styles/simulation-minority-analysis.css";
 import BoxWhiskerChart from "../charts/BoxWhiskerChart.jsx";
-import { getBoxWhiskerPayloads } from "../data/chartPayloads.js";
 
 function renderUnsupportedCard(group) {
   return (
     <div className="simulationMinority_placeholderCard">
       <div className="simulationMinority_placeholderTitle">GUI-17</div>
-      <div className="simulationMinority_placeholderLine">No mock GUI-17 payload is available for {group}.</div>
+      <div className="simulationMinority_placeholderLine">No backend GUI-17 payload is available for {group}.</div>
     </div>
   );
 }
@@ -36,13 +36,47 @@ export default function StateSimulationMinorityData(props) {
     return stateEntry?.minorityData?.minorityList ?? [];
   }, [props.minorityData, stateName]);
 
-  const payloads = useMemo(() => {
-    try {
-      return getBoxWhiskerPayloads(stateName);
-    } catch {
-      return null;
+  const [payloads, setPayloads] = useState(null);
+  const [currentMinority, changeMinority] = useState(configuredMinorityList[0] ?? "");
+
+  useEffect(() => {
+    let isActive = true;
+    const stateCode = stateName === "Oregon" ? "OR" : stateName === "South Carolina" ? "SC" : null;
+    const group = currentMinority?.trim().toLowerCase().replace(/\s+/g, "_");
+
+    if (!stateCode || !group) {
+      setPayloads(null);
+      return undefined;
     }
-  }, [stateName]);
+
+    (async () => {
+      try {
+        const [vraConstrained, raceBlind] = await Promise.all([
+          axios.get(`/api/states/${stateCode}/ensembles/box-whisker`, {
+            params: { group, ensembleType: "vra_constrained", metric: "minority_share" },
+          }),
+          axios.get(`/api/states/${stateCode}/ensembles/box-whisker`, {
+            params: { group, ensembleType: "race_blind", metric: "minority_share" },
+          }),
+        ]);
+
+        if (isActive) {
+          setPayloads({
+            vraConstrained: vraConstrained.data,
+            raceBlind: raceBlind.data,
+          });
+        }
+      } catch {
+        if (isActive) {
+          setPayloads(null);
+        }
+      }
+    })();
+
+    return () => {
+      isActive = false;
+    };
+  }, [currentMinority, stateName]);
 
   const minorityList = useMemo(() => {
     const list = new Set(configuredMinorityList);
@@ -50,8 +84,6 @@ export default function StateSimulationMinorityData(props) {
     if (payloads?.raceBlind?.selectedGroup) list.add(payloads.raceBlind.selectedGroup);
     return [...list];
   }, [configuredMinorityList, payloads]);
-
-  const [currentMinority, changeMinority] = useState(minorityList[0] ?? '');
 
   return (
     <div className="simulationMinority_bodyContainer">
@@ -71,14 +103,14 @@ export default function StateSimulationMinorityData(props) {
       <div className="simulationMinority_chartGrid">
         <EnsemblePanel
           eyebrow="GUI-17"
-          title={payloads?.vraConstrained?.metricLabel ?? 'Simulation Minority Data'}
+          title={payloads?.vraConstrained?.metricLabel ?? "Simulation Minority Data"}
           subtitle={`VRA-Constrained Ensemble • ${currentMinority}`}
           payload={payloads?.vraConstrained ?? null}
           group={currentMinority}
         />
         <EnsemblePanel
           eyebrow="GUI-17"
-          title={payloads?.raceBlind?.metricLabel ?? 'Simulation Minority Data'}
+          title={payloads?.raceBlind?.metricLabel ?? "Simulation Minority Data"}
           subtitle={`Race-Blind Ensemble • ${currentMinority}`}
           payload={payloads?.raceBlind ?? null}
           group={currentMinority}

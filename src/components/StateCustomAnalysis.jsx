@@ -1,30 +1,34 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import '../../styles/custom-analysis.css';
+import axios from "axios";
+import "../../styles/custom-analysis.css";
 import EiSupportChart from "../charts/EiSupportChart.jsx";
 import SingleEnsembleSplitsChart from "../charts/SingleEnsembleSplitsChart.jsx";
 import BoxWhiskerChart from "../charts/BoxWhiskerChart.jsx";
-import { getBoxWhiskerPayloads, getEiSupportPayload, getEnsembleSplitsPayload } from "../data/chartPayloads.js";
-import Oregon from "../data/oregon.js";
-import SouthCarolina from "../data/sc.js";
 
-const DEFAULT_DROPDOWN_VALUE = '--';
-const LANGUAGE_OPTIONS = ['English', 'Spanish', 'French'];
-const duplicateAllowedUseCases = new Set(['GUI-12', 'GUI-16', 'GUI-17']);
-const stateSummaryMap = { Oregon, SouthCarolina };
+const DEFAULT_DROPDOWN_VALUE = "--";
+const LANGUAGE_OPTIONS = ["English", "Spanish", "French"];
+const duplicateAllowedUseCases = new Set(["GUI-12", "GUI-16", "GUI-17"]);
 
 const dataDescriptionList = [
-  // { id: 'GUI-4', label: 'GUI-4', needsMinority: true, extraDropdowns: 0, implemented: false },
-  { id: 'GUI-5', label: 'GUI-5', needsMinority: true, extraDropdowns: 0, implemented: false },
-  { id: 'GUI-6', label: 'GUI-6', needsMinority: false, extraDropdowns: 0, implemented: false },
-  { id: 'GUI-7', label: 'GUI-7', needsMinority: false, extraDropdowns: 0, implemented: false },
-  { id: 'GUI-8', label: 'GUI-8', needsMinority: false, extraDropdowns: 0, implemented: false },
-  { id: 'GUI-12', label: 'GUI-12', needsMinority: true, extraDropdowns: 2, implemented: true },
-  { id: 'GUI-16', label: 'GUI-16', needsMinority: false, extraDropdowns: 1, implemented: true },
-  { id: 'GUI-17', label: 'GUI-17', needsMinority: true, extraDropdowns: 1, implemented: true },
+  { id: "GUI-5", label: "GUI-5", needsMinority: true, extraDropdowns: 0, implemented: false },
+  { id: "GUI-6", label: "GUI-6", needsMinority: false, extraDropdowns: 0, implemented: true },
+  { id: "GUI-7", label: "GUI-7", needsMinority: false, extraDropdowns: 0, implemented: false },
+  { id: "GUI-8", label: "GUI-8", needsMinority: false, extraDropdowns: 0, implemented: false },
+  { id: "GUI-12", label: "GUI-12", needsMinority: true, extraDropdowns: 2, implemented: true },
+  { id: "GUI-16", label: "GUI-16", needsMinority: false, extraDropdowns: 1, implemented: true },
+  { id: "GUI-17", label: "GUI-17", needsMinority: true, extraDropdowns: 1, implemented: true },
 ];
 
 const useCaseById = Object.fromEntries(dataDescriptionList.map((item) => [item.id, item]));
+
+function toStateCode(stateName) {
+  return stateName === "Oregon" ? "OR" : stateName === "South Carolina" ? "SC" : null;
+}
+
+function toGroupKey(group) {
+  return group?.trim().toLowerCase().replace(/\s+/g, "_");
+}
 
 export function displayData(label = <div>this is label</div>, data = <div>this is data</div>, containerClassName = "", widthOfData = null, heightOfData = null) {
   const style = {};
@@ -56,78 +60,12 @@ function renderPlaceholderCard(title, descriptionLines = []) {
   );
 }
 
-function renderSummaryCard(stateName) {
-  const summary = stateSummaryMap[stateName?.replaceAll(' ', '')];
-  if (!summary) {
-    return renderPlaceholderCard('GUI-6', ['State summary data is not available for this state.']);
-  }
-
-  return (
-    <div className="customAnalysis_summaryCard">
-      <table className="customAnalysis_summaryTable">
-        <tbody>
-          <tr>
-            <th>Population</th>
-            <td>{summary.population}</td>
-          </tr>
-          <tr>
-            <th>Democratic Vote Share</th>
-            <td>{summary.voterDistributionDem}</td>
-          </tr>
-          <tr>
-            <th>Republican Vote Share</th>
-            <td>{summary.voterDistributionRep}</td>
-          </tr>
-          <tr>
-            <th>Party Control</th>
-            <td>{summary.partyControl}</td>
-          </tr>
-          <tr>
-            <th>Democratic Representatives</th>
-            <td>{summary.democratReps}</td>
-          </tr>
-          <tr>
-            <th>Republican Representatives</th>
-            <td>{summary.republicanReps}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-const CONGRESSIONAL_DATA = {
-  Oregon: {
-    districts: [
-      { districtNumber: 1, representative: 'Suzanne Bonamici', party: 'Democrat',    racialEthnicGroup: 'White',  voteMargin2024: 24.1  },
-      { districtNumber: 2, representative: 'Cliff Bentz',       party: 'Republican', racialEthnicGroup: 'White',  voteMargin2024: -33.7 },
-      { districtNumber: 3, representative: 'Maxine Dexter',     party: 'Democrat',   racialEthnicGroup: 'White',  voteMargin2024: 46.2  },
-      { districtNumber: 4, representative: 'Val Hoyle',         party: 'Democrat',   racialEthnicGroup: 'White',  voteMargin2024: 8.9   },
-      { districtNumber: 5, representative: 'Janelle Bynum',     party: 'Democrat',   racialEthnicGroup: 'Black',  voteMargin2024: 3.2   },
-      { districtNumber: 6, representative: 'Andrea Salinas',    party: 'Democrat',   racialEthnicGroup: 'Latino', voteMargin2024: 5.4   },
-    ],
-  },
-  SouthCarolina: {
-    districts: [
-      { districtNumber: 1, representative: 'Nancy Mace',      party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -13.8 },
-      { districtNumber: 2, representative: 'Joe Wilson',      party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -22.4 },
-      { districtNumber: 3, representative: 'Sheri Biggs',     party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -31.5 },
-      { districtNumber: 4, representative: 'William Timmons', party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -28.6 },
-      { districtNumber: 5, representative: 'Ralph Norman',    party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -26.1 },
-      { districtNumber: 6, representative: 'James Clyburn',   party: 'Democrat',   racialEthnicGroup: 'Black', voteMargin2024: 15.3  },
-      { districtNumber: 7, representative: 'Russell Fry',     party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -24.9 },
-    ],
-  },
-};
-
 function VoteMarginBadge({ margin }) {
   const isDem = margin >= 0;
   const absMargin = Math.abs(margin).toFixed(1);
   const label = isDem ? `D+${absMargin}%` : `R+${absMargin}%`;
   return (
-    <span
-      className={`congTable_marginBadge ${isDem ? 'congTable_marginBadge--dem' : 'congTable_marginBadge--rep'}`}
-    >
+    <span className={`congTable_marginBadge ${isDem ? "congTable_marginBadge--dem" : "congTable_marginBadge--rep"}`}>
       {label}
     </span>
   );
@@ -135,62 +73,27 @@ function VoteMarginBadge({ margin }) {
 
 function PartyDot({ party }) {
   const cls =
-    party === 'Democrat'
-      ? 'congTable_partyDot congTable_partyDot--dem'
-      : party === 'Republican'
-      ? 'congTable_partyDot congTable_partyDot--rep'
-      : 'congTable_partyDot congTable_partyDot--ind';
+    party === "Democrat"
+      ? "congTable_partyDot congTable_partyDot--dem"
+      : party === "Republican"
+        ? "congTable_partyDot congTable_partyDot--rep"
+        : "congTable_partyDot congTable_partyDot--ind";
   return <span className={cls} title={party} />;
 }
 
-/**
- * CongressionalRepresentationTable
- *
- * Props:
- *   stateName: string  — e.g. "Oregon" or "South Carolina"
- */
-export function CongressionalRepresentationTable({ stateName }) 
-{
+export function CongressionalRepresentationTable({ payload }) {
+  const districts = payload?.districts ?? [];
 
-const CONGRESSIONAL_DATA = {
-  Oregon: {
-    districts: [
-      { districtNumber: 1, representative: 'Suzanne Bonamici', party: 'Democrat',    racialEthnicGroup: 'White',  voteMargin2024: 24.1  },
-      { districtNumber: 2, representative: 'Cliff Bentz',       party: 'Republican', racialEthnicGroup: 'White',  voteMargin2024: -33.7 },
-      { districtNumber: 3, representative: 'Maxine Dexter',     party: 'Democrat',   racialEthnicGroup: 'White',  voteMargin2024: 46.2  },
-      { districtNumber: 4, representative: 'Val Hoyle',         party: 'Democrat',   racialEthnicGroup: 'White',  voteMargin2024: 8.9   },
-      { districtNumber: 5, representative: 'Janelle Bynum',     party: 'Democrat',   racialEthnicGroup: 'Black',  voteMargin2024: 3.2   },
-      { districtNumber: 6, representative: 'Andrea Salinas',    party: 'Democrat',   racialEthnicGroup: 'Latino', voteMargin2024: 5.4   },
-    ],
-  },
-  SouthCarolina: {
-    districts: [
-      { districtNumber: 1, representative: 'Nancy Mace',      party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -13.8 },
-      { districtNumber: 2, representative: 'Joe Wilson',      party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -22.4 },
-      { districtNumber: 3, representative: 'Sheri Biggs',     party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -31.5 },
-      { districtNumber: 4, representative: 'William Timmons', party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -28.6 },
-      { districtNumber: 5, representative: 'Ralph Norman',    party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -26.1 },
-      { districtNumber: 6, representative: 'James Clyburn',   party: 'Democrat',   racialEthnicGroup: 'Black', voteMargin2024: 15.3  },
-      { districtNumber: 7, representative: 'Russell Fry',     party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -24.9 },
-    ],
-  },
-};
-  const normalizedName = stateName?.replaceAll(' ', '');
-  const stateData = CONGRESSIONAL_DATA[normalizedName];
-
-  if (!stateData) {
+  if (districts.length === 0) {
     return (
       <div className="congTable_unavailable">
-        Congressional representation data is not available for <strong>{stateName}</strong>.
+        Congressional representation data is not available for this state.
       </div>
     );
   }
 
-  const { districts } = stateData;
-
   return (
     <div className="congTable_root">
-      {/* ── Main table ── */}
       <div className="congTable_tableWrapper">
         <table className="congTable_table">
           <thead>
@@ -229,108 +132,93 @@ const CONGRESSIONAL_DATA = {
   );
 }
 
-function safePayloadLookup(getter, stateName) {
-  try {
-    return getter(stateName);
-  } catch {
-    return null;
-  }
-}
-
-function updateData(currentData, minoritySelection, secondData, thirdData, stateName, payloads) {
+function updateData(currentData, minoritySelection, secondData, thirdData, payloads) {
   switch (currentData) {
-    case 'GUI-4':
+    case "GUI-4":
       return displayData(
         <div className="customAnalysis_dataLabel">Heatmap of Minority by Precinct</div>,
-        renderPlaceholderCard('Heatmap by Minority', [
-          'Demographic heat map by precinct',
+        renderPlaceholderCard("Heatmap by Minority", [
+          "Demographic heat map by precinct",
           `Selected group: ${minoritySelection}`,
-          'Map rendering is not yet connected in custom analysis.',
+          "Map rendering is not yet connected in custom analysis.",
         ]),
-        'customAnalysis_dataContainer'
+        "customAnalysis_dataContainer"
       );
-    case 'GUI-5':
+    case "GUI-5":
       return displayData(
         <div className="customAnalysis_dataLabel">Heatmap of Minority by Census Block</div>,
-        renderPlaceholderCard('Heatmap of Minority by Census Block', [
-          'Demographic heat map by census block',
+        renderPlaceholderCard("Heatmap of Minority by Census Block", [
+          "Demographic heat map by census block",
           `Selected group: ${minoritySelection}`,
-          'Block-level map data is not yet wired.',
+          "Block-level map data is not yet wired.",
         ]),
-        'customAnalysis_dataContainer'
+        "customAnalysis_dataContainer"
       );
-    case 'GUI-6':
+    case "GUI-6":
       return displayData(
         <div className="customAnalysis_dataLabel">Congressional Representation by District</div>,
-        <CongressionalRepresentationTable stateName={stateName}/>,
-        'customAnalysis_dataContainer'
+        payloads.districtTable ? <CongressionalRepresentationTable payload={payloads.districtTable} /> : renderPlaceholderCard("Congressional Representation by District", ["No backend GUI-6 payload is available for this state."]),
+        "customAnalysis_dataContainer"
       );
-    case 'GUI-7':
+    case "GUI-7":
       return displayData(
         <div className="customAnalysis_dataLabel">GUI-7</div>,
-        renderPlaceholderCard('GUI-7', [
-          'Highlighted district view',
-          'Requires interactive map-layer district focus.',
+        renderPlaceholderCard("GUI-7", [
+          "Highlighted district view",
+          "Requires interactive map-layer district focus.",
         ]),
-        'customAnalysis_dataContainer'
+        "customAnalysis_dataContainer"
       );
-    case 'GUI-8':
+    case "GUI-8":
       return displayData(
         <div className="customAnalysis_dataLabel">GUI-8</div>,
-        renderPlaceholderCard('GUI-8', [
-          'District plan comparison',
-          'Reserved for enacted versus comparison plan display.',
+        renderPlaceholderCard("GUI-8", [
+          "District plan comparison",
+          "Reserved for enacted versus comparison plan display.",
         ]),
-        'customAnalysis_dataContainer'
+        "customAnalysis_dataContainer"
       );
-    case 'GUI-12': {
+    case "GUI-12": {
       const payload = payloads.eiSupport;
-      if (!payload) {
-        return displayData(
-          <div className="customAnalysis_dataLabel">Ecological Inference by Race/ Ethnicity or Language</div>,
-          renderPlaceholderCard('Ecological Inference by Race/ Ethnicity or Language', ['Ecological inference payload is not available for this state.']),
-          'customAnalysis_dataContainer'
-        );
-      }
       if (secondData === DEFAULT_DROPDOWN_VALUE) {
         return displayData(
           <div className="customAnalysis_dataLabel">Ecological Inference by Race/ Ethnicity or Language</div>,
-          renderPlaceholderCard('Ecological Inference by Race/ Ethnicity or Language', ['Select Race / Ethnicity or Language to continue.']),
-          'customAnalysis_dataContainer'
+          renderPlaceholderCard("Ecological Inference by Race/ Ethnicity or Language", ["Select Race / Ethnicity or Language to continue."]),
+          "customAnalysis_dataContainer"
         );
       }
-      if (secondData === 'Language') {
+      if (secondData === "Language") {
         if (thirdData === DEFAULT_DROPDOWN_VALUE) {
           return displayData(
             <div className="customAnalysis_dataLabel">Ecological Inference by Language</div>,
-            renderPlaceholderCard('Ecological Inference by Language', ['Select a language to continue.']),
-            'customAnalysis_dataContainer'
+            renderPlaceholderCard("Ecological Inference by Language", ["Select a language to continue."]),
+            "customAnalysis_dataContainer"
           );
         }
         return displayData(
           <div className="customAnalysis_dataLabel">Ecological Inference by Language</div>,
-          renderPlaceholderCard('Ecological Inference by Language', [
-            'Language-based ecological inference support is not yet wired.',
+          renderPlaceholderCard("Ecological Inference by Language", [
+            "Language-based ecological inference support is not yet wired.",
             `Selected language: ${thirdData}`,
           ]),
-          'customAnalysis_dataContainer'
+          "customAnalysis_dataContainer"
         );
       }
       if (minoritySelection === DEFAULT_DROPDOWN_VALUE) {
         return displayData(
           <div className="customAnalysis_dataLabel">Ecological Inference by Race/ Ethnicity or Language</div>,
-          renderPlaceholderCard('Ecological Inference by Race/ Ethnicity or Language', ['Select a race / ethnicity group to continue.']),
-          'customAnalysis_dataContainer'
+          renderPlaceholderCard("Ecological Inference by Race/ Ethnicity or Language", ["Select a race / ethnicity group to continue."]),
+          "customAnalysis_dataContainer"
         );
       }
-      if (minoritySelection !== payload.selectedGroup) {
+      if (!payload || minoritySelection !== payload.selectedGroup) {
         return displayData(
           <div className="customAnalysis_dataLabel">Ecological Inference by Race/ Ethnicity</div>,
-          renderPlaceholderCard('Ecological Inference by Race/ Ethnicity', [
-            `No mock GUI-12 payload is available for ${minoritySelection}.`,
-            `Available race / ethnicity group: ${payload.selectedGroup}`,
+          renderPlaceholderCard("Ecological Inference by Race/ Ethnicity", [
+            `No backend GUI-12 payload is available for ${minoritySelection}.`,
+            payload?.selectedGroup ? `Available race / ethnicity group: ${payload.selectedGroup}` : "No backend payload was returned.",
           ]),
-          'customAnalysis_dataContainer'
+          "customAnalysis_dataContainer"
         );
       }
       return displayData(
@@ -340,94 +228,91 @@ function updateData(currentData, minoritySelection, secondData, thirdData, state
           <div className="customAnalysis_chartSubtitle">Estimated support distribution by group</div>
           <EiSupportChart payload={payload} showHeader={false} />
         </div>,
-        'customAnalysis_dataContainer'
+        "customAnalysis_dataContainer"
       );
     }
-    case 'GUI-16': {
+    case "GUI-16": {
       const payload = payloads.ensembleSplits;
       if (!payload) {
         return displayData(
           <div className="customAnalysis_dataLabel">Simulated District Voting Distribution</div>,
-          renderPlaceholderCard('GUI-16', ['Ensemble split payload is not available for this state.']),
-          'customAnalysis_dataContainer'
+          renderPlaceholderCard("GUI-16", ["Ensemble split payload is not available for this state."]),
+          "customAnalysis_dataContainer"
         );
       }
       if (secondData === DEFAULT_DROPDOWN_VALUE) {
         return displayData(
           <div className="customAnalysis_dataLabel">Simulated District Voting Distribution</div>,
-          renderPlaceholderCard('GUI-16', ['Select Voting Rights Act or Race Blind to continue.']),
-          'customAnalysis_dataContainer'
+          renderPlaceholderCard("GUI-16", ["Select Voting Rights Act or Race Blind to continue."]),
+          "customAnalysis_dataContainer"
         );
       }
-      const isVra = secondData === 'Voting Rights Act';
+      const isVra = secondData === "Voting Rights Act";
       return displayData(
         <div className="customAnalysis_dataLabel">Simulated District Voting Distribution</div>,
         <div className="customAnalysis_chartWrapper">
-          <div className="customAnalysis_chartTitle">{isVra ? 'VRA-Constrained Ensemble' : 'Race-Blind Ensemble'}</div>
+          <div className="customAnalysis_chartTitle">{isVra ? "VRA-Constrained Ensemble" : "Race-Blind Ensemble"}</div>
           <SingleEnsembleSplitsChart
-          showHeader={false}
-          title={isVra ? 'VRA-Constrained Ensemble' : 'Race-Blind Ensemble'}
-          buckets={isVra ? payload.series.vraConstrained : payload.series.raceBlind}
-          totalDistricts={payload.totalDistricts}
-          ensembleSize={payload.ensembleSize}
-        />
+            showHeader={false}
+            title={isVra ? "VRA-Constrained Ensemble" : "Race-Blind Ensemble"}
+            buckets={isVra ? payload.series.vraConstrained : payload.series.raceBlind}
+            totalDistricts={payload.totalDistricts}
+            ensembleSize={payload.ensembleSize}
+          />
         </div>,
-        'customAnalysis_dataContainer'
+        "customAnalysis_dataContainer"
       );
     }
-    case 'GUI-17': {
+    case "GUI-17": {
       const payloadSet = payloads.boxWhiskers;
       if (!payloadSet) {
         return displayData(
           <div className="customAnalysis_dataLabel">GUI-17</div>,
-          renderPlaceholderCard('GUI-17', ['Box-and-whisker payload is not available for this state.']),
-          'customAnalysis_dataContainer'
+          renderPlaceholderCard("GUI-17", ["Box-and-whisker payload is not available for this state."]),
+          "customAnalysis_dataContainer"
         );
       }
       if (secondData === DEFAULT_DROPDOWN_VALUE) {
         return displayData(
           <div className="customAnalysis_dataLabel">GUI-17</div>,
-          renderPlaceholderCard('GUI-17', ['Select an ensemble type to continue.']),
-          'customAnalysis_dataContainer'
+          renderPlaceholderCard("GUI-17", ["Select an ensemble type to continue."]),
+          "customAnalysis_dataContainer"
         );
       }
       if (minoritySelection === DEFAULT_DROPDOWN_VALUE) {
         return displayData(
           <div className="customAnalysis_dataLabel">GUI-17</div>,
-          renderPlaceholderCard('GUI-17', ['Select a minority to continue.']),
-          'customAnalysis_dataContainer'
+          renderPlaceholderCard("GUI-17", ["Select a minority to continue."]),
+          "customAnalysis_dataContainer"
         );
       }
-      const isVra = secondData === 'Voting Rights Act';
+      const isVra = secondData === "Voting Rights Act";
       const payload = isVra ? payloadSet.vraConstrained : payloadSet.raceBlind;
-      if (minoritySelection !== payload.selectedGroup) {
+      if (!payload || minoritySelection !== payload.selectedGroup) {
         return displayData(
           <div className="customAnalysis_dataLabel">GUI-17</div>,
-          renderPlaceholderCard('GUI-17', [
-            `No mock GUI-17 payload is available for ${minoritySelection}.`,
-            `Available race / ethnicity group: ${payload.selectedGroup}`,
+          renderPlaceholderCard("GUI-17", [
+            `No backend GUI-17 payload is available for ${minoritySelection}.`,
+            payload?.selectedGroup ? `Available race / ethnicity group: ${payload.selectedGroup}` : "No backend payload was returned.",
           ]),
-          'customAnalysis_dataContainer'
+          "customAnalysis_dataContainer"
         );
       }
       return displayData(
         <div className="customAnalysis_dataLabel">GUI-17</div>,
         <div className="customAnalysis_chartWrapper">
           <div className="customAnalysis_chartTitle">{payload.metricLabel}</div>
-          <div className="customAnalysis_chartSubtitle">{isVra ? 'VRA-Constrained' : 'Race-Blind'} ensemble • {payload.selectedGroup}</div>
-          <BoxWhiskerChart
-            payload={payload}
-            showHeader={false}
-          />
+          <div className="customAnalysis_chartSubtitle">{isVra ? "VRA-Constrained" : "Race-Blind"} ensemble • {payload.selectedGroup}</div>
+          <BoxWhiskerChart payload={payload} showHeader={false} />
         </div>,
-        'customAnalysis_dataContainer'
+        "customAnalysis_dataContainer"
       );
     }
     default:
       return displayData(
         <div className="customAnalysis_dataLabel">Unknown</div>,
-        renderPlaceholderCard('Unknown Use Case', ['Selection could not be resolved.']),
-        'customAnalysis_dataContainer'
+        renderPlaceholderCard("Unknown Use Case", ["Selection could not be resolved."]),
+        "customAnalysis_dataContainer"
       );
   }
 }
@@ -443,9 +328,9 @@ function isMinorityDropdownDisabled(selection1, selection2, selection3) {
   return ![selection1, selection2, selection3].some((selection) => useCaseById[selection]?.needsMinority);
 }
 
-function returnExtraDropdownsWithLabels(dataIndex, dataSelection, secondData, changeSecondData, thirdData, changeThirdData, minorityList, languageList) {
+function returnExtraDropdownsWithLabels(dataIndex, dataSelection, secondData, changeSecondData, thirdData, changeThirdData, languageList) {
   switch (dataSelection) {
-    case 'GUI-12': {
+    case "GUI-12": {
       const languageOptions = [DEFAULT_DROPDOWN_VALUE, ...languageList].map((language) => (
         <option key={`gui12-language-${dataIndex}-${language}`} value={language}>{language}</option>
       ));
@@ -469,7 +354,7 @@ function returnExtraDropdownsWithLabels(dataIndex, dataSelection, secondData, ch
               <option value="Language">Language</option>
             </select>
           </div>
-          {secondData === 'Language' ? (
+          {secondData === "Language" ? (
             <div className="customAnalysis_extraCheckboxSubContainer">
               <label htmlFor={`languageOptions-${dataIndex}`} className="customAnalysis_extraDropdown1_Label">Language Options</label>
               <select
@@ -486,10 +371,10 @@ function returnExtraDropdownsWithLabels(dataIndex, dataSelection, secondData, ch
         </span>
       );
     }
-    case 'GUI-16':
-    case 'GUI-17': {
-      const options = [DEFAULT_DROPDOWN_VALUE, 'Voting Rights Act', 'Race Blind'];
-      const label = dataSelection === 'GUI-17' ? 'Ensemble Type' : 'Voting Rights Act or Race Blind?';
+    case "GUI-16":
+    case "GUI-17": {
+      const options = [DEFAULT_DROPDOWN_VALUE, "Voting Rights Act", "Race Blind"];
+      const label = dataSelection === "GUI-17" ? "Ensemble Type" : "Voting Rights Act or Race Blind?";
       return (
         <span className="customAnalysis_extraCheckboxContainer">
           <div className="customAnalysis_extraCheckboxSubContainer">
@@ -514,7 +399,7 @@ function returnExtraDropdownsWithLabels(dataIndex, dataSelection, secondData, ch
   }
 }
 
-function updateBody(minority, minorityList, stateName, payloads, slots) {
+function updateBody(minority, payloads, slots) {
   return (
     <div className="customAnalysis_dataBodyContainer">
       {slots.map((slot) => {
@@ -544,11 +429,10 @@ function updateBody(minority, minorityList, stateName, payloads, slots) {
                 slot.changeSecondData,
                 slot.thirdData,
                 slot.changeThirdData,
-                minorityList,
                 LANGUAGE_OPTIONS,
               )}
             </div>
-            {updateData(slot.currentData, minority, slot.secondData, slot.thirdData, stateName, payloads)}
+            {updateData(slot.currentData, minority, slot.secondData, slot.thirdData, payloads)}
           </div>
         );
       })}
@@ -558,27 +442,18 @@ function updateBody(minority, minorityList, stateName, payloads, slots) {
 
 export default function StateCustomAnalysis(props) {
   const { stateName } = useParams();
+  const stateCode = toStateCode(stateName);
 
   const configuredMinorityList = useMemo(() => {
     const stateEntry = props.minorityData.find((entry) => entry.stateName === stateName);
     return stateEntry?.minorityData?.minorityList ?? [];
   }, [props.minorityData, stateName]);
 
-  const payloads = useMemo(() => ({
-    eiSupport: safePayloadLookup(getEiSupportPayload, stateName),
-    ensembleSplits: safePayloadLookup(getEnsembleSplitsPayload, stateName),
-    boxWhiskers: safePayloadLookup(getBoxWhiskerPayloads, stateName),
-  }), [stateName]);
-
-  const minorityList = useMemo(() => {
-    const list = new Set(configuredMinorityList);
-    if (payloads.eiSupport?.selectedGroup) list.add(payloads.eiSupport.selectedGroup);
-    if (payloads.boxWhiskers?.vraConstrained?.selectedGroup) list.add(payloads.boxWhiskers.vraConstrained.selectedGroup);
-    if (payloads.boxWhiskers?.raceBlind?.selectedGroup) list.add(payloads.boxWhiskers.raceBlind.selectedGroup);
-    return [...list];
-  }, [configuredMinorityList, payloads]);
-
-  const [currentMinority, changeMinority] = useState(minorityList[0] ?? DEFAULT_DROPDOWN_VALUE);
+  const [districtTable, setDistrictTable] = useState(null);
+  const [ensembleSplits, setEnsembleSplits] = useState(null);
+  const [eiSupport, setEiSupport] = useState(null);
+  const [boxWhiskers, setBoxWhiskers] = useState(null);
+  const [currentMinority, changeMinority] = useState(configuredMinorityList[0] ?? DEFAULT_DROPDOWN_VALUE);
   const [currentData1, changeData1] = useState(dataDescriptionList[0].id);
   const [currentData2, changeData2] = useState(dataDescriptionList[1].id);
   const [currentData3, changeData3] = useState(dataDescriptionList[2].id);
@@ -589,9 +464,130 @@ export default function StateCustomAnalysis(props) {
   const [thirdData2, changeThirdData2] = useState(DEFAULT_DROPDOWN_VALUE);
   const [thirdData3, changeThirdData3] = useState(DEFAULT_DROPDOWN_VALUE);
 
-  const minorityOptions = minorityList.map((minority) => (
-    <option key={`Minority-Options-${minority}`} value={minority}>{minority}</option>
-  ));
+  useEffect(() => {
+    let isActive = true;
+
+    if (!stateCode) {
+      setDistrictTable(null);
+      setEnsembleSplits(null);
+      return undefined;
+    }
+
+    (async () => {
+      try {
+        const response = await axios.get(`/api/states/${stateCode}/districts/enacted/table`, {
+          params: { election: "2024_pres" },
+        });
+        if (isActive) {
+          setDistrictTable(response.data);
+        }
+      } catch {
+        if (isActive) {
+          setDistrictTable(null);
+        }
+      }
+    })();
+
+    (async () => {
+      try {
+        const response = await axios.get(`/api/states/${stateCode}/ensembles/splits`, {
+          params: {
+            ensembleSize: "final",
+            election: "2024_pres",
+          },
+        });
+        if (isActive) {
+          setEnsembleSplits(response.data);
+        }
+      } catch {
+        if (isActive) {
+          setEnsembleSplits(null);
+        }
+      }
+    })();
+
+    return () => {
+      isActive = false;
+    };
+  }, [stateCode]);
+
+  useEffect(() => {
+    let isActive = true;
+    const group = toGroupKey(currentMinority);
+
+    if (!stateCode || !group || currentMinority === DEFAULT_DROPDOWN_VALUE) {
+      setEiSupport(null);
+      setBoxWhiskers(null);
+      return undefined;
+    }
+
+    (async () => {
+      try {
+        const response = await axios.get(`/api/states/${stateCode}/analysis/ei-support`, {
+          params: {
+            groups: group,
+            election: "2024_pres",
+            party: "DEM",
+          },
+        });
+        if (isActive) {
+          setEiSupport(response.data);
+        }
+      } catch {
+        if (isActive) {
+          setEiSupport(null);
+        }
+      }
+    })();
+
+    (async () => {
+      try {
+        const [vraConstrained, raceBlind] = await Promise.all([
+          axios.get(`/api/states/${stateCode}/ensembles/box-whisker`, {
+            params: { group, ensembleType: "vra_constrained", metric: "minority_share" },
+          }),
+          axios.get(`/api/states/${stateCode}/ensembles/box-whisker`, {
+            params: { group, ensembleType: "race_blind", metric: "minority_share" },
+          }),
+        ]);
+        if (isActive) {
+          setBoxWhiskers({
+            vraConstrained: vraConstrained.data,
+            raceBlind: raceBlind.data,
+          });
+        }
+      } catch {
+        if (isActive) {
+          setBoxWhiskers(null);
+        }
+      }
+    })();
+
+    return () => {
+      isActive = false;
+    };
+  }, [currentMinority, stateCode]);
+
+  const minorityList = useMemo(() => {
+    const list = new Set(configuredMinorityList);
+    if (eiSupport?.selectedGroup) list.add(eiSupport.selectedGroup);
+    if (boxWhiskers?.vraConstrained?.selectedGroup) list.add(boxWhiskers.vraConstrained.selectedGroup);
+    if (boxWhiskers?.raceBlind?.selectedGroup) list.add(boxWhiskers.raceBlind.selectedGroup);
+    return list.size > 0 ? [...list] : [DEFAULT_DROPDOWN_VALUE];
+  }, [boxWhiskers, configuredMinorityList, eiSupport]);
+
+  useEffect(() => {
+    if (!minorityList.includes(currentMinority)) {
+      changeMinority(minorityList[0]);
+    }
+  }, [currentMinority, minorityList]);
+
+  const payloads = {
+    districtTable,
+    ensembleSplits,
+    eiSupport,
+    boxWhiskers,
+  };
 
   const slots = [
     {
@@ -626,12 +622,10 @@ export default function StateCustomAnalysis(props) {
     },
   ];
 
-  const displayBody = updateBody(currentMinority, minorityList, stateName, payloads, slots);
-
   return (
     <div className="customAnalysis_bodyContainer">
       <div className="customAnalysis_minorityCheckboxContainer">
-        <label htmlFor="minoritySelector">Choose the Minority to analyze <span style={{ color: 'gray', fontStyle: 'italic' }}>(if applicable)</span>: </label>
+        <label htmlFor="minoritySelector">Choose the Minority to analyze <span style={{ color: "gray", fontStyle: "italic" }}>(if applicable)</span>: </label>
         <select
           name="minoritySelector"
           id="minoritySelector"
@@ -639,10 +633,12 @@ export default function StateCustomAnalysis(props) {
           value={currentMinority}
           onChange={(event) => changeMinority(event.target.value)}
         >
-          {minorityOptions}
+          {minorityList.map((minority) => (
+            <option key={`Minority-Options-${minority}`} value={minority}>{minority}</option>
+          ))}
         </select>
       </div>
-      {displayBody}
+      {updateBody(currentMinority, payloads, slots)}
     </div>
   );
 }

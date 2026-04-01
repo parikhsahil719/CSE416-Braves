@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "v1",
+  "tableType": "vra-impact-thresholds",
+  "state": "OR",
+  "election": "2024 Presidential",
+  "selectedGroup": "Latino",
+  "populationMeasure": "CVAP",
+  "rows": [
+    {
+      "metricKey": "meet_or_exceed_enacted",
+      "metricLabel": "Meet or exceed enacted effective minority districts",
+      "raceBlindShare": 0.18,
+      "vraConstrainedShare": 0.67
+    },
+    {
+      "metricKey": "rough_proportionality",
+      "metricLabel": "Achieve rough proportionality relative to Latino CVAP share",
+      "raceBlindShare": 0.24,
+      "vraConstrainedShare": 0.72
+    },
+    {
+      "metricKey": "joint_satisfaction",
+      "metricLabel": "Satisfy both legal thresholds jointly",
+      "raceBlindShare": 0.12,
+      "vraConstrainedShare": 0.58
+    }
+  ]
+}

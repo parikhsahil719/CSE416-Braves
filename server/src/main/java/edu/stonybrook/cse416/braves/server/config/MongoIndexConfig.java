@@ -1,13 +1,12 @@
 package edu.stonybrook.cse416.braves.server.config;
 
 import edu.stonybrook.cse416.braves.server.model.*;
+import jakarta.annotation.PostConstruct;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.index.IndexInfo;
-
-import jakarta.annotation.PostConstruct;
 
 import java.util.List;
 
@@ -45,11 +44,31 @@ public class MongoIndexConfig {
                         .on("electionId", Sort.Direction.ASC)
                         .on("groupKey", Sort.Direction.ASC));
 
+        mongoTemplate.indexOps(GinglesTableDocument.class)
+                .ensureIndex(new Index()
+                        .on("stateId", Sort.Direction.ASC)
+                        .on("electionId", Sort.Direction.ASC)
+                        .on("groupKey", Sort.Direction.ASC));
+
         mongoTemplate.indexOps(EiSupportResultDocument.class)
                 .ensureIndex(new Index()
                         .on("stateId", Sort.Direction.ASC)
                         .on("electionId", Sort.Direction.ASC)
                         .on("groupKey", Sort.Direction.ASC));
+
+        mongoTemplate.indexOps(EiPrecinctBarCiDocument.class)
+                .ensureIndex(new Index()
+                        .on("stateId", Sort.Direction.ASC)
+                        .on("electionId", Sort.Direction.ASC)
+                        .on("groupKey", Sort.Direction.ASC)
+                        .on("partyKey", Sort.Direction.ASC));
+
+        mongoTemplate.indexOps(EiKdeDocument.class)
+                .ensureIndex(new Index()
+                        .on("stateId", Sort.Direction.ASC)
+                        .on("electionId", Sort.Direction.ASC)
+                        .on("groupKey", Sort.Direction.ASC)
+                        .on("metricKey", Sort.Direction.ASC));
 
         mongoTemplate.indexOps(EnsembleSplitDocument.class)
                 .ensureIndex(new Index()
@@ -63,6 +82,28 @@ public class MongoIndexConfig {
                         .on("ensembleType", Sort.Direction.ASC)
                         .on("groupKey", Sort.Direction.ASC)
                         .on("metricKey", Sort.Direction.ASC));
+
+        mongoTemplate.indexOps(InterestingPlanDocument.class)
+                .ensureIndex(new Index()
+                        .on("stateId", Sort.Direction.ASC)
+                        .on("planId", Sort.Direction.ASC));
+
+        mongoTemplate.indexOps(VraImpactThresholdTableDocument.class)
+                .ensureIndex(new Index()
+                        .on("stateId", Sort.Direction.ASC)
+                        .on("electionId", Sort.Direction.ASC)
+                        .on("groupKey", Sort.Direction.ASC));
+
+        mongoTemplate.indexOps(MinorityEffectivenessBoxWhiskerDocument.class)
+                .ensureIndex(new Index()
+                        .on("stateId", Sort.Direction.ASC)
+                        .on("electionId", Sort.Direction.ASC));
+
+        mongoTemplate.indexOps(MinorityEffectivenessHistogramDocument.class)
+                .ensureIndex(new Index()
+                        .on("stateId", Sort.Direction.ASC)
+                        .on("electionId", Sort.Direction.ASC)
+                        .on("groupKey", Sort.Direction.ASC));
 
         mongoTemplate.indexOps(RunManifestDocument.class)
                 .ensureIndex(new Index().on("sourceManifestId", Sort.Direction.ASC));

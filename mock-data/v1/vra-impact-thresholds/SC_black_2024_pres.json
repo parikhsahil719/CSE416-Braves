@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "v1",
+  "tableType": "vra-impact-thresholds",
+  "state": "SC",
+  "election": "2024 Presidential",
+  "selectedGroup": "Black",
+  "populationMeasure": "CVAP",
+  "rows": [
+    {
+      "metricKey": "meet_or_exceed_enacted",
+      "metricLabel": "Meet or exceed enacted effective minority districts",
+      "raceBlindShare": 0.14,
+      "vraConstrainedShare": 0.81
+    },
+    {
+      "metricKey": "rough_proportionality",
+      "metricLabel": "Achieve rough proportionality relative to Black CVAP share",
+      "raceBlindShare": 0.27,
+      "vraConstrainedShare": 0.86
+    },
+    {
+      "metricKey": "joint_satisfaction",
+      "metricLabel": "Satisfy both legal thresholds jointly",
+      "raceBlindShare": 0.10,
+      "vraConstrainedShare": 0.74
+    }
+  ]
+}

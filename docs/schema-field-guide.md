@@ -1,52 +1,142 @@
-# Schema Field Guide (Charts)
+# Schema Field Guide
 
 ## Shared fields
-- `schemaVersion` (string): contract version, e.g. `v1`
-- `chartType` (string): chart payload type used by the demo component
+- `schemaVersion` (string): contract version, currently `v1`
 - `state` (string): `OR` or `SC`
-- `totalDistricts` (integer): state district count (`6` or `7`)
-- `election` (string): election label for chart context
-- `units.share` (string): share storage convention (`decimal_0_to_1`)
+- `election` (string): election context, seeded as `2024 Presidential` or `2024_pres`
+- `totalDistricts` (integer): state district count (`6` for OR, `7` for SC)
+- `populationMeasureUsed` (string, optional): propagated from stored document metadata when available
+
+## GUI-1 State Options
+- Array of `StateOptionResponse`
+- `stateId` (string): state code
+- `stateName` (string): display name
+- `totalDistricts` (integer): district count
+
+## GUI-2 Enacted District Map
+- GeoJSON `FeatureCollection`
+- `features[]`: district features for the enacted plan
+
+## GUI-3 State Summary
+- `population` (string): statewide population summary
+- `voterDistributionDem` / `voterDistributionRep` (string): statewide 2024 Presidential vote summaries
+- `partyControl` (string): party control of redistricting process
+- `feasibleGroups[]` (string[]): feasible racial/ethnic groups for the state
+- `ensembleSummary` (object): seeded ensemble availability summary
+
+## GUI-4 Precinct Heatmap Bins
+- `group` (string): selected demographic group label
+- `binUnit` (string): seeded as `percent`
+- `bins[]`: legend bins with integer bounds and colors
+- `precomputed` (boolean): `true` for seeded contracts
+
+## GUI-6 Congressional Representation Table
+- `districts[]`: one row per enacted district
+- `districts[].districtNumber` (integer)
+- `districts[].representative` (string)
+- `districts[].party` (string)
+- `districts[].racialEthnicGroup` (string)
+- `districts[].voteMargin2024` (number): positive for Democratic margin, negative for Republican margin
+
+## GUI-7 Highlight District
+- Client-only interaction
+- Uses the district identifier already loaded by `GUI-6` and the rendered geometry from `GUI-2`
 
 ## GUI-9 Gingles Scatter
-- `points[].minorityShare` (number `[0,1]`): selected group share in precinct (x-axis)
-- `points[].demVoteShare` (number `[0,1]`): Democratic share (blue series y-value)
-- `points[].repVoteShare` (number `[0,1]`): Republican share (red series y-value)
-- `points[].totalPopulation` (integer): total precinct population
-- `points[].minorityPopulation` (integer): selected group count
+- `chartType` (string): `gingles-scatter`
+- `selectedGroup` (string): selected group label
+- `units.share` (string): seeded as `decimal_0_to_1`
+- `points[].minorityShare` (number `[0,1]`): selected-group share in precinct
+- `points[].demVoteShare` (number `[0,1]`)
+- `points[].repVoteShare` (number `[0,1]`)
+- `points[].totalPopulation` (integer)
+- `points[].minorityPopulation` (integer)
+- `regressionCurves[]` (array): precomputed best-fit curves
 
- - `regressionCurves[]` (array, optional): precomputed best-fit regression curve definitions for display (linear or non-linear)
- - `regressionCurves[].points[] = { x, y }`: curve points plotted as smooth regression lines
+## GUI-10 Gingles Table
+- `tableType` (string): `gingles-precinct-table`
+- `selectedGroup` (string)
+- `rows[]`: one row per precinct in the sampled table response
+- `rows[].precinctId` / `rows[].precinctName`
+- `rows[].totalPopulation` / `rows[].minorityPopulation`
+- `rows[].republicanVotes` / `rows[].democraticVotes`
+- `rows[].minorityShare`, `rows[].repVoteShare`, `rows[].demVoteShare`
 
 ## GUI-12 EI Support Distribution
-- `series[].points[].xSupportShare` (number `[0,1]`): estimated support share (x-axis)
-- `series[].points[].density` (number `>=0`): EI density/probability curve value (y-axis)
-- `series[].confidenceScore` (number `[0,1]`, optional): confidence summary for group/candidate
+- `chartType` (string): `ei-support`
+- `selectedCandidate` (string)
+- `selectedGroup` (string): retained for frontend compatibility
+- `series[]`: focal group and comparison group density curves
+- `series[].confidenceScore` (number `[0,1]`, optional)
+- `series[].points[].xSupportShare` (number `[0,1]`)
+- `series[].points[].density` (number `>= 0`)
 
-## GUI-16 Ensemble Splits
-- `series.raceBlind[]` / `series.vraConstrained[]`: split frequency buckets
-- `repWins`, `demWins` (integers): seats won by each party in that split
-- `frequency` (integer): count of plans with the split (bar height)
-- `shareOfEnsemble` (number `[0,1]`): normalized frequency
-- OR/SC note: `repWins + demWins` must equal `6` (OR) or `7` (SC)
-
-## GUI-17 Box & Whisker
-- `rankSummaries[].districtRank` (integer): rank position after sorting district metric values
-- `min`, `q1`, `median`, `q3`, `max` (numbers `[0,1]`): box/whisker summary values
-- `enactedValue` (number `[0,1]`): enacted plan dot overlay value
-- `proposedValue` (number `[0,1]`, optional): proposed plan dot overlay
-- OR/SC note: rank count is `6` for OR and `7` for SC
-
-## GUI-13 EI Bar + CI
-- `categories[].peak` (number `[0,1]`): bar height
-- `categories[].ciLow`, `categories[].ciHigh` (numbers `[0,1]`): confidence interval whisker bounds
+## GUI-13 EI Precinct Bar + CI
+- `chartType` (string): `ei-precinct-bar-ci`
+- `selectedCandidate` (string)
+- `categories[]`: bar categories for the selected candidate
+- `categories[].peak` (number `[0,1]`)
+- `categories[].ciLow`, `categories[].ciHigh` (number `[0,1]`)
 
 ## GUI-15 EI KDE
-- `series[].points[].x` (number): KDE x-axis value
-- `series[].points[].density` (number `>=0`): KDE y-axis density
-- `thresholdProbability` (number `[0,1]`, optional): probability annotation
+- `chartType` (string): `ei-kde`
+- `metricLabel` (string): describes compared support metric
+- `thresholdX` (number, optional)
+- `thresholdLabel` (string, optional)
+- `thresholdProbability` (number `[0,1]`, optional)
+- `series[].points[].x` (number)
+- `series[].points[].density` (number `>= 0`)
 
-## GUI-18 Vote Share vs Seat Share
-- `points[].voteShare` (number `[0,1]`): x-axis vote share
-- `points[].seatShare` (number `[0,1]`): y-axis seat share
-- `enabled` (boolean): whether chart is enabled for the state in the prototype
+## GUI-16 Ensemble Splits
+- `chartType` (string): `ensemble-splits`
+- `ensembleSize` (integer)
+- `series.raceBlind[]` / `series.vraConstrained[]`: split-frequency buckets
+- `repWins`, `demWins` (integers): seats won by each party in that split
+- `frequency` (integer): count of plans with that split
+- `shareOfEnsemble` (number `[0,1]`)
+
+## GUI-17 Box & Whisker
+- `chartType` (string): `box-whisker`
+- `ensembleType` (string): `race_blind` or `vra_constrained`
+- `selectedGroup` (string)
+- `metricLabel` (string)
+- `rankSummaries[]`: district-rank summaries
+- `rankSummaries[].districtRank` (integer)
+- `min`, `q1`, `median`, `q3`, `max` (numbers `[0,1]`)
+- `enactedValue`, `proposedValue` (numbers `[0,1]`, optional)
+
+## GUI-19 Interesting Plan
+- `planId` (string): selected interesting plan identifier
+- `planName` (string): display label for the plan
+- `ensembleType` (string)
+- `reasonInteresting` (string): why this plan was surfaced
+- `summary` (object): seeded political/effectiveness summary for the plan
+- `geojson` (GeoJSON `FeatureCollection`): map-ready geometry payload
+
+## GUI-20 VRA Impact Threshold Table
+- `tableType` (string): `vra-impact-thresholds`
+- `selectedGroup` (string)
+- `populationMeasure` (string): seeded as `CVAP`
+- `rows[]`: one row per legal threshold metric
+- `rows[].metricKey` / `rows[].metricLabel`
+- `rows[].raceBlindShare` / `rows[].vraConstrainedShare` (numbers `[0,1]`)
+
+## GUI-21 Minority Effectiveness Box & Whisker Comparison
+- `chartType` (string): `minority-effectiveness-box-whisker`
+- `units.count` (string): seeded as `districts`
+- `groupSummaries[]`: one summary per feasible group
+- `groupSummaries[].raceBlindSummary` / `groupSummaries[].vraConstrainedSummary`
+- each summary uses `min`, `q1`, `median`, `q3`, `max` integer district counts
+
+## GUI-22 Minority Effectiveness Histogram
+- `chartType` (string): `minority-effectiveness-histogram`
+- `selectedGroup` (string)
+- `ensembleSize` (integer)
+- `series.raceBlind[]` / `series.vraConstrained[]`
+- `effectiveDistricts` (integer)
+- `frequency` (integer)
+- `shareOfEnsemble` (number `[0,1]`)
+
+## GUI-24 Reset Page
+- Client-only interaction
+- Clears frontend state back to pre-selection defaults; no dedicated server payload

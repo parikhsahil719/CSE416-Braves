@@ -1,6 +1,7 @@
 package edu.stonybrook.cse416.braves.server.config;
 
 import edu.stonybrook.cse416.braves.server.dto.ErrorResponse;
+import edu.stonybrook.cse416.braves.server.dto.SkeletonResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,17 @@ public class ApiExceptionHandler {
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(NoSuchElementException ex, HttpServletRequest req) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), req.getRequestURI());
+    }
+
+    @ExceptionHandler(UnsupportedOperationException.class)
+    public ResponseEntity<SkeletonResponse> handleNotImplemented(UnsupportedOperationException ex, HttpServletRequest req) {
+        SkeletonResponse body = new SkeletonResponse(
+                "v1",
+                "skeleton",
+                ex.getMessage(),
+                req.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(body);
     }
 
     @ExceptionHandler(Exception.class)

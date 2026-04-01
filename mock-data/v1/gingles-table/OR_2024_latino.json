@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "v1",
+  "tableType": "gingles-precinct-table",
+  "state": "OR",
+  "election": "2024 Presidential",
+  "selectedGroup": "Latino",
+  "rows": [
+    {
+      "precinctId": "OR-P001",
+      "precinctName": "Portland 1",
+      "totalPopulation": 1820,
+      "minorityPopulation": 218,
+      "republicanVotes": 812,
+      "democraticVotes": 746,
+      "minorityShare": 0.12,
+      "repVoteShare": 0.50,
+      "demVoteShare": 0.46
+    },
+    {
+      "precinctId": "OR-P006",
+      "precinctName": "Salem 6",
+      "totalPopulation": 1690,
+      "minorityPopulation": 710,
+      "republicanVotes": 575,
+      "democraticVotes": 1047,
+      "minorityShare": 0.42,
+      "repVoteShare": 0.34,
+      "demVoteShare": 0.62
+    },
+    {
+      "precinctId": "OR-P012",
+      "precinctName": "Eugene 12",
+      "totalPopulation": 1725,
+      "minorityPopulation": 1311,
+      "republicanVotes": 259,
+      "democraticVotes": 1363,
+      "minorityShare": 0.76,
+      "repVoteShare": 0.15,
+      "demVoteShare": 0.79
+    }
+  ]
+}
