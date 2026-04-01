@@ -1,91 +1,94 @@
-import React, {useEffect} from 'react'
+import React, {useEffect, useRef} from 'react'
 import '../../styles/splash-page.css'
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import statesData from "../data/us-states.js";
 import { useNavigate } from 'react-router-dom';
+import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
+import * as topojson from "topojson-client"
+import data from '../data/us-states.json'
+
 // ─────────────────────────────────────────────
 // SplashPage
 // ─────────────────────────────────────────────
-function Map({switchPage})
-{
-  const navigate = useNavigate()
 
-  useEffect(() => {
-    const map = L.map("countrymap", {
-      center: [38.3, -96],
-      zoomControl: false,
-      zoom: 4.8,
-      zoomSnap: 0.1,
-      minZoom: 4,
-      maxZoom: 5,
-      dragging: false,
-      scrollWheelZoom: false,
-      doubleClickZoom: false,
-      keyboard: false,
-      maxBounds: [[50, -125.88], [24.84, -66.2]],
+function getColor(isActive) {
+  return isActive ? "rgb(0, 150, 0)" : "rgb(80, 80, 80)";
+}
+
+function TopoJSON(props) {
+  const navigate = useNavigate()
+  const layerRef = useRef(null)
+  const { data, infoRef, switchPage } = props
+
+  function style(feature) {
+    return {
+      fillColor: getColor(feature.properties.isActive),
+      weight: 2,
+      opacity: 1,
+      color: "white",
+      dashArray: "3",
+      fillOpacity: 0.7,
+    };
+  }
+
+  function highlightFeature(e) {
+    const layer = e.target;
+
+    layer.setStyle({
+      weight: 5,
+      color: "#ffffffff",
+      dashArray: "",
+      fillOpacity: 0.7,
     });
 
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map);
+    layer.bringToFront();
+    infoRef.current.update(layer.feature.properties);
+  }
 
-    function getColor(isActive) {
-      return isActive ? "#008000ff" : "#0a0a0aff";
+  function resetHighlight(e) {
+    layerRef.current.resetStyle(e.target);
+    infoRef.current.update();
+  }
+
+  function openStatePage(e) {
+    const stateName = e.target.feature.properties.name;
+    if (stateName === 'Oregon' || stateName === 'South Carolina') {
+      switchPage('State')
+      navigate(`/state/${stateName}`);
     }
+  }
 
-    function style(feature) {
-      return {
-        fillColor: getColor(feature.properties.isActive),
-        weight: 2,
-        opacity: 1,
-        color: "white",
-        dashArray: "3",
-        fillOpacity: 0.7,
-      };
-    }
+  function onEachFeature(feature, layer) {
+    layer.on({
+      mouseover: highlightFeature,
+      mouseout: resetHighlight,
+      click: openStatePage,
+    });
+  }
 
-    function highlightFeature(e) {
-      const layer = e.target;
-
-      layer.setStyle({
-        weight: 5,
-        color: "#ffffffff",
-        dashArray: "",
-        fillOpacity: 0.7,
-      });
-
-      layer.bringToFront();
-      info.update(layer.feature.properties);
-    }
-
-    function resetHighlight(e) {
-      geojson.resetStyle(e.target);
-      info.update();
-    }
-
-    function openStatePage(e) {
-      const stateName = e.target.feature.properties.name;
-      if (stateName === 'Oregon' || stateName === 'South Carolina') {
-        switchPage('State')
-        navigate(`/state/${stateName}`);
+  function addData(layer, jsonData) {
+    if (jsonData.type === "Topology") {
+      for (let key in jsonData.objects) {
+        let geojson = topojson.feature(jsonData, jsonData.objects[key])
+        layer.addData(geojson)
       }
+    } else {
+      layer.addData(jsonData)
     }
+  }
 
-    function onEachFeature(feature, layer) {
-      layer.on({
-        mouseover: highlightFeature,
-        mouseout: resetHighlight,
-        click: openStatePage,
-      });
-    }
+  useEffect(() => {
+    const layer = layerRef.current
+    layer.clearLayers()
+    addData(layer, data)
+  }, [data]);
 
-    const geojson = L.geoJson(statesData, {
-      style,
-      onEachFeature,
-    }).addTo(map);
+  return <GeoJSON ref={layerRef} style={style} onEachFeature={onEachFeature} />
+}
 
-    const info = L.control();
+function Info({infoRef}) {
+  const map = useMap();
+
+  useEffect(() => {
+    const info = L.control({ position: "topright" });
 
     info.onAdd = function () {
       this._div = L.DomUtil.create("div", "info");
@@ -98,15 +101,28 @@ function Map({switchPage})
         "<h4>US State</h4>" +
         (props
           ? "<b>" + props.name + "</b><br />"
-          : "Hover over a state");
+          : "Click on a state");
     };
 
     info.addTo(map);
 
+    infoRef.current = info;
+
+    return () => {
+      info.remove();
+    };
+  }, [map, infoRef]);
+}
+
+function Legend() {
+  const map = useMap();
+
+  useEffect(() => {
     const legend = L.control({ position: "bottomright" });
 
     legend.onAdd = function () {
       const div = L.DomUtil.create("div", "info legend");
+
       const grades = [true, false];
 
       grades.forEach((grade) => {
@@ -114,7 +130,7 @@ function Map({switchPage})
           '<i style="background:' +
           getColor(grade) +
           '"></i>' +
-          (grade ? "Active" + "<br><br>": "Inactive")
+          (grade ? "Active" + "<br><br>" : "Inactive")
       });
 
       return div;
@@ -122,19 +138,45 @@ function Map({switchPage})
 
     legend.addTo(map);
 
-    // Cleanup
     return () => {
-      map.remove();
+      legend.remove();
     };
-  }, []);
+  }, [map]);
+
+  return null;
+}
+
+function Map({switchPage}) {
+  const infoRef = useRef(null);
+
+  if (!data) {
+    return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: Country data not found</div>
+  }
 
   return (
-    <>
-      <div id="mapContainer">
-        <div id="countrymap"></div>
-      </div>
-    </>
-  );
+    <MapContainer center={[38.3, -96]}
+      zoomControl={false}
+      zoom={4.8}
+      zoomSnap={0.1}
+      dragging={false}
+      scrollWheelZoom={false}
+      style={{ width: "85rem", height: "85vh" }}
+      doubleClickZoom={false}
+      keyboard={false}
+      maxBounds={[[50, -125.88], [24.84, -66.2]]}>
+      <TileLayer
+        attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
+      />
+      <TopoJSON
+        data={data}
+        infoRef={infoRef}
+        switchPage={switchPage}
+      />
+      <Info infoRef={infoRef}/>
+      <Legend />
+    </MapContainer >
+  )
 }
 
 export default function SplashPage({switchPage}) {
