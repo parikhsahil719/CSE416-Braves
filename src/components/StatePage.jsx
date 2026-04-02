@@ -217,7 +217,7 @@ function TopoJSON(props) {
   }
 
 	function handleMapClick(e) {
-		setDistrict(e.target.feature.properties.district_number);
+		props.setDistrict(e.target.feature.properties.district_number);
 
 		document.querySelectorAll('.statePageDataTab').forEach((tab) => {
 			tab.classList.remove('statePageActiveTab');
@@ -225,7 +225,7 @@ function TopoJSON(props) {
 
 		document.getElementById('statePageDistrictTab').classList.add('statePageActiveTab');
 
-		setTab('District');
+		props.setTab('District');
 	}
 
   function onEachFeature(feature, layer) {
@@ -312,7 +312,7 @@ function Legend() {
   return null;
 }
 
-function Map() {
+function Map(props) {
   const infoRef = useRef(null);
 	const {stateName} = useParams();
 
@@ -339,6 +339,8 @@ function Map() {
       <TopoJSON
         data={data}
         infoRef={infoRef}
+				setDistrict={props.setDistrict}
+				setTab={props.setTab}
       />
       <Info infoRef={infoRef}/>
       <Legend />
@@ -530,12 +532,12 @@ export default function StatePage() {
 		<span id="statePageMain">
 			<div id="statePageMapContainer">
 				<div className="statePageMapLabel">District View of the State</div>
-				<Map />
+				<Map setDistrict={setDistrict} setTab={setTab}/>
 			</div>
 			<div id="statePageDataMainContainer">
 				<div className="statePageDataLabel">{tab + (tab === 'District' ? ' ' + clickedDistrict + ' ' : ' ')}Data</div>
 				<span className="statePageLabelsContainer">
-					<div className="statePageDataTab statePageLeftDataLabel statePageActiveTab" onClick={(e) => handleTabClick(e, 'State')}>State</div>
+					<div className="statePageDataTab statePageLeftDataTab statePageActiveTab" onClick={(e) => handleTabClick(e, 'State')}>State</div>
 					<div id="statePageDistrictTab" className="statePageDataTab" onClick={(e) => handleTabClick(e, 'District')}>District</div>
 					<div className="statePageDataTab" onClick={(e) => handleTabClick(e, 'Ensembles')}>Ensembles</div>
 				</span>
