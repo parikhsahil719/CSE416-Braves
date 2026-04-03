@@ -154,7 +154,7 @@ function DistrictData(props) {
 						<tbody>
 							{districts.map((district) => (
 								<tr key={district.districtNumber} className="districts-table-row">
-									<td className="districts-table-data">{district.districtNumber}</td>
+									<td className="districts-table-data districts-table-distnum" onClick={() => props.setDistrict(district.districtNumber)}>{district.districtNumber}</td>
 									<td className="districts-table-data">{district.representative}</td>
 									<td className="districts-table-data">{district.party}</td>
 									<td className="districts-table-data">{district.racialEthnicGroup}</td>
@@ -192,7 +192,7 @@ function getColor(result) {
 
 function TopoJSON(props) {
   const layerRef = useRef(null)
-  const { data, infoRef } = props
+  const { data, infoRef, clickedDistrict } = props
 
   function style(feature) {
 		return {
@@ -260,6 +260,33 @@ function TopoJSON(props) {
     layer.clearLayers()
     addData(layer, data)
   }, [data]);
+
+	useEffect(() => {
+    if (!layerRef.current) return;
+
+    layerRef.current.eachLayer(layer => {
+      const feature = layer.feature;
+
+      if (feature.properties.district_number === clickedDistrict) {
+        layer.setStyle({
+					weight: 3,
+					color: '#666',
+					dashArray: '',
+					fillOpacity: 0.5,
+				});
+				layer.bringToFront();
+      } else {
+        layer.setStyle({
+					fillColor: getColor(feature.properties.RESULT),
+					weight: 2,
+					opacity: 1,
+					color: 'white',
+					dashArray: '3',
+					fillOpacity: 0.4
+				});
+      }
+    });
+  }, [clickedDistrict]);
 
   return <GeoJSON ref={layerRef} style={style} onEachFeature={onEachFeature} />
 }
@@ -349,6 +376,7 @@ function Map(props) {
         infoRef={infoRef}
 				setDistrict={props.setDistrict}
 				setTab={props.setTab}
+				clickedDistrict={props.clickedDistrict}
       />
       <Info infoRef={infoRef}/>
       <Legend />
@@ -540,7 +568,7 @@ export default function StatePage() {
 		<span id="statePageMain">
 			<div id="statePageMapContainer">
 				<div className="statePageMapLabel">District View of the State</div>
-				<Map setDistrict={setDistrict} setTab={setTab}/>
+				<Map setDistrict={setDistrict} setTab={setTab} clickedDistrict={clickedDistrict} />
 			</div>
 			<div id="statePageDataMainContainer">
 				<div className="statePageDataLabel">{tab} Data</div>
@@ -549,7 +577,7 @@ export default function StatePage() {
 					<div id="statePageDistrictTab" className="statePageDataTab" onClick={(e) => handleTabClick(e, 'District')}>District</div>
 					<div className="statePageDataTab" onClick={(e) => handleTabClick(e, 'Ensembles')}>Ensembles</div>
 				</span>
-				{tab === 'State' ? <StateData stateData={data} /> : tab === 'District' ? <DistrictData /> : <EnsembleData />}
+				{tab === 'State' ? <StateData stateData={data} /> : tab === 'District' ? <DistrictData setDistrict={setDistrict} /> : <EnsembleData />}
 				{/* <table className="statePageTable">
 					<tbody>
 						<tr>

@@ -99,12 +99,12 @@
 }
 
 .statePageDataBubbleLabel {
-  font-size: clamp(1.1rem, 1vh, 1.25rem);
+  font-size: clamp(1.1rem, 2.25vh, 1.25rem);
   font-weight: bold;
 }
 
 .statePageData {
-  font-size: clamp(0.8rem, 0.7vh, 1rem);
+  font-size: clamp(0.8rem, 1.5vh, 1rem);
 }
 
 .statePageDataNum {
@@ -148,6 +148,10 @@
 
 .districts-table-data {
   font-size: clamp(0.7rem, 1vw, 0.8rem);
+}
+
+.districts-table-distnum:hover {
+  cursor: pointer;
 }
 
 .election-tag {
