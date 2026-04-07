@@ -22,6 +22,7 @@ public class BackendDataService {
 
     private final StateRepository stateRepository;
     private final StateSummaryRepository stateSummaryRepository;
+    private final EnsembleSummaryRepository ensembleSummaryRepository;
     private final DistrictTableRepository districtTableRepository;
     private final HeatmapBinRepository heatmapBinRepository;
     private final GinglesResultRepository ginglesResultRepository;
@@ -39,6 +40,7 @@ public class BackendDataService {
     public BackendDataService(
             StateRepository stateRepository,
             StateSummaryRepository stateSummaryRepository,
+            EnsembleSummaryRepository ensembleSummaryRepository,
             DistrictTableRepository districtTableRepository,
             HeatmapBinRepository heatmapBinRepository,
             GinglesResultRepository ginglesResultRepository,
@@ -55,6 +57,7 @@ public class BackendDataService {
     ) {
         this.stateRepository = stateRepository;
         this.stateSummaryRepository = stateSummaryRepository;
+        this.ensembleSummaryRepository = ensembleSummaryRepository;
         this.districtTableRepository = districtTableRepository;
         this.heatmapBinRepository = heatmapBinRepository;
         this.ginglesResultRepository = ginglesResultRepository;
@@ -86,6 +89,36 @@ public class BackendDataService {
                 stateSummaryRepository.findByStateId(stateId),
                 "State summary not found for stateId=" + stateId
         );
+    }
+
+    public Map<String, Object> getEnsembleSummary(String stateIdInput) {
+        String stateId = normalizeState(stateIdInput);
+        Optional<? extends BasePayloadDocument> summaryDoc = ensembleSummaryRepository.findByStateId(stateId);
+        if (summaryDoc.isPresent()) {
+            return withStoredMetadata(summaryDoc.get());
+        }
+
+        Map<String, Object> stateSummary = payloadFrom(
+                stateSummaryRepository.findByStateId(stateId),
+                "Ensemble summary not found for stateId=" + stateId
+        );
+        Object legacyEnsembleSummary = stateSummary.get("ensembleSummary");
+        if (!(legacyEnsembleSummary instanceof Map<?, ?> legacyMap)) {
+            throw new NoSuchElementException("Ensemble summary not found for stateId=" + stateId);
+        }
+
+        Map<String, Object> fallbackPayload = new LinkedHashMap<>();
+        Object finalPlanCount = legacyMap.containsKey("finalPlanCount") ? legacyMap.get("finalPlanCount") : 5000;
+        Object populationEqualityThreshold = legacyMap.containsKey("populationEqualityThreshold")
+                ? legacyMap.get("populationEqualityThreshold")
+                : "0.50%";
+
+        fallbackPayload.put("schemaVersion", stateSummary.getOrDefault("schemaVersion", "v1"));
+        fallbackPayload.put("state", stateSummary.getOrDefault("state", stateId));
+        fallbackPayload.put("finalPlanCount", finalPlanCount);
+        fallbackPayload.put("populationEqualityThreshold", populationEqualityThreshold);
+        fallbackPayload.put("populationMeasureUsed", stateSummary.getOrDefault("populationMeasureUsed", "TOTAL"));
+        return fallbackPayload;
     }
 
     public Map<String, Object> getHeatmap(String stateIdInput, String groupInput) {

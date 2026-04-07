@@ -5,6 +5,18 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useNavigate } from 'react-router-dom';
 import { topologyToFeatureCollection } from "../utils/topology.js";
+
+function toStateCode(stateName) {
+  if (stateName === "Oregon") {
+    return "OR";
+  }
+
+  if (stateName === "South Carolina") {
+    return "SC";
+  }
+
+  return null;
+}
 // ─────────────────────────────────────────────
 // SplashPage
 // ─────────────────────────────────────────────
@@ -91,11 +103,24 @@ function Map({switchPage})
       info.update();
     }
 
-    function openStatePage(e) {
+    async function openStatePage(e) {
       const stateName = e.target.feature.properties.name;
-      if (stateName === 'Oregon' || stateName === 'South Carolina') {
-        switchPage('State')
-        navigate(`/state/${stateName}`);
+      const stateCode = toStateCode(stateName);
+
+      if (stateCode) {
+        switchPage("State");
+
+        try {
+          const response = await axios.get(`/api/states/${stateCode}/state-summary`);
+          navigate(`/state/${stateName}`, {
+            state: {
+              prefetchedStateId: stateCode,
+              prefetchedStateSummary: response.data,
+            },
+          });
+        } catch {
+          navigate(`/state/${stateName}`);
+        }
       }
     }
 

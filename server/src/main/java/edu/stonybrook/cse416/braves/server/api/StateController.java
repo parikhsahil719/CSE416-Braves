@@ -149,12 +149,30 @@ public class StateController {
                     description = "State summary payload containing statewide summary data and feasible groups"
             )
     })
-    @GetMapping("/states/{stateId}/summary")
+    @GetMapping("/states/{stateId}/state-summary")
     public Map<String, Object> getStateSummary(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
             @PathVariable @NotBlank String stateId
     ) {
         return dataService.getStateSummary(stateId);
+    }
+
+    @Operation(
+            summary = "State page Ensembles tab: Ensemble summary",
+            description = "Status: Live. Returns the seeded ensemble-summary payload for a supported state."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Ensemble summary payload containing the seeded ensemble metadata for the tab"
+            )
+    })
+    @GetMapping("/states/{stateId}/ensembles-summary")
+    public Map<String, Object> getEnsembleSummary(
+            @Parameter(description = "Required state code. Current supported values: OR or SC.")
+            @PathVariable @NotBlank String stateId
+    ) {
+        return dataService.getEnsembleSummary(stateId);
     }
 
     @Operation(

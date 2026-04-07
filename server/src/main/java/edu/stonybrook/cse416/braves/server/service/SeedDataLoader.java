@@ -28,6 +28,7 @@ public class SeedDataLoader implements ApplicationRunner {
     private final ObjectMapper objectMapper;
     private final StateRepository stateRepository;
     private final StateSummaryRepository stateSummaryRepository;
+    private final EnsembleSummaryRepository ensembleSummaryRepository;
     private final DistrictTableRepository districtTableRepository;
     private final HeatmapBinRepository heatmapBinRepository;
     private final GinglesResultRepository ginglesResultRepository;
@@ -54,6 +55,7 @@ public class SeedDataLoader implements ApplicationRunner {
             ObjectMapper objectMapper,
             StateRepository stateRepository,
             StateSummaryRepository stateSummaryRepository,
+            EnsembleSummaryRepository ensembleSummaryRepository,
             DistrictTableRepository districtTableRepository,
             HeatmapBinRepository heatmapBinRepository,
             GinglesResultRepository ginglesResultRepository,
@@ -73,6 +75,7 @@ public class SeedDataLoader implements ApplicationRunner {
         this.objectMapper = objectMapper;
         this.stateRepository = stateRepository;
         this.stateSummaryRepository = stateSummaryRepository;
+        this.ensembleSummaryRepository = ensembleSummaryRepository;
         this.districtTableRepository = districtTableRepository;
         this.heatmapBinRepository = heatmapBinRepository;
         this.ginglesResultRepository = ginglesResultRepository;
@@ -102,6 +105,7 @@ public class SeedDataLoader implements ApplicationRunner {
         validatePopulationRealism(root);
         if (stateRepository.count() == 0) seedStates();
         if (stateSummaryRepository.count() == 0) seedStateSummaries();
+        if (ensembleSummaryRepository.count() == 0) seedEnsembleSummaries();
         if (districtTableRepository.count() == 0) seedDistrictTables();
         seedHeatmapBins();
         if (ginglesResultRepository.count() == 0) seedGingles(root);
@@ -234,6 +238,22 @@ public class SeedDataLoader implements ApplicationRunner {
 
         stateSummaryRepository.save(buildDoc(new StateSummaryDocument(), "OR", null, null, null, null, "TOTAL", orPayload));
         stateSummaryRepository.save(buildDoc(new StateSummaryDocument(), "SC", null, null, null, null, "TOTAL", scPayload));
+    }
+
+    private void seedEnsembleSummaries() {
+        ensembleSummaryRepository.save(buildDoc(new EnsembleSummaryDocument(), "OR", null, null, null, null, "TOTAL", Map.of(
+                "schemaVersion", "v1",
+                "state", "OR",
+                "finalPlanCount", 5000,
+                "populationEqualityThreshold", "0.50%"
+        )));
+
+        ensembleSummaryRepository.save(buildDoc(new EnsembleSummaryDocument(), "SC", null, null, null, null, "TOTAL", Map.of(
+                "schemaVersion", "v1",
+                "state", "SC",
+                "finalPlanCount", 5000,
+                "populationEqualityThreshold", "0.50%"
+        )));
     }
 
     private void seedDistrictTables() {

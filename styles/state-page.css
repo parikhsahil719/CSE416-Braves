@@ -10,64 +10,189 @@
 }
 
 #statePageMapContainer,
-#tableContainer {
+#statePageDataMainContainer {
   min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
 #statePageMapContainer {
   gap: 0.5rem;
-}
-
-#tableContainer {
-  gap: 0.5rem;
-  overflow: hidden;
+  align-items: center;
 }
 
 .statePageMapLabel,
-.statePageTableLabel {
+.statePageDataLabel {
   flex: 0 0 auto;
-  font-size: clamp(1.05rem, 1.6vw, 1.9rem);
+  font-size: clamp(1rem, 1.5vw, 1.9rem);
   font-weight: 600;
   text-align: center;
   letter-spacing: -0.01em;
+  margin: 0.5rem 0rem;
+}
+
+#statePageDataMainContainer {
+  margin-right: 10%;
 }
 
 #statePagemap {
   flex: 1 1 auto;
   width: min(100%, 52rem);
-  height: auto;
+  height: min(75vh, 50rem);
   min-height: 0;
   border: 1px solid var(--color-line);
 }
 
-.statePageTable {
-  flex: 1 1 auto;
-  width: min(100%, 46rem);
-  height: auto;
-  border-collapse: collapse;
-  border: 1px solid;
-  table-layout: fixed;
-  background: #fff;
+.statePageLeafletMap {
+  width: 100%;
+  height: 100%;
 }
 
-.statePageTable td,
-.statePageTable th {
-  width: auto;
+.statePageMapPlaceholder {
+  background: #f5f5f5;
+}
+
+.statePageStatusMessage {
+  margin-top: 0.5rem;
+  font-weight: bold;
+}
+
+.statePagePanelStatus {
+  margin: 0;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.statePageLabelsContainer {
+  display: flex;
+}
+
+.statePageLeftDataTab {
+  border-top-left-radius: 1rem;
+}
+
+.statePageDataTab {
+  font-weight: bold;
+  font-size: 1.25rem;
+  padding: 0.5rem 2rem;
+  border: solid 1px black;
+  margin-left: -1px;
+}
+
+.statePageDataTab:hover {
+  cursor: pointer;
+}
+
+#statePageDataContainer {
+  width: min(100%, 46rem);
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background-color: #e8eaec;
+  border-radius: 0rem 0rem 1rem 1rem;
+  padding: clamp(0.5rem, 0.7vw, 2rem) clamp(1rem, 0.7vw, 2rem);
+}
+
+.statePagePopulationDataContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.statePageDataBubble {
+  min-width: 30%;
+  max-width: fit-content;
+  background-color: #fafeff;
+  padding: clamp(0.6rem, 1.5vh, 1rem) 2rem;
+  border-radius: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.25rem, 0.5vh, 0.5rem);
+  box-shadow: 0px 4px 10px;
+}
+
+.statePageDataBubbleLabel,
+.statePageData {
+  margin: 0rem;
+}
+
+.statePageDataBubbleLabel {
+  font-size: clamp(1.1rem, 2.25vh, 1.25rem);
+  font-weight: bold;
+}
+
+.statePageData {
+  font-size: clamp(0.8rem, 1.5vh, 1rem);
+}
+
+.statePageDataNum {
+  text-align: end;
+}
+
+.statePageActiveTab {
+  background-color: #e8eaec;
+  border: solid 3px black;
+}
+
+#statePageDataFooter {
+  font-size: 0.9rem;
+  color: rgb(0, 90, 126);
+  margin: 0.5rem;
+  padding-left: 1rem;
+}
+
+.congTable_unavailable {
+  padding: 1.25rem;
+  color: #6b7280;
+  font-style: italic;
+  font-size: clamp(0.8rem, 0.9vw, 1rem);
+}
+
+.districts-table-container {
+  width: 100%;
+}
+
+.districts-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fafeff;
+}
+
+.districts-table-header,
+.districts-table-data {
   padding: clamp(0.35rem, 0.65vw, 0.75rem);
   text-align: center;
-  font-size: clamp(0.8rem, 0.9vw, 1rem);
   line-height: 1.1;
   border: 1px solid;
   word-break: break-word;
   overflow-wrap: anywhere;
+  vertical-align: middle;
 }
 
-.statePageTable td {
-  font-weight: 500;
+.districts-table-header {
+  font-size: clamp(1rem, 1.2vw, 1.15rem);
+}
+
+.districts-table-data {
+  font-size: clamp(0.7rem, 1vw, 0.8rem);
+}
+
+.districts-table-distnum:hover {
+  cursor: pointer;
+}
+
+.districts-table-row--selected .districts-table-data {
+  background-color: #dde8ef;
+}
+
+.election-tag {
+  display: block;
+  font-size: clamp(0.65rem, 0.7vw, 0.78rem);
+  font-weight: 400;
+  color: #6b7280;
+  margin-top: 2px;
 }
 
 @media (max-width: 1400px) {
@@ -77,8 +202,9 @@
     padding-inline: 0.75rem;
   }
 
-  .statePageTable {
+  #statePageDataMainContainer {
     width: 100%;
+    margin-right: 0;
   }
 
   #statePagemap {
@@ -95,7 +221,7 @@
   }
 
   #statePageMapContainer,
-  #tableContainer {
+  #statePageDataMainContainer {
     overflow: visible;
   }
 
@@ -103,7 +229,7 @@
     height: min(28rem, 55vh);
   }
 
-  .statePageTable {
+  #statePageDataMainContainer {
     height: auto;
   }
 }

@@ -26,6 +26,9 @@ public class MongoIndexConfig {
         mongoTemplate.indexOps(StateSummaryDocument.class)
                 .ensureIndex(new Index().on("stateId", Sort.Direction.ASC));
 
+        mongoTemplate.indexOps(EnsembleSummaryDocument.class)
+                .ensureIndex(new Index().on("stateId", Sort.Direction.ASC));
+
         ensureUniqueDistrictMapStateIndex();
 
         mongoTemplate.indexOps(DistrictTableDocument.class)
