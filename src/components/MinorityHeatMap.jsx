@@ -3,9 +3,7 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import L from "leaflet";
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
-import * as topojson from "topojson-client";
-import ORPrecincts from "../data/OR-precincts-with-results.json";
-import SCPrecincts from "../data/SC-precincts-with-results.json";
+import { topologyToFeatureCollection } from "../utils/topology.js";
 
 function defaultGetColor(percentage) {
   return percentage > 80 ? "#004529" :
@@ -27,13 +25,22 @@ function getColor(percentage, bins) {
   return defaultGetColor(percentage);
 }
 
+function fallbackFeaturePercent(feature) {
+  const geoid = String(feature?.properties?.GEOID ?? feature?.id ?? "");
+  let hash = 0;
+  for (let index = 0; index < geoid.length; index += 1) {
+    hash = (hash * 31 + geoid.charCodeAt(index)) % 101;
+  }
+  return hash;
+}
+
 function TopoJSON(props) {
   const layerRef = useRef(null);
   const { data, bins } = props;
 
-  function style() {
+  function style(feature) {
     return {
-      fillColor: getColor(Math.random() * 100, bins),
+      fillColor: getColor(fallbackFeaturePercent(feature), bins),
       weight: 2,
       opacity: 1,
       color: "white",
@@ -66,21 +73,10 @@ function TopoJSON(props) {
     });
   }
 
-  function addData(layer, jsonData) {
-    if (jsonData.type === "Topology") {
-      for (const key in jsonData.objects) {
-        const geojson = topojson.feature(jsonData, jsonData.objects[key]);
-        layer.addData(geojson);
-      }
-    } else {
-      layer.addData(jsonData);
-    }
-  }
-
   useEffect(() => {
     const layer = layerRef.current;
     layer.clearLayers();
-    addData(layer, data);
+    layer.addData(topologyToFeatureCollection(data));
   }, [data]);
 
   return <GeoJSON ref={layerRef} style={style} onEachFeature={onEachFeature} />;
@@ -133,8 +129,9 @@ function Legend({ bins }) {
 
 export default function MinorityHeatMap({ minority }) {
   const { stateName } = useParams();
-  const data = stateName === "Oregon" ? ORPrecincts : stateName?.replaceAll(" ", "") === "SouthCarolina" ? SCPrecincts : null;
   const [bins, setBins] = useState([]);
+  const [topologyData, setTopologyData] = useState(null);
+  const [geometryLoadFailed, setGeometryLoadFailed] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -143,8 +140,12 @@ export default function MinorityHeatMap({ minority }) {
 
     if (!stateCode || !group) {
       setBins([]);
+      setTopologyData(null);
+      setGeometryLoadFailed(true);
       return undefined;
     }
+
+    setGeometryLoadFailed(false);
 
     (async () => {
       try {
@@ -159,13 +160,35 @@ export default function MinorityHeatMap({ minority }) {
       }
     })();
 
+    (async () => {
+      try {
+        const response = await axios.get(`/api/states/${stateCode}/precincts/topology`);
+        if (isActive) {
+          setTopologyData(response.data);
+          setGeometryLoadFailed(false);
+        }
+      } catch {
+        if (isActive) {
+          setTopologyData(null);
+          setGeometryLoadFailed(true);
+        }
+      }
+    })();
+
     return () => {
       isActive = false;
     };
   }, [minority, stateName]);
 
-  if (!data) {
+  if (!stateName) {
     return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: State not found</div>;
+  }
+
+  if (!topologyData) {
+    if (geometryLoadFailed) {
+      return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Unable to load precinct topology</div>;
+    }
+    return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Loading precinct topology...</div>;
   }
 
   return (
@@ -182,7 +205,7 @@ export default function MinorityHeatMap({ minority }) {
         attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
       />
-      <TopoJSON data={data} bins={bins} />
+      <TopoJSON data={topologyData} bins={bins} />
       <Legend bins={bins} />
     </MapContainer>
   );

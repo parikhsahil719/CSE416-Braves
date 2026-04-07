@@ -2,6 +2,7 @@ package edu.stonybrook.cse416.braves.server.api;
 
 import edu.stonybrook.cse416.braves.server.dto.StateOptionResponse;
 import edu.stonybrook.cse416.braves.server.service.BackendDataService;
+import edu.stonybrook.cse416.braves.server.service.GeometryAssetService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -30,9 +31,11 @@ import java.util.Map;
 @Tag(name = "State API", description = "Professor-facing client/server routes for GUI use cases")
 public class StateController {
     private final BackendDataService dataService;
+    private final GeometryAssetService geometryAssetService;
 
-    public StateController(BackendDataService dataService) {
+    public StateController(BackendDataService dataService, GeometryAssetService geometryAssetService) {
         this.dataService = dataService;
+        this.geometryAssetService = geometryAssetService;
     }
 
     @Operation(
@@ -52,8 +55,8 @@ public class StateController {
     }
 
     @Operation(
-            summary = "GUI-2: Enacted district map for state",
-            description = "Status: Live. Returns the enacted district GeoJSON payload for a supported state."
+            summary = "GUI-2 compatibility: Enacted district map GeoJSON for state",
+            description = "Status: Compatibility. Returns the enacted district GeoJSON payload for a supported state."
     )
     @ApiResponses({
             @ApiResponse(
@@ -70,7 +73,70 @@ public class StateController {
                 .cacheControl(CacheControl.noStore().mustRevalidate())
                 .header(HttpHeaders.PRAGMA, "no-cache")
                 .header(HttpHeaders.EXPIRES, "0")
-                .body(dataService.getDistrictMap(stateId));
+                .body(geometryAssetService.getDistrictGeoJson(stateId));
+    }
+
+    @Operation(
+            summary = "GUI-2: Enacted district map topology for state",
+            description = "Status: Live. Returns the enacted district TopoJSON payload for a supported state."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "TopoJSON topology payload for the enacted congressional district map"
+            )
+    })
+    @GetMapping("/states/{stateId}/districts/enacted/topology")
+    public ResponseEntity<Map<String, Object>> getDistrictTopology(
+            @Parameter(description = "Required state code. Current supported values: OR or SC.")
+            @PathVariable @NotBlank String stateId
+    ) {
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore().mustRevalidate())
+                .header(HttpHeaders.PRAGMA, "no-cache")
+                .header(HttpHeaders.EXPIRES, "0")
+                .body(geometryAssetService.getDistrictTopology(stateId));
+    }
+
+    @Operation(
+            summary = "GUI-4 geometry: Precinct topology for state",
+            description = "Status: Live. Returns the precinct TopoJSON payload for a supported state."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "TopoJSON topology payload for precinct geometry"
+            )
+    })
+    @GetMapping("/states/{stateId}/precincts/topology")
+    public ResponseEntity<Map<String, Object>> getPrecinctTopology(
+            @Parameter(description = "Required state code. Current supported values: OR or SC.")
+            @PathVariable @NotBlank String stateId
+    ) {
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore().mustRevalidate())
+                .header(HttpHeaders.PRAGMA, "no-cache")
+                .header(HttpHeaders.EXPIRES, "0")
+                .body(geometryAssetService.getPrecinctTopology(stateId));
+    }
+
+    @Operation(
+            summary = "Splash map: US states topology",
+            description = "Status: Live. Returns the TopoJSON payload for the splash-page US states overview map."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "TopoJSON topology payload for the US states overview map"
+            )
+    })
+    @GetMapping("/maps/us-states/topology")
+    public ResponseEntity<Map<String, Object>> getUsStatesTopology() {
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore().mustRevalidate())
+                .header(HttpHeaders.PRAGMA, "no-cache")
+                .header(HttpHeaders.EXPIRES, "0")
+                .body(geometryAssetService.getUsStatesTopology());
     }
 
     @Operation(
@@ -83,12 +149,30 @@ public class StateController {
                     description = "State summary payload containing statewide summary data and feasible groups"
             )
     })
-    @GetMapping("/states/{stateId}/summary")
+    @GetMapping("/states/{stateId}/state-summary")
     public Map<String, Object> getStateSummary(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
             @PathVariable @NotBlank String stateId
     ) {
         return dataService.getStateSummary(stateId);
+    }
+
+    @Operation(
+            summary = "State page Ensembles tab: Ensemble summary",
+            description = "Status: Live. Returns the seeded ensemble-summary payload for a supported state."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Ensemble summary payload containing the seeded ensemble metadata for the tab"
+            )
+    })
+    @GetMapping("/states/{stateId}/ensembles-summary")
+    public Map<String, Object> getEnsembleSummary(
+            @Parameter(description = "Required state code. Current supported values: OR or SC.")
+            @PathVariable @NotBlank String stateId
+    ) {
+        return dataService.getEnsembleSummary(stateId);
     }
 
     @Operation(
@@ -295,12 +379,12 @@ public class StateController {
 
     @Operation(
             summary = "GUI-19: Interesting district plan",
-            description = "Status: Live. Returns the stored interesting-plan metadata plus GeoJSON payload."
+            description = "Status: Live. Returns the stored interesting-plan metadata plus TopoJSON payload."
     )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
-                    description = "Interesting plan payload with metadata and map-ready GeoJSON"
+                    description = "Interesting plan payload with metadata and map-ready TopoJSON"
             )
     })
     @GetMapping("/states/{stateId}/districts/interesting")

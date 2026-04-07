@@ -1,27 +1,45 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "../../styles/state-page.css";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import axios from "axios";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 import Oregon from "../data/oregon.js";
 import SouthCarolina from "../data/sc.js";
-import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
-import * as topojson from "topojson-client"
-import ORDistrictData from "../data/oregon_congressional_districts.json"
-import SCDistrictData from "../data/south_carolina_congressional_districts.json"
+import { topologyToFeatureCollection } from "../utils/topology.js";
 
-// Properties in the JSONs:
-// - RESULT: 2024 Presidential Election Result
-// - CD118FP: District number (as string)
-// - district_number: District number (as integer)
-// - state: State name
-// - NAMELSAD: District name
-// - GEO_ID: Census identifier
-// - ALAND: Land area
-// - AWATER: Water area
-
+const DEFAULT_ELECTION = "2024_pres";
 const dataMap = { Oregon, SouthCarolina };
+
+function toStateCode(stateName) {
+  if (stateName === "Oregon") {
+    return "OR";
+  }
+
+  if (stateName === "South Carolina") {
+    return "SC";
+  }
+
+  return null;
+}
+
+function isReloadNavigation() {
+  if (typeof window === "undefined" || !window.performance) {
+    return false;
+  }
+
+  const navigationEntries = typeof window.performance.getEntriesByType === "function"
+    ? window.performance.getEntriesByType("navigation")
+    : [];
+  const navigationType = navigationEntries[0]?.type;
+
+  if (navigationType) {
+    return navigationType === "reload";
+  }
+
+  return window.performance.navigation?.type === 1;
+}
 
 function mergeSummaryData(localData, summaryData) {
   if (!summaryData) {
@@ -39,202 +57,225 @@ function mergeSummaryData(localData, summaryData) {
   };
 }
 
-function StateData(props) {
-
-	const { stateName } = useParams();
-	const data = props.stateData;
-
-	return (
-		<>
-			<div id="statePageDataContainer">
-				<span className="statePagePopulationDataContainer">
-					<span className="statePageDataBubble">
-						<p className="statePageDataBubbleLabel">Population:</p>
-						<p className="statePageData statePageDataNum">{data.population}</p>
-					</span>
-					<span className="statePageDataBubble">
-						<p className="statePageDataBubbleLabel">White Population:</p>
-						<p className="statePageData statePageDataNum">{data.WhitePopulation}</p>
-					</span>
-					<span className="statePageDataBubble">
-						<p className="statePageDataBubbleLabel">{stateName === 'Oregon' ? 'Asian' : 'Black'} Population:</p>
-						<p className="statePageData statePageDataNum">{stateName === 'Oregon' ? data.AsianPopulation : data.BlackPopulation}</p>
-					</span>
-				</span>
-				<span className="statePageDataBubble">
-					<p className="statePageDataBubbleLabel">Party Control of Redistricting:</p>
-					<p className="statePageData">{data.partyControl}</p>
-				</span>
-				<span className="statePageDataBubble">
-					<p className="statePageDataBubbleLabel">State Voter Distribution (Democratic / Republican):</p>
-					<p className="statePageData statePageDataNum">{data.voterDistributionDem} / {data.voterDistributionRep}</p>
-				</span>
-				<span className="statePageDataBubble">
-					<p className="statePageDataBubbleLabel">Democratic Representatives:</p>
-					<p className="statePageData">{data.democratReps}</p>
-				</span>
-				<span className="statePageDataBubble">
-					<p className="statePageDataBubbleLabel">Republican Representatives:</p>
-					<p className="statePageData">{data.republicanReps}</p>
-				</span>
-			</div>
-			<p id="statePageDataFooter">Omitted racial group populations do not meet the threshold of 200,000.</p>
-		</>
-	)
-}
-
-function DistrictData(props) {
-	const { stateName } = useParams();
-	const districtNum = props.districtNum;
-
-	// population data at https://www.census.gov/mycd/?st=41
-	const CONGRESSIONAL_DATA = {
-		Oregon: {
-			districts: [
-				{ districtNumber: 1, population: '716,626', representative: 'Suzanne Bonamici', party: 'Democrat', racialEthnicGroup: 'White', voteMargin2024: 24.1 },
-				{ districtNumber: 2, population: '704,768', representative: 'Cliff Bentz', party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -33.7 },
-				{ districtNumber: 3, population: '700,007', representative: 'Maxine Dexter', party: 'Democrat', racialEthnicGroup: 'White', voteMargin2024: 46.2 },
-				{ districtNumber: 4, population: '712,690', representative: 'Val Hoyle', party: 'Democrat', racialEthnicGroup: 'White', voteMargin2024: 8.9 },
-				{ districtNumber: 5, population: '717,312', representative: 'Janelle Bynum', party: 'Democrat', racialEthnicGroup: 'Black', voteMargin2024: 3.2 },
-				{ districtNumber: 6, population: '720,968', representative: 'Andrea Salinas', party: 'Democrat', racialEthnicGroup: 'Latino', voteMargin2024: 5.4 },
-			],
-		},
-		SouthCarolina: {
-			districts: [
-				{ districtNumber: 1, population: '797,468', representative: 'Nancy Mace', party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -13.8 },
-				{ districtNumber: 2, population: '764,414', representative: 'Joe Wilson', party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -22.4 },
-				{ districtNumber: 3, population: '766,747', representative: 'Sheri Biggs', party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -31.5 },
-				{ districtNumber: 4, population: '810,387', representative: 'William Timmons', party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -28.6 },
-				{ districtNumber: 5, population: '782,718', representative: 'Ralph Norman', party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -26.1 },
-				{ districtNumber: 6, population: '762,934', representative: 'James Clyburn', party: 'Democrat', racialEthnicGroup: 'Black', voteMargin2024: 15.3 },
-				{ districtNumber: 7, population: '794,163', representative: 'Russell Fry', party: 'Republican', racialEthnicGroup: 'White', voteMargin2024: -24.9 },
-			],
-		},
-	};
-
-	const stateData = CONGRESSIONAL_DATA[stateName?.replaceAll(' ', '')];
-
-	if (!stateData) {
-		return (
-			<div className="congTable_unavailable">
-				Congressional representation data is not available for <strong>{stateName}</strong>.
-			</div>
-		);
-	}
-
-	const { districts } = stateData;
-
-	function VoteMarginBadge({ margin }) {
-		const isDem = margin >= 0;
-		const absMargin = Math.abs(margin).toFixed(1);
-		const label = isDem ? `D+${absMargin}%` : `R+${absMargin}%`;
-		return (
-			<span>
-				{label}
-			</span>
-		);
-	}
-
-	return (
-		<>
-			<div id="statePageDataContainer">
-				<div className="districts-table-container">
-					<table className="districts-table">
-						<thead>
-							<tr>
-								<th className="districts-table-header">District</th>
-								<th className="districts-table-header">Representative</th>
-								<th className="districts-table-header">Party</th>
-								<th className="districts-table-header">Race / Ethnicity</th>
-								<th className="districts-table-header">Vote Margin
-									<span className="election-tag">2024 Presidential</span>
-								</th>
-							</tr>
-						</thead>
-						<tbody>
-							{districts.map((district) => (
-								<tr key={district.districtNumber} className="districts-table-row">
-									<td className="districts-table-data districts-table-distnum" onClick={() => props.setDistrict(district.districtNumber)}>{district.districtNumber}</td>
-									<td className="districts-table-data">{district.representative}</td>
-									<td className="districts-table-data">{district.party}</td>
-									<td className="districts-table-data">{district.racialEthnicGroup}</td>
-									<td className="districts-table-data">
-										<VoteMarginBadge margin={district.voteMargin2024} />
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</>
-	)
-}
-
-function EnsembleData() {
-	return (
-		<div id="statePageDataContainer">
-			<span className="statePageDataBubble">
-				<p className="statePageDataBubbleLabel">Number of District Plans in Ensemble:</p>
-			</span>
-			<span className="statePageDataBubble">
-				<p className="statePageDataBubbleLabel">Population Equality Threshold:</p>
-			</span>
-		</div>
-	)
-}
-
 function getColor(result) {
-	return result === "DEMOCRATIC" ? '#0011ff' :
-		result === "REPUBLICAN" ? '#ff0000' :
-			'#666666';
+  return result === "DEMOCRATIC"
+    ? "#0011ff"
+    : result === "REPUBLICAN"
+      ? "#ff0000"
+      : "#666666";
 }
 
-function TopoJSON(props) {
-  const layerRef = useRef(null)
-  const { data, infoRef, clickedDistrict } = props
+function getBaseDistrictStyle(feature) {
+  return {
+    fillColor: getColor(feature?.properties?.RESULT),
+    weight: 2,
+    opacity: 1,
+    color: "white",
+    dashArray: "3",
+    fillOpacity: 0.4,
+  };
+}
 
-  function style(feature) {
-		return {
-			fillColor: getColor(feature.properties.RESULT),
-			weight: 2,
-			opacity: 1,
-			color: 'white',
-			dashArray: '3',
-			fillOpacity: 0.4
-		};
-	}
+function getSelectedDistrictStyle() {
+  return {
+    weight: 3,
+    color: "#666",
+    dashArray: "",
+    fillOpacity: 0.5,
+  };
+}
 
-  function highlightFeature(e) {
-    const layer = e.target;
+function StateData({ stateData, stateName, loading, loadFailed }) {
+  return (
+    <>
+      <div id="statePageDataContainer">
+        {loading ? <div className="statePagePanelStatus">Loading state summary...</div> : null}
+        {loadFailed ? <div className="statePagePanelStatus">Unable to load backend state summary. Showing local fallback data.</div> : null}
+        <span className="statePagePopulationDataContainer">
+          <span className="statePageDataBubble">
+            <p className="statePageDataBubbleLabel">Population:</p>
+            <p className="statePageData statePageDataNum">{stateData.population}</p>
+          </span>
+          <span className="statePageDataBubble">
+            <p className="statePageDataBubbleLabel">White Population:</p>
+            <p className="statePageData statePageDataNum">{stateData.WhitePopulation}</p>
+          </span>
+          <span className="statePageDataBubble">
+            <p className="statePageDataBubbleLabel">{stateName === "Oregon" ? "Asian" : "Black"} Population:</p>
+            <p className="statePageData statePageDataNum">{stateName === "Oregon" ? stateData.AsianPopulation : stateData.BlackPopulation}</p>
+          </span>
+        </span>
+        <span className="statePageDataBubble">
+          <p className="statePageDataBubbleLabel">Party Control of Redistricting:</p>
+          <p className="statePageData">{stateData.partyControl}</p>
+        </span>
+        <span className="statePageDataBubble">
+          <p className="statePageDataBubbleLabel">State Voter Distribution (Democratic / Republican):</p>
+          <p className="statePageData statePageDataNum">{stateData.voterDistributionDem} / {stateData.voterDistributionRep}</p>
+        </span>
+        <span className="statePageDataBubble">
+          <p className="statePageDataBubbleLabel">Democratic Representatives:</p>
+          <p className="statePageData">{stateData.democratReps}</p>
+        </span>
+        <span className="statePageDataBubble">
+          <p className="statePageDataBubbleLabel">Republican Representatives:</p>
+          <p className="statePageData">{stateData.republicanReps}</p>
+        </span>
+      </div>
+      <p id="statePageDataFooter">Omitted racial group populations do not meet the threshold of 200,000.</p>
+    </>
+  );
+}
 
-    layer.setStyle({
-      weight: 3,
-      color: '#666',
-      dashArray: '',
-      fillOpacity: 0.5,
-    });
+function VoteMarginBadge({ margin }) {
+  const isDem = margin >= 0;
+  const absMargin = Math.abs(margin).toFixed(1);
+  return <span>{isDem ? `D+${absMargin}%` : `R+${absMargin}%`}</span>;
+}
 
+function DistrictData({ districts, selectedDistrict, onSelectDistrict, onChangeTab, loading, loadFailed, hasCachedData, hasRequestedData }) {
+  if (loading || (hasRequestedData && !hasCachedData && !loadFailed)) {
+    return (
+      <div id="statePageDataContainer">
+        <div className="congTable_unavailable">
+          Loading congressional representation data...
+        </div>
+      </div>
+    );
+  }
+
+  if (loadFailed || districts.length === 0) {
+    return (
+      <div id="statePageDataContainer">
+        <div className="congTable_unavailable">
+          Congressional representation data is not available for this state.
+        </div>
+      </div>
+    );
+  }
+
+  function handleDistrictClick(districtNumber) {
+    onSelectDistrict(districtNumber);
+    onChangeTab("District");
+  }
+
+  return (
+    <div id="statePageDataContainer">
+      <div className="districts-table-container">
+        <table className="districts-table">
+          <thead>
+            <tr>
+              <th className="districts-table-header">District</th>
+              <th className="districts-table-header">Representative</th>
+              <th className="districts-table-header">Party</th>
+              <th className="districts-table-header">Race / Ethnicity</th>
+              <th className="districts-table-header">
+                Vote Margin
+                <span className="election-tag">2024 Presidential</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {districts.map((district) => (
+              <tr
+                key={district.districtNumber}
+                className={district.districtNumber === selectedDistrict ? "districts-table-row districts-table-row--selected" : "districts-table-row"}
+              >
+                <td className="districts-table-data districts-table-distnum" onClick={() => handleDistrictClick(district.districtNumber)}>
+                  {district.districtNumber}
+                </td>
+                <td className="districts-table-data">{district.representative}</td>
+                <td className="districts-table-data">{district.party}</td>
+                <td className="districts-table-data">{district.racialEthnicGroup}</td>
+                <td className="districts-table-data">
+                  <VoteMarginBadge margin={district.voteMargin2024} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function EnsembleData({ ensembleSummary, loading, loadFailed, hasCachedData, hasRequestedData }) {
+  if (loading || (hasRequestedData && !hasCachedData && !loadFailed)) {
+    return (
+      <div id="statePageDataContainer">
+        <div className="congTable_unavailable">
+          Loading ensemble summary...
+        </div>
+      </div>
+    );
+  }
+
+  if (loadFailed) {
+    return (
+      <div id="statePageDataContainer">
+        <div className="congTable_unavailable">
+          Ensemble summary is not available for this state.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div id="statePageDataContainer">
+      <span className="statePageDataBubble">
+        <p className="statePageDataBubbleLabel">Number of District Plans in Ensemble:</p>
+        <p className="statePageData">{ensembleSummary?.finalPlanCount ?? "Unavailable"}</p>
+      </span>
+      <span className="statePageDataBubble">
+        <p className="statePageDataBubbleLabel">Population Equality Threshold:</p>
+        <p className="statePageData">{ensembleSummary?.populationEqualityThreshold ?? "Unavailable"}</p>
+      </span>
+    </div>
+  );
+}
+
+function TopoLayer({ data, infoRef, selectedDistrict, onSelectDistrict, onChangeTab }) {
+  const layerRef = useRef(null);
+
+  function applySelection(layer) {
+    const districtNumber = layer?.feature?.properties?.district_number;
+
+    if (districtNumber === selectedDistrict) {
+      layer.setStyle(getSelectedDistrictStyle());
+      layer.bringToFront();
+      return;
+    }
+
+    layer.setStyle(getBaseDistrictStyle(layer.feature));
+  }
+
+  function highlightFeature(event) {
+    const layer = event.target;
+    layer.setStyle(getSelectedDistrictStyle());
     layer.bringToFront();
-    infoRef.current.update(layer.feature.properties.NAMELSAD);
+
+    if (infoRef.current) {
+      infoRef.current.update(layer.feature.properties.NAMELSAD);
+    }
   }
 
-  function resetHighlight(e) {
-    layerRef.current.resetStyle(e.target);
-    infoRef.current.update();
+  function resetHighlight(event) {
+    if (!layerRef.current) {
+      return;
+    }
+
+    layerRef.current.resetStyle(event.target);
+    applySelection(event.target);
+
+    if (infoRef.current) {
+      infoRef.current.update();
+    }
   }
 
-	function handleMapClick(e) {
-		props.setDistrict(e.target.feature.properties.district_number);
-
-		document.querySelectorAll('.statePageDataTab').forEach((tab) => {
-			tab.classList.remove('statePageActiveTab');
-		});
-
-		document.getElementById('statePageDistrictTab').classList.add('statePageActiveTab');
-
-		props.setTab('District');
-	}
+  function handleMapClick(event) {
+    onSelectDistrict(event.target.feature.properties.district_number);
+    onChangeTab("District");
+  }
 
   function onEachFeature(feature, layer) {
     layer.on({
@@ -244,82 +285,47 @@ function TopoJSON(props) {
     });
   }
 
-  function addData(layer, jsonData) {
-    if (jsonData.type === "Topology") {
-      for (let key in jsonData.objects) {
-        let geojson = topojson.feature(jsonData, jsonData.objects[key])
-        layer.addData(geojson)
-      }
-    } else {
-      layer.addData(jsonData)
-    }
-  }
-
   useEffect(() => {
-    const layer = layerRef.current
-    layer.clearLayers()
-    addData(layer, data)
-  }, [data]);
+    if (!layerRef.current) {
+      return;
+    }
 
-	useEffect(() => {
-    if (!layerRef.current) return;
-
-    layerRef.current.eachLayer(layer => {
-      const feature = layer.feature;
-
-      if (feature.properties.district_number === clickedDistrict) {
-        layer.setStyle({
-					weight: 3,
-					color: '#666',
-					dashArray: '',
-					fillOpacity: 0.5,
-				});
-				layer.bringToFront();
-      } else {
-        layer.setStyle({
-					fillColor: getColor(feature.properties.RESULT),
-					weight: 2,
-					opacity: 1,
-					color: 'white',
-					dashArray: '3',
-					fillOpacity: 0.4
-				});
-      }
+    layerRef.current.eachLayer((layer) => {
+      applySelection(layer);
     });
-  }, [clickedDistrict]);
+  }, [selectedDistrict]);
 
-  return <GeoJSON ref={layerRef} style={style} onEachFeature={onEachFeature} />
+  return <GeoJSON ref={layerRef} data={data} style={getBaseDistrictStyle} onEachFeature={onEachFeature} />;
 }
 
-function Info({infoRef}) {
+function Info({ infoRef, stateName }) {
   const map = useMap();
-	const {stateName} = useParams();
 
   useEffect(() => {
     const info = L.control({ position: "topright" });
 
-    info.onAdd = function () {
+    info.onAdd = function onAdd() {
       this._div = L.DomUtil.create("div", "info");
       this.update();
       return this._div;
     };
 
-    info.update = function (props) {
+    info.update = function update(props) {
       this._div.innerHTML =
         `<h4>${stateName}</h4>` +
-        (props
-          ? "<b>" + props + "</b><br />"
-          : "Click on a district");
+        (props ? `<b>${props}</b><br />` : "Click on a district");
     };
 
     info.addTo(map);
-
     infoRef.current = info;
 
     return () => {
       info.remove();
+      infoRef.current = null;
     };
-  }, [map, infoRef]);
+  }, [map, infoRef, stateName]);
+
+  return null;
 }
 
 function Legend() {
@@ -328,12 +334,10 @@ function Legend() {
   useEffect(() => {
     const legend = L.control({ position: "bottomright" });
 
-    legend.onAdd = function () {
+    legend.onAdd = function onAdd() {
       const div = L.DomUtil.create("div", "info legend");
-
-			div.innerHTML += '<i style="background:' + getColor('DEMOCRATIC') + '"></i> ' + 'Democratic' + '<br>';
-			div.innerHTML += '<i style="background:' + getColor('REPUBLICAN') + '"></i> ' + 'Republican' + '<br>';
-
+      div.innerHTML += `<i style="background:${getColor("DEMOCRATIC")}"></i> Democratic<br>`;
+      div.innerHTML += `<i style="background:${getColor("REPUBLICAN")}"></i> Republican<br>`;
       return div;
     };
 
@@ -347,51 +351,71 @@ function Legend() {
   return null;
 }
 
-function Map(props) {
+function Map({ stateName, data, selectedDistrict, onSelectDistrict, onChangeTab }) {
   const infoRef = useRef(null);
-	const {stateName} = useParams();
-
-	const dataMap = { Oregon: ORDistrictData, SouthCarolina: SCDistrictData };
-	const data = dataMap[stateName?.replaceAll(' ', '')]
 
   if (!data) {
-    return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: District data not found</div>
+    return <div id="statePagemap" className="statePageMapPlaceholder" />;
   }
 
   return (
-    <MapContainer center={stateName === 'Oregon' ? [44.1, -120.6] : [33.6, -80.9]}
-      zoomControl={false}
-      zoom={stateName === 'Oregon' ? 6.5 : 7.3}
-      zoomSnap={0.1}
-			minZoom={6.5}
-			maxZoom={10}
-      style={{ width: "min(100%, 52rem)", height: "75vh" }}
-      maxBounds={stateName === 'Oregon' ? [[47, -125], [41, -116.4]] : [[35.6, -84], [31.5, -77.5]]}>
-      <TileLayer
-        attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
-      />
-      <TopoJSON
-        data={data}
-        infoRef={infoRef}
-				setDistrict={props.setDistrict}
-				setTab={props.setTab}
-				clickedDistrict={props.clickedDistrict}
-      />
-      <Info infoRef={infoRef}/>
-      <Legend />
-    </MapContainer >
-  )
+    <div id="statePagemap">
+      <MapContainer
+        center={stateName === "Oregon" ? [44.1, -120.6] : [33.6, -80.9]}
+        zoomControl={false}
+        zoom={stateName === "Oregon" ? 6.5 : 7.3}
+        zoomSnap={0.1}
+        minZoom={6.5}
+        maxZoom={10}
+        maxBounds={stateName === "Oregon" ? [[47, -125], [41, -116.4]] : [[35.6, -84], [31.5, -77.5]]}
+        className="statePageLeafletMap"
+      >
+        <TileLayer
+          attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
+        />
+        <TopoLayer
+          data={data}
+          infoRef={infoRef}
+          selectedDistrict={selectedDistrict}
+          onSelectDistrict={onSelectDistrict}
+          onChangeTab={onChangeTab}
+        />
+        <Info infoRef={infoRef} stateName={stateName} />
+        <Legend />
+      </MapContainer>
+    </div>
+  );
 }
 
 export default function StatePage() {
   const { stateName } = useParams();
+  const location = useLocation();
+  const stateCode = toStateCode(stateName);
   const localData = dataMap[stateName?.replaceAll(" ", "")];
-  const [districtData, setDistrictData] = useState(null);
-  const [districtLoadFailed, setDistrictLoadFailed] = useState(false);
+  const [tab, setTab] = useState("State");
+  const [tabRequestCount, setTabRequestCount] = useState(0);
+  const [requestedTabs, setRequestedTabs] = useState({
+    State: false,
+    District: false,
+    Ensembles: false,
+  });
+  const [selectedDistrict, setSelectedDistrict] = useState(0);
+  const [mapLoading, setMapLoading] = useState(false);
+  const [mapData, setMapData] = useState(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryData, setSummaryData] = useState(null);
-	const [tab, setTab] = useState("State");
-	const [clickedDistrict, setDistrict] = useState(0);
+  const [summaryLoadFailed, setSummaryLoadFailed] = useState(false);
+  const [ensembleSummaryLoading, setEnsembleSummaryLoading] = useState(false);
+  const [ensembleSummaryData, setEnsembleSummaryData] = useState(null);
+  const [ensembleSummaryLoadFailed, setEnsembleSummaryLoadFailed] = useState(false);
+  const [districtTableLoading, setDistrictTableLoading] = useState(false);
+  const [mapLoadFailed, setMapLoadFailed] = useState(false);
+  const [districtTable, setDistrictTable] = useState(null);
+  const [districtTableLoadFailed, setDistrictTableLoadFailed] = useState(false);
+  const prefetchedStateId = location.state?.prefetchedStateId ?? null;
+  const prefetchedStateSummary = prefetchedStateId === stateCode ? location.state?.prefetchedStateSummary ?? null : null;
+  const shouldForceRefreshSummary = isReloadNavigation();
 
   if (!localData) {
     return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: State not found</div>;
@@ -399,43 +423,50 @@ export default function StatePage() {
 
   useEffect(() => {
     let isActive = true;
-    const stateCode = stateName === "Oregon" ? "OR" : stateName === "South Carolina" ? "SC" : null;
+    const shouldFetchInitialStateSummary = Boolean(stateCode) && (shouldForceRefreshSummary || !prefetchedStateSummary);
+
+    setTab("State");
+    setTabRequestCount(shouldFetchInitialStateSummary ? 1 : 0);
+    setRequestedTabs({
+      State: shouldFetchInitialStateSummary || Boolean(prefetchedStateSummary && !shouldForceRefreshSummary),
+      District: false,
+      Ensembles: false,
+    });
+    setSelectedDistrict(0);
+    setMapLoading(Boolean(stateCode));
+    setMapData(null);
+    setMapLoadFailed(false);
+    setSummaryLoading(false);
+    setSummaryData(shouldForceRefreshSummary ? null : prefetchedStateSummary);
+    setSummaryLoadFailed(false);
+    setEnsembleSummaryLoading(false);
+    setEnsembleSummaryData(null);
+    setEnsembleSummaryLoadFailed(false);
+    setDistrictTableLoading(false);
+    setDistrictTable(null);
+    setDistrictTableLoadFailed(false);
 
     if (!stateCode) {
-      setDistrictData(null);
-      setDistrictLoadFailed(true);
-      setSummaryData(null);
+      setMapLoading(false);
+      setMapLoadFailed(true);
       return undefined;
     }
 
-    setDistrictData(null);
-    setDistrictLoadFailed(false);
-    setSummaryData(null);
-
     (async () => {
       try {
-        const response = await axios.get(`/api/states/${stateCode}/districts/enacted/geojson`);
+        const response = await axios.get(`/api/states/${stateCode}/districts/enacted/topology`);
         if (isActive) {
-          setDistrictData(response.data);
-          setDistrictLoadFailed(false);
+          setMapData(topologyToFeatureCollection(response.data, "districts"));
+          setMapLoadFailed(false);
         }
       } catch {
         if (isActive) {
-          setDistrictData(null);
-          setDistrictLoadFailed(true);
+          setMapData(null);
+          setMapLoadFailed(true);
         }
-      }
-    })();
-
-    (async () => {
-      try {
-        const response = await axios.get(`/api/states/${stateCode}/summary`);
+      } finally {
         if (isActive) {
-          setSummaryData(response.data);
-        }
-      } catch {
-        if (isActive) {
-          setSummaryData(null);
+          setMapLoading(false);
         }
       }
     })();
@@ -443,197 +474,213 @@ export default function StatePage() {
     return () => {
       isActive = false;
     };
-  }, [stateName]);
+  }, [prefetchedStateSummary, shouldForceRefreshSummary, stateCode, stateName]);
 
-  // useEffect(() => {
-  //   if (!districtData) {
-  //     return undefined;
-  //   }
+  useEffect(() => {
+    let isActive = true;
 
-	// 	const map = L.map("statePagemap", {
-	// 		center: stateName === 'Oregon' ? [44.1, -120.6] : [33.6, -80.9],
-	// 		zoomControl: false,
-	// 		zoom: stateName === 'Oregon' ? 6.5 : 7.3,
-	// 		zoomSnap: 0.1,
-	// 		minZoom: 6.5,
-	// 		maxZoom: 10,
-	// 		maxBounds: stateName === 'Oregon' ? [[47, -125], [41, -116.4]] : [[35.6, -84], [31.5, -77.5]],
-	// 	});
+    if (!stateCode || tabRequestCount === 0) {
+      return undefined;
+    }
 
-  //   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  //     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  //   }).addTo(map);
+    if (tab === "State") {
+      if (summaryData || summaryLoading) {
+        return undefined;
+      }
 
-	// 	function style(feature) {
-	// 		return {
-	// 			fillColor: getColor(feature.properties.RESULT),
-	// 			weight: 2,
-	// 			opacity: 1,
-	// 			color: 'white',
-	// 			dashArray: '3',
-	// 			fillOpacity: 0.4
-	// 		};
-	// 	}
+      setSummaryLoading(true);
+      setSummaryLoadFailed(false);
 
-  //   function highlightFeature(event) {
-  //     const layer = event.target;
+      (async () => {
+        try {
+          const response = await axios.get(`/api/states/${stateCode}/state-summary`);
+          if (isActive) {
+            setSummaryData(response.data);
+            setSummaryLoadFailed(false);
+          }
+        } catch {
+          if (isActive) {
+            setSummaryData(null);
+            setSummaryLoadFailed(true);
+          }
+        } finally {
+          if (isActive) {
+            setSummaryLoading(false);
+          }
+        }
+      })();
 
-	// 		layer.setStyle({
-	// 			weight: 3,
-	// 			color: '#666',
-	// 			dashArray: '',
-	// 			fillOpacity: 0.5
-	// 		});
+      return () => {
+        isActive = false;
+      };
+    }
 
-  //     layer.bringToFront();
-  //     info.update(layer.feature.properties.NAMELSAD);
-  //   }
+    if (tab === "Ensembles") {
+      if (ensembleSummaryData || ensembleSummaryLoading) {
+        return undefined;
+      }
 
-	// 	function resetHighlight(e) {
-	// 		layerRef.current.resetStyle(e.target);
-	// 		infoRef.current.update();
-	// 	}
+      setEnsembleSummaryLoading(true);
+      setEnsembleSummaryLoadFailed(false);
 
-	// 	function handleMapClick(e) {
-	// 		setDistrict(e.target.feature.properties.district_number);
+      (async () => {
+        try {
+          const response = await axios.get(`/api/states/${stateCode}/ensembles-summary`);
+          if (isActive) {
+            setEnsembleSummaryData(response.data);
+            setEnsembleSummaryLoadFailed(false);
+          }
+        } catch {
+          if (isActive) {
+            setEnsembleSummaryData(null);
+            setEnsembleSummaryLoadFailed(true);
+          }
+        } finally {
+          if (isActive) {
+            setEnsembleSummaryLoading(false);
+          }
+        }
+      })();
 
-	// 		document.querySelectorAll('.statePageDataTab').forEach((tab) => {
-	// 			tab.classList.remove('statePageActiveTab');
-	// 		});
+      return () => {
+        isActive = false;
+      };
+    }
 
-	// 		document.getElementById('statePageDistrictTab').classList.add('statePageActiveTab');
+    if (tab === "District") {
+      if (districtTable || districtTableLoading) {
+        return undefined;
+      }
 
-	// 		setTab('District');
-	// 	}
+      setDistrictTableLoading(true);
+      setDistrictTableLoadFailed(false);
 
-	// 	function onEachFeature(feature, layer) {
-	// 		layer.on({
-	// 			mouseover: highlightFeature,
-	// 			mouseout: resetHighlight,
-	// 			click: handleMapClick,
-	// 		});
-	// 	}
+      (async () => {
+        try {
+          const response = await axios.get(`/api/states/${stateCode}/districts/enacted/table`, {
+            params: { election: DEFAULT_ELECTION },
+          });
+          if (isActive) {
+            setDistrictTable(response.data);
+            setDistrictTableLoadFailed(false);
+          }
+        } catch {
+          if (isActive) {
+            setDistrictTable(null);
+            setDistrictTableLoadFailed(true);
+          }
+        } finally {
+          if (isActive) {
+            setDistrictTableLoading(false);
+          }
+        }
+      })();
+    }
 
-  //   const geojson = L.geoJson(districtData, { style, onEachFeature }).addTo(map);
-  //   const info = L.control();
-
-  //   info.onAdd = function onAdd() {
-  //     this._div = L.DomUtil.create("div", "info");
-  //     this.update();
-  //     return this._div;
-  //   };
-
-	// 	info.update = function (props) {
-	// 		this._div.innerHTML =
-	// 			`<h4>${stateName}</h4>` +
-	// 			(props
-	// 				? "<b>" + props + "</b><br />"
-	// 				: "Click on a district");
-	// 	};
-
-  //   info.addTo(map);
-
-  //   const legend = L.control({ position: "bottomright" });
-
-	// 	legend.onAdd = function (map) {
-
-	// 		let div = L.DomUtil.create('div', 'info legend');
-
-	// 		div.innerHTML += '<i style="background:' + getColor('DEMOCRATIC') + '"></i> ' + 'Democratic' + '<br>';
-	// 		div.innerHTML += '<i style="background:' + getColor('REPUBLICAN') + '"></i> ' + 'Republican' + '<br>';
-
-  //     return div;
-  //   };
-
-  //   legend.addTo(map);
-
-  //   return () => {
-  //     map.remove();
-  //   };
-  // }, [districtData, stateName]);
+    return () => {
+      isActive = false;
+    };
+  }, [
+    districtTable,
+    ensembleSummaryData,
+    stateCode,
+    summaryData,
+    tab,
+    tabRequestCount,
+  ]);
 
   const data = mergeSummaryData(localData, summaryData);
+  const districtRows = districtTable?.districts ?? [];
+  const ensembleSummary = ensembleSummaryData ?? null;
 
-	function handleTabClick(e, tab) {
-		document.querySelectorAll('.statePageDataTab').forEach((tab) => {
-			tab.classList.remove('statePageActiveTab');
-		});
+  function handleTabSelect(nextTab) {
+    setTab(nextTab);
+    setRequestedTabs((tabs) => ({
+      ...tabs,
+      [nextTab]: true,
+    }));
+    setTabRequestCount((count) => count + 1);
+  }
 
-		const clickedElement = e.target;
-		clickedElement.classList.add('statePageActiveTab');
-		setTab(tab);
-	}
+  function renderActivePanel() {
+    if (tab === "State") {
+      return (
+        <StateData
+          stateData={data}
+          stateName={stateName}
+          loading={summaryLoading}
+          loadFailed={summaryLoadFailed}
+        />
+      );
+    }
 
-	return (
-		<span id="statePageMain">
-			<div id="statePageMapContainer">
-				<div className="statePageMapLabel">District View of the State</div>
-				<Map setDistrict={setDistrict} setTab={setTab} clickedDistrict={clickedDistrict} />
-			</div>
-			<div id="statePageDataMainContainer">
-				<div className="statePageDataLabel">{tab} Data</div>
-				<span className="statePageLabelsContainer">
-					<div className="statePageDataTab statePageLeftDataTab statePageActiveTab" onClick={(e) => handleTabClick(e, 'State')}>State</div>
-					<div id="statePageDistrictTab" className="statePageDataTab" onClick={(e) => handleTabClick(e, 'District')}>District</div>
-					<div className="statePageDataTab" onClick={(e) => handleTabClick(e, 'Ensembles')}>Ensembles</div>
-				</span>
-				{tab === 'State' ? <StateData stateData={data} /> : tab === 'District' ? <DistrictData setDistrict={setDistrict} /> : <EnsembleData />}
-				{/* <table className="statePageTable">
-					<tbody>
-						<tr>
-							<th>State Population</th>
-							<td>{data.population}</td>
-						</tr>
-						<tr>
-							<th rowSpan="2">State Voter Distribution</th>
-							<td>D: {data.voterDistributionDem}</td>
-						</tr>
-						<tr>
-							<td>R: {data.voterDistributionRep}</td>
-						</tr>
-						<tr>
-							<th>White Population</th>
-							<td>{data.WhitePopulation}</td>
-						</tr>
-						<tr>
-							<th>Black Population</th>
-							<td>{data.BlackPopulation}</td>
-						</tr>
-						<tr>
-							<th>American Indian and Alaska Native Population</th>
-							<td>{data.IndianPopulation}</td>
-						</tr>
-						<tr>
-							<th>Asian Population</th>
-							<td>{data.AsianPopulation}</td>
-						</tr>
-						<tr>
-							<th>Native Hawaiian and Other Pacific Islander Population</th>
-							<td>{data.HawaiianPopulation}</td>
-						</tr>
-						<tr>
-							<th>Two or More Races Population</th>
-							<td>{data.MultipleRacesPopulation}</td>
-						</tr>
-						<tr>
-							<th>Party Control of Redistricting Process</th>
-							<td>{data.partyControl}</td>
-						</tr>
-						<tr>
-							<th>Democratic Congressional Representatives</th>
-							<td>{data.democratReps}</td>
-						</tr>
-						<tr>
-							<th>Republican Congressional Representatives</th>
-							<td>{data.republicanReps}</td>
-						</tr>
-						<tr>
-							<th>Summary of Ensembles</th>
-							<td></td>
-						</tr>
-					</tbody>
-				</table> */}
-			</div>
-		</span>
-	);
+    if (tab === "District") {
+      return (
+        <DistrictData
+          districts={districtRows}
+          selectedDistrict={selectedDistrict}
+          onSelectDistrict={setSelectedDistrict}
+          onChangeTab={handleTabSelect}
+          loading={districtTableLoading}
+          loadFailed={districtTableLoadFailed}
+          hasCachedData={Boolean(districtTable)}
+          hasRequestedData={requestedTabs.District}
+        />
+      );
+    }
+
+    return (
+      <EnsembleData
+        ensembleSummary={ensembleSummary}
+        loading={ensembleSummaryLoading}
+        loadFailed={ensembleSummaryLoadFailed}
+        hasCachedData={Boolean(ensembleSummaryData)}
+        hasRequestedData={requestedTabs.Ensembles}
+      />
+    );
+  }
+
+  return (
+    <span id="statePageMain">
+      <div id="statePageMapContainer">
+        <div className="statePageMapLabel">District View of the State</div>
+        <Map
+          stateName={stateName}
+          data={mapData}
+          selectedDistrict={selectedDistrict}
+          onSelectDistrict={setSelectedDistrict}
+          onChangeTab={handleTabSelect}
+        />
+        {mapLoading ? <div className="statePageStatusMessage">Loading district map...</div> : null}
+        {mapLoadFailed ? (
+          <div className="statePageStatusMessage">Unable to load district map</div>
+        ) : null}
+      </div>
+      <div id="statePageDataMainContainer">
+        <div className="statePageDataLabel">{tab} Data</div>
+        <span className="statePageLabelsContainer">
+          <div
+            className={tab === "State" ? "statePageDataTab statePageLeftDataTab statePageActiveTab" : "statePageDataTab statePageLeftDataTab"}
+            onClick={() => handleTabSelect("State")}
+          >
+            State
+          </div>
+          <div
+            id="statePageDistrictTab"
+            className={tab === "District" ? "statePageDataTab statePageActiveTab" : "statePageDataTab"}
+            onClick={() => handleTabSelect("District")}
+          >
+            District
+          </div>
+          <div
+            className={tab === "Ensembles" ? "statePageDataTab statePageActiveTab" : "statePageDataTab"}
+            onClick={() => handleTabSelect("Ensembles")}
+          >
+            Ensembles
+          </div>
+        </span>
+        {renderActivePanel()}
+      </div>
+    </span>
+  );
 }

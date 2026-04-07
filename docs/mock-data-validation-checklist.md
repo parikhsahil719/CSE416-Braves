@@ -38,7 +38,7 @@
 
 ## GUI-19 Interesting Plan
 - `planId` and `planName` present
-- `geojson.type = FeatureCollection`
+- `topology.type = Topology`
 - `summary.repWins + summary.demWins` is plausible for the state
 
 ## GUI-20 VRA Impact Threshold Table

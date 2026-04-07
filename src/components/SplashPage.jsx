@@ -1,22 +1,77 @@
-import React, {useEffect, useRef} from 'react'
+import React, { useEffect, useState } from "react";
 import '../../styles/splash-page.css'
+import axios from "axios";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
-import * as topojson from "topojson-client"
-import data from '../data/us-states.json'
+import { topologyToFeatureCollection } from "../utils/topology.js";
 
+function toStateCode(stateName) {
+  if (stateName === "Oregon") {
+    return "OR";
+  }
+
+  if (stateName === "South Carolina") {
+    return "SC";
+  }
+
+  return null;
+}
 // ─────────────────────────────────────────────
 // SplashPage
 // ─────────────────────────────────────────────
+function Map({switchPage})
+{
+  const navigate = useNavigate();
+  const [statesData, setStatesData] = useState(null);
 
-function getColor(isActive) {
-  return isActive ? "rgb(0, 150, 0)" : "rgb(80, 80, 80)";
-}
+  useEffect(() => {
+    let isActive = true;
 
-function TopoJSON(props) {
-  const navigate = useNavigate()
-  const layerRef = useRef(null)
-  const { data, infoRef, switchPage } = props
+    (async () => {
+      try {
+        const response = await axios.get("/api/maps/us-states/topology");
+        if (isActive) {
+          setStatesData(topologyToFeatureCollection(response.data, "states"));
+        }
+      } catch {
+        if (isActive) {
+          setStatesData(null);
+        }
+      }
+    })();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!statesData) {
+      return undefined;
+    }
+
+    const map = L.map("countrymap", {
+      center: [38.3, -96],
+      zoomControl: false,
+      zoom: 4.8,
+      zoomSnap: 0.1,
+      minZoom: 4,
+      maxZoom: 5,
+      dragging: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      keyboard: false,
+      maxBounds: [[50, -125.88], [24.84, -66.2]],
+    });
+
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
+    function getColor(isActive) {
+      return isActive ? "#008000ff" : "#0a0a0aff";
+    }
 
   function style(feature) {
     return {
@@ -48,13 +103,26 @@ function TopoJSON(props) {
     infoRef.current.update();
   }
 
-  function openStatePage(e) {
-    const stateName = e.target.feature.properties.name;
-    if (stateName === 'Oregon' || stateName === 'South Carolina') {
-      switchPage('State')
-      navigate(`/state/${stateName}`);
+    async function openStatePage(e) {
+      const stateName = e.target.feature.properties.name;
+      const stateCode = toStateCode(stateName);
+
+      if (stateCode) {
+        switchPage("State");
+
+        try {
+          const response = await axios.get(`/api/states/${stateCode}/state-summary`);
+          navigate(`/state/${stateName}`, {
+            state: {
+              prefetchedStateId: stateCode,
+              prefetchedStateSummary: response.data,
+            },
+          });
+        } catch {
+          navigate(`/state/${stateName}`);
+        }
+      }
     }
-  }
 
   function onEachFeature(feature, layer) {
     layer.on({
@@ -141,16 +209,16 @@ function Legend() {
     return () => {
       legend.remove();
     };
-  }, [map]);
+  }, [navigate, statesData, switchPage]);
 
-  return null;
-}
-
-function Map({switchPage}) {
-  const infoRef = useRef(null);
-
-  if (!data) {
-    return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: Country data not found</div>
+  if (!statesData) {
+    return (
+      <>
+        <div id="mapContainer">
+          <div id="countrymap"></div>
+        </div>
+      </>
+    );
   }
 
   return (

@@ -14,8 +14,10 @@
 - `totalDistricts` (integer): district count
 
 ## GUI-2 Enacted District Map
-- GeoJSON `FeatureCollection`
-- `features[]`: district features for the enacted plan
+- TopoJSON `Topology`
+- `objects.layer` (GeometryCollection): enacted district geometries in the current checked-in JSON assets
+- `geometries[].properties.RESULT` (string): district party result used for map color styling
+- `arcs[]`: shared or per-ring topology arcs consumed by `topojson-client`
 
 ## GUI-3 State Summary
 - `population` (string): statewide population summary
@@ -111,7 +113,7 @@
 - `ensembleType` (string)
 - `reasonInteresting` (string): why this plan was surfaced
 - `summary` (object): seeded political/effectiveness summary for the plan
-- `geojson` (GeoJSON `FeatureCollection`): map-ready geometry payload
+- `topology` (TopoJSON `Topology`): map-ready geometry payload
 
 ## GUI-20 VRA Impact Threshold Table
 - `tableType` (string): `vra-impact-thresholds`

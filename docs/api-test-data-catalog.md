@@ -5,9 +5,11 @@ This catalog maps each implemented server-backed GUI use case to the concrete se
 | GUI | Route | State | Lookup params | Collection | Sample payload source | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | GUI-1 | `/api/states` | OR, SC | none | `states` | seeded inline in `SeedDataLoader.seedStates()` | `Live` |
-| GUI-2 | `/api/states/{stateId}/districts/enacted/geojson` | OR | `stateId=OR` | `district_maps` | `src/data/oregon_congressional_districts.geojson` | `Live` |
-| GUI-2 | `/api/states/{stateId}/districts/enacted/geojson` | SC | `stateId=SC` | `district_maps` | `src/data/south_carolina_congressional_districts.geojson` | `Live` |
+| GUI-2 | `/api/states/{stateId}/districts/enacted/topology` | OR | `stateId=OR` | file-backed TopoJSON | `src/data/oregon_congressional_districts.json` | `Live` |
+| GUI-2 | `/api/states/{stateId}/districts/enacted/topology` | SC | `stateId=SC` | file-backed TopoJSON | `src/data/south_carolina_congressional_districts.json` | `Live` |
+| GUI-2 compatibility | `/api/states/{stateId}/districts/enacted/geojson` | OR, SC | `stateId` | file-backed GeoJSON | `src/data/*_congressional_districts.geojson` | `Compatibility` |
 | GUI-3 | `/api/states/{stateId}/summary` | OR, SC | `stateId` | `state_summaries` | seeded inline in `SeedDataLoader.seedStateSummaries()` | `Live` |
+| GUI-4 geometry | `/api/states/{stateId}/precincts/topology` | OR, SC | `stateId` | file-backed TopoJSON | `src/data/OR-precincts-with-results.json`, `src/data/SC-precincts-with-results.json` | `Live` |
 | GUI-4 | `/api/states/{stateId}/heatmap/precincts?group=...` | OR, SC | `stateId + group` | `heatmap_bins` | seeded inline in `SeedDataLoader.heatmapPayload()` | `Live` |
 | GUI-6 | `/api/states/{stateId}/districts/enacted/table?election=...` | OR, SC | `stateId + election` | `district_tables` | seeded inline in `SeedDataLoader.seedDistrictTables()` | `Live` |
 | GUI-9 | `/api/states/{stateId}/analysis/gingles?group=...&election=...` | OR | `stateId=OR&group=latino&election=2024_pres` | `gingles_results` | `mock-data/v1/gingles-scatter/OR_2024_latino.json` | `Live` |
@@ -22,7 +24,7 @@ This catalog maps each implemented server-backed GUI use case to the concrete se
 | GUI-15 | `/api/states/{stateId}/analysis/ei-kde?group=...&election=...&metric=...` | SC | `stateId=SC&group=black&election=2024_pres&metric=support_gap` | `ei_kde_results` | `mock-data/v1/ei-kde/SC_demo.json` | `Live` |
 | GUI-16 | `/api/states/{stateId}/ensembles/splits?ensembleSize=...&election=...` | OR, SC | `stateId + ensembleSize + election` | `ensemble_splits` | `mock-data/v1/ensemble-splits/*_compare.json` | `Live` |
 | GUI-17 | `/api/states/{stateId}/ensembles/box-whisker?group=...&ensembleType=...&metric=...` | OR, SC | `stateId + group + ensembleType + metric` | `box_whisker_results` | `mock-data/v1/box-whisker/*.json` | `Live` |
-| GUI-19 | `/api/states/{stateId}/districts/interesting?planId=...` | OR, SC | `stateId + planId` | `interesting_plans` | seeded by `SeedDataLoader.seedInterestingPlans()` using stored district GeoJSON | `Live` |
+| GUI-19 | `/api/states/{stateId}/districts/interesting?planId=...` | OR, SC | `stateId + planId` | `interesting_plans` | seeded by `SeedDataLoader.seedInterestingPlans()` using stored district Topology JSON | `Live` |
 | GUI-20 | `/api/states/{stateId}/analysis/vra-impact-thresholds?group=...&election=...` | OR | `stateId=OR&group=latino&election=2024_pres` | `vra_impact_threshold_tables` | `mock-data/v1/vra-impact-thresholds/OR_latino_2024_pres.json` | `Live` |
 | GUI-20 | `/api/states/{stateId}/analysis/vra-impact-thresholds?group=...&election=...` | SC | `stateId=SC&group=black&election=2024_pres` | `vra_impact_threshold_tables` | `mock-data/v1/vra-impact-thresholds/SC_black_2024_pres.json` | `Live` |
 | GUI-21 | `/api/states/{stateId}/analysis/minority-effectiveness/box-whisker?election=...` | OR, SC | `stateId + election` | `minority_effectiveness_box_whisker` | `mock-data/v1/minority-effectiveness-box-whisker/*_2024_pres.json` | `Live` |

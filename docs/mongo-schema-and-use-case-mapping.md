@@ -1,12 +1,19 @@
 # Mongo Schema And Use-Case Mapping
 
-This document explains how each implemented GUI use case maps to one stored payload collection in MongoDB, or why it remains client-only.
+This document explains how each implemented GUI use case maps to MongoDB, file-backed geometry assets, or client-only behavior.
+
+## Geometry Storage Model
+- Static geometry is file-backed and served directly by backend routes:
+  - enacted district topology
+  - precinct topology
+  - US states overview topology
+- Analytical payloads and plan-specific payloads remain Mongo-backed.
+- `GUI-19` interesting plans stay in Mongo so the backend still answers that use case with one lookup returning both plan metadata and geometry.
 
 ## Collection Summary
 | Collection | Purpose | Used by |
 | --- | --- | --- |
 | `states` | supported state options | `GUI-1` |
-| `district_maps` | enacted district GeoJSON payloads | `GUI-2` |
 | `state_summaries` | statewide summary payloads | `GUI-3` |
 | `heatmap_bins` | precomputed precinct heatmap legend/bin payloads | `GUI-4` |
 | `district_tables` | enacted district representation tables | `GUI-6` |
@@ -17,7 +24,7 @@ This document explains how each implemented GUI use case maps to one stored payl
 | `ei_kde_results` | EI KDE comparison payloads | `GUI-15` |
 | `ensemble_splits` | race-blind vs VRA split distributions | `GUI-16` |
 | `box_whisker_results` | ranked ensemble box-and-whisker summaries | `GUI-17` |
-| `interesting_plans` | plan metadata plus map-ready GeoJSON | `GUI-19` |
+| `interesting_plans` | plan metadata plus map-ready TopoJSON | `GUI-19` |
 | `vra_impact_threshold_tables` | legal-threshold comparison tables | `GUI-20` |
 | `minority_effectiveness_box_whisker` | by-group minority-effectiveness box summaries | `GUI-21` |
 | `minority_effectiveness_histograms` | by-group minority-effectiveness histograms | `GUI-22` |
@@ -28,9 +35,10 @@ This document explains how each implemented GUI use case maps to one stored payl
 | GUI | Route | Mongo collection | Lookup signature |
 | --- | --- | --- | --- |
 | GUI-1 | `/api/states` | `states` | ordered `stateId` list |
-| GUI-2 | `/api/states/{stateId}/districts/enacted/geojson` | `district_maps` | `stateId` |
+| GUI-2 | `/api/states/{stateId}/districts/enacted/topology` | file-backed TopoJSON asset | `stateId` |
 | GUI-3 | `/api/states/{stateId}/summary` | `state_summaries` | `stateId` |
-| GUI-4 | `/api/states/{stateId}/heatmap/precincts?group=...` | `heatmap_bins` | `stateId + groupKey` |
+| GUI-4 geometry | `/api/states/{stateId}/precincts/topology` | file-backed TopoJSON asset | `stateId` |
+| GUI-4 bins | `/api/states/{stateId}/heatmap/precincts?group=...` | `heatmap_bins` | `stateId + groupKey` |
 | GUI-6 | `/api/states/{stateId}/districts/enacted/table?election=...` | `district_tables` | `stateId + electionId` |
 | GUI-7 | client-only | none | uses `GUI-2` + `GUI-6` payloads already in browser state |
 | GUI-9 | `/api/states/{stateId}/analysis/gingles?group=...&election=...` | `gingles_results` | `stateId + groupKey + electionId` |
@@ -50,5 +58,5 @@ This document explains how each implemented GUI use case maps to one stored payl
 Use this explanation when presenting the server model:
 1. A GUI use case represents a specific question the frontend is asking.
 2. Route parameters select the analytical slice or plan slice that answers that question.
-3. The backend performs one lookup against the collection mapped to that use case.
-4. The route returns the stored `payload` body directly as client-ready JSON or GeoJSON.
+3. The backend either performs one lookup against the mapped collection or reads a static TopoJSON asset for geometry-only routes.
+4. The route returns client-ready JSON or TopoJSON.

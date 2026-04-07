@@ -5,16 +5,19 @@ Spring Boot + MongoDB backend for the CSE 416 Braves project.
 This README is the reproducible local setup guide for teammates. It covers:
 - backend prerequisites
 - local MongoDB setup
-- backend test and run commands
+- backend build and run commands
 - endpoint checks
 - how to run the frontend against the backend for the current contract routes
+- how the TopoJSON geometry implementation is structured
 
 ## Current Scope
 
 Implemented end-to-end:
 - `GET /api/states` (GUI-1)
-- `GET /api/states/{stateId}/districts/enacted/geojson` (GUI-2)
+- `GET /api/states/{stateId}/districts/enacted/topology` (GUI-2)
+- `GET /api/states/{stateId}/districts/enacted/geojson` (GUI-2 compatibility)
 - `GET /api/states/{stateId}/summary` (GUI-3)
+- `GET /api/states/{stateId}/precincts/topology` (GUI-4 geometry)
 - `GET /api/states/{stateId}/heatmap/precincts?group=...` (GUI-4)
 - `GET /api/states/{stateId}/districts/enacted/table?election=...` (GUI-6)
 - `GET /api/states/{stateId}/analysis/gingles?group=...&election=...` (GUI-9)
@@ -28,6 +31,7 @@ Implemented end-to-end:
 - `GET /api/states/{stateId}/analysis/vra-impact-thresholds?group=...&election=...` (GUI-20)
 - `GET /api/states/{stateId}/analysis/minority-effectiveness/box-whisker?election=...` (GUI-21)
 - `GET /api/states/{stateId}/analysis/minority-effectiveness/histogram?group=...&election=...` (GUI-22)
+- `GET /api/maps/us-states/topology` (splash page overview geometry)
 
 Also available:
 - `GET /health`
@@ -96,17 +100,29 @@ export MONGODB_URI="mongodb://127.0.0.1:27017/cse416_braves"
 export APP_SEED_ENABLED=true
 ```
 
-## Run Backend Tests
+## Validate Backend Build
 
 From the `server/` directory:
 
 ```bash
 cd "/Users/sahilparikh/Documents/CSE 416 Braves/server"
-./mvnw test
+./mvnw -q -DskipTests compile
 ```
 
 Expected result:
 - `BUILD SUCCESS`
+
+## TopoJSON Implementation
+
+Static geometry is now served as TopoJSON directly from checked-in files instead of being bundled into the frontend:
+- enacted district topology: `src/data/oregon_congressional_districts.json`, `src/data/south_carolina_congressional_districts.json`
+- precinct topology: `src/data/OR-precincts-with-results.json`, `src/data/SC-precincts-with-results.json`
+- splash page overview topology: `src/data/us-states.json`
+
+Mongo remains the source of truth for plan-specific geometry where a single collection-backed lookup matters:
+- `interesting_plans` stores metadata plus `topology`
+
+The frontend fetches TopoJSON from the backend, converts it with `topojson-client`, and renders the resulting features in Leaflet. This keeps large geometry out of the production bundle and avoids the prior Vite heap OOM during `npm run build`.
 
 ## Start the Backend Server
 
@@ -131,8 +147,13 @@ Open a second terminal and run:
 curl http://localhost:8080/health
 curl http://localhost:8080/health/db
 curl http://localhost:8080/api/states
+curl http://localhost:8080/api/maps/us-states/topology
+curl http://localhost:8080/api/states/OR/districts/enacted/topology
+curl http://localhost:8080/api/states/SC/districts/enacted/topology
 curl http://localhost:8080/api/states/OR/districts/enacted/geojson
 curl http://localhost:8080/api/states/SC/districts/enacted/geojson
+curl http://localhost:8080/api/states/OR/precincts/topology
+curl http://localhost:8080/api/states/SC/precincts/topology
 curl "http://localhost:8080/api/states/OR/analysis/gingles/table?group=latino&election=2024_pres"
 curl "http://localhost:8080/api/states/OR/analysis/ei-support?groups=latino&election=2024_pres&party=DEM"
 curl "http://localhost:8080/api/states/OR/analysis/vra-impact-thresholds?group=latino&election=2024_pres"
@@ -142,11 +163,13 @@ Expected responses:
 - `/health`
   - returns `{"status":"ok","service":"braves-server"}`
 - `/health/db`
-  - returns Mongo health info, DB name, collection list, and `district_maps` count
+  - returns Mongo health info, DB name, and collection counts for stored analytical payloads
 - `/api/states`
   - returns supported state options
-- district GeoJSON endpoints
-  - return enacted district map JSON for `OR` and `SC`
+- topology endpoints
+  - return TopoJSON payloads for US states, enacted districts, and precinct geometry
+- compatibility GeoJSON endpoints
+  - return enacted district GeoJSON for `OR` and `SC`
 - summary and analysis endpoints
   - return seeded professor-facing JSON payloads for the implemented GUI use cases
 
@@ -159,9 +182,8 @@ mongodb://127.0.0.1:27017/cse416_braves
 ```
 
 Check:
-- collection `district_maps` exists
-- OR and SC each have one district map document
 - collection `states` exists if seed data has loaded
+- collection `interesting_plans` exists and stores plan metadata plus `topology`
 
 ## Run the Frontend Against the Backend
 
@@ -182,7 +204,10 @@ http://localhost:5173
 ```
 
 For contract verification:
+- confirm the splash page requests `/api/maps/us-states/topology`
 - select a supported state
+- confirm the state page requests `/api/states/{stateId}/districts/enacted/topology`
+- confirm the minority analysis requests `/api/states/{stateId}/precincts/topology`
 - confirm the frontend requests the expected `/api/...` route for the chosen GUI
 - confirm the payload shape matches the docs under `/docs`
 
@@ -230,14 +255,6 @@ The app now migrates the old non-unique `district_maps.stateId` index automatica
 
 ```bash
 mongosh "mongodb://127.0.0.1:27017/cse416_braves" --eval 'db.district_maps.getIndexes()'
-```
-
-### Tests fail under Java 22
-
-Current test suite is adjusted for Java 22 and does not depend on Mockito agent attachment for the existing tests. Use:
-
-```bash
-./mvnw test
 ```
 
 ### `/health/db` returns an error

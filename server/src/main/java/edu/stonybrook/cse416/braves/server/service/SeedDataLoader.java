@@ -27,8 +27,8 @@ public class SeedDataLoader implements ApplicationRunner {
 
     private final ObjectMapper objectMapper;
     private final StateRepository stateRepository;
-    private final DistrictMapRepository districtMapRepository;
     private final StateSummaryRepository stateSummaryRepository;
+    private final EnsembleSummaryRepository ensembleSummaryRepository;
     private final DistrictTableRepository districtTableRepository;
     private final HeatmapBinRepository heatmapBinRepository;
     private final GinglesResultRepository ginglesResultRepository;
@@ -54,8 +54,8 @@ public class SeedDataLoader implements ApplicationRunner {
     public SeedDataLoader(
             ObjectMapper objectMapper,
             StateRepository stateRepository,
-            DistrictMapRepository districtMapRepository,
             StateSummaryRepository stateSummaryRepository,
+            EnsembleSummaryRepository ensembleSummaryRepository,
             DistrictTableRepository districtTableRepository,
             HeatmapBinRepository heatmapBinRepository,
             GinglesResultRepository ginglesResultRepository,
@@ -74,8 +74,8 @@ public class SeedDataLoader implements ApplicationRunner {
     ) {
         this.objectMapper = objectMapper;
         this.stateRepository = stateRepository;
-        this.districtMapRepository = districtMapRepository;
         this.stateSummaryRepository = stateSummaryRepository;
+        this.ensembleSummaryRepository = ensembleSummaryRepository;
         this.districtTableRepository = districtTableRepository;
         this.heatmapBinRepository = heatmapBinRepository;
         this.ginglesResultRepository = ginglesResultRepository;
@@ -104,8 +104,8 @@ public class SeedDataLoader implements ApplicationRunner {
         validatePrecinctCounts(root);
         validatePopulationRealism(root);
         if (stateRepository.count() == 0) seedStates();
-        if (districtMapRepository.count() == 0) seedDistrictMaps(root);
         if (stateSummaryRepository.count() == 0) seedStateSummaries();
+        if (ensembleSummaryRepository.count() == 0) seedEnsembleSummaries();
         if (districtTableRepository.count() == 0) seedDistrictTables();
         seedHeatmapBins();
         if (ginglesResultRepository.count() == 0) seedGingles(root);
@@ -115,7 +115,7 @@ public class SeedDataLoader implements ApplicationRunner {
         if (eiKdeRepository.count() == 0) seedEiKde(root);
         if (ensembleSplitRepository.count() == 0) seedEnsembleSplits(root);
         if (boxWhiskerResultRepository.count() == 0) seedBoxWhiskers(root);
-        if (interestingPlanRepository.count() == 0) seedInterestingPlans(root);
+        seedInterestingPlans(root);
         if (vraImpactThresholdTableRepository.count() == 0) seedVraImpactThresholdTables(root);
         if (minorityEffectivenessBoxWhiskerRepository.count() == 0) seedMinorityEffectivenessBoxWhisker(root);
         if (minorityEffectivenessHistogramRepository.count() == 0) seedMinorityEffectivenessHistogram(root);
@@ -209,21 +209,6 @@ public class SeedDataLoader implements ApplicationRunner {
         )));
     }
 
-    private void seedDistrictMaps(Path root) throws IOException {
-        districtMapRepository.save(buildDoc(
-                new DistrictMapDocument(),
-                "OR", null, null, null, null,
-                null,
-                readJsonMap(root.resolve("src/data/oregon_congressional_districts.geojson"))
-        ));
-        districtMapRepository.save(buildDoc(
-                new DistrictMapDocument(),
-                "SC", null, null, null, null,
-                null,
-                readJsonMap(root.resolve("src/data/south_carolina_congressional_districts.geojson"))
-        ));
-    }
-
     private void seedStateSummaries() {
         Map<String, Object> orPayload = new LinkedHashMap<>();
         orPayload.put("schemaVersion", "v1");
@@ -253,6 +238,22 @@ public class SeedDataLoader implements ApplicationRunner {
 
         stateSummaryRepository.save(buildDoc(new StateSummaryDocument(), "OR", null, null, null, null, "TOTAL", orPayload));
         stateSummaryRepository.save(buildDoc(new StateSummaryDocument(), "SC", null, null, null, null, "TOTAL", scPayload));
+    }
+
+    private void seedEnsembleSummaries() {
+        ensembleSummaryRepository.save(buildDoc(new EnsembleSummaryDocument(), "OR", null, null, null, null, "TOTAL", Map.of(
+                "schemaVersion", "v1",
+                "state", "OR",
+                "finalPlanCount", 5000,
+                "populationEqualityThreshold", "0.50%"
+        )));
+
+        ensembleSummaryRepository.save(buildDoc(new EnsembleSummaryDocument(), "SC", null, null, null, null, "TOTAL", Map.of(
+                "schemaVersion", "v1",
+                "state", "SC",
+                "finalPlanCount", 5000,
+                "populationEqualityThreshold", "0.50%"
+        )));
     }
 
     private void seedDistrictTables() {
@@ -372,13 +373,14 @@ public class SeedDataLoader implements ApplicationRunner {
     }
 
     private void seedInterestingPlans(Path root) throws IOException {
+        interestingPlanRepository.deleteAll();
         interestingPlanRepository.save(buildInterestingPlanDoc(
                 "OR",
                 "plan-42",
                 "Oregon Opportunity Corridor",
                 "race_blind",
                 "High Latino opportunity with competitive statewide split",
-                readJsonMap(root.resolve("src/data/oregon_congressional_districts.geojson"))
+                readJsonMap(root.resolve("src/data/oregon_congressional_districts.json"))
         ));
         interestingPlanRepository.save(buildInterestingPlanDoc(
                 "SC",
@@ -386,7 +388,7 @@ public class SeedDataLoader implements ApplicationRunner {
                 "South Carolina Coastal Rebalance",
                 "vra_constrained",
                 "Expands Black-effective district probability while keeping core coastal continuity",
-                readJsonMap(root.resolve("src/data/south_carolina_congressional_districts.geojson"))
+                readJsonMap(root.resolve("src/data/south_carolina_congressional_districts.json"))
         ));
     }
 
@@ -396,7 +398,7 @@ public class SeedDataLoader implements ApplicationRunner {
             String planName,
             String ensembleType,
             String reasonInteresting,
-            Map<String, Object> geojson
+            Map<String, Object> topology
     ) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("schemaVersion", "v1");
@@ -410,7 +412,7 @@ public class SeedDataLoader implements ApplicationRunner {
                 "demWins", "OR".equals(stateId) ? 4 : 2,
                 "effectiveMinorityDistricts", "OR".equals(stateId) ? 2 : 3
         ));
-        payload.put("geojson", geojson);
+        payload.put("topology", topology);
 
         InterestingPlanDocument doc = buildDoc(new InterestingPlanDocument(), stateId, "2024_pres", null, ensembleType, null, "TOTAL", payload);
         doc.setPlanId(planId);

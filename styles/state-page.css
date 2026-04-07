@@ -39,9 +39,29 @@
 #statePagemap {
   flex: 1 1 auto;
   width: min(100%, 52rem);
-  height: auto;
+  height: min(75vh, 50rem);
   min-height: 0;
   border: 1px solid var(--color-line);
+}
+
+.statePageLeafletMap {
+  width: 100%;
+  height: 100%;
+}
+
+.statePageMapPlaceholder {
+  background: #f5f5f5;
+}
+
+.statePageStatusMessage {
+  margin-top: 0.5rem;
+  font-weight: bold;
+}
+
+.statePagePanelStatus {
+  margin: 0;
+  color: #475569;
+  font-size: 0.95rem;
 }
 
 .statePageLabelsContainer {
@@ -123,12 +143,21 @@
   padding-left: 1rem;
 }
 
-/* ── Unavailable state ── */
 .congTable_unavailable {
   padding: 1.25rem;
   color: #6b7280;
   font-style: italic;
   font-size: clamp(0.8rem, 0.9vw, 1rem);
+}
+
+.districts-table-container {
+  width: 100%;
+}
+
+.districts-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fafeff;
 }
 
 .districts-table-header,
@@ -154,6 +183,10 @@
   cursor: pointer;
 }
 
+.districts-table-row--selected .districts-table-data {
+  background-color: #dde8ef;
+}
+
 .election-tag {
   display: block;
   font-size: clamp(0.65rem, 0.7vw, 0.78rem);
@@ -162,32 +195,6 @@
   margin-top: 2px;
 }
 
-/* .statePageTable {
-  flex: 1 1 auto;
-  width: min(100%, 46rem);
-  height: auto;
-  border-collapse: collapse;
-  border: 1px solid;
-  table-layout: fixed;
-  background: #fff;
-}
-
-.statePageTable td,
-.statePageTable th {
-  width: auto;
-  padding: clamp(0.35rem, 0.65vw, 0.75rem);
-  text-align: center;
-  font-size: clamp(0.8rem, 0.9vw, 1rem);
-  line-height: 1.1;
-  border: 1px solid;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-}
-
-.statePageTable td {
-  font-weight: 500;
-} */
-
 @media (max-width: 1400px) {
   #statePageMain {
     grid-template-columns: minmax(0, 1fr) minmax(0, 0.96fr);
@@ -195,8 +202,9 @@
     padding-inline: 0.75rem;
   }
 
-  .statePageMainContainer {
+  #statePageDataMainContainer {
     width: 100%;
+    margin-right: 0;
   }
 
   #statePagemap {
@@ -213,7 +221,7 @@
   }
 
   #statePageMapContainer,
-  #tableContainer {
+  #statePageDataMainContainer {
     overflow: visible;
   }
 
@@ -221,7 +229,7 @@
     height: min(28rem, 55vh);
   }
 
-  .statePageDataMainContainer {
+  #statePageDataMainContainer {
     height: auto;
   }
 }

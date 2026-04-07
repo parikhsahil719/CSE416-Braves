@@ -5,14 +5,21 @@ This document is the professor-facing contract reference for the Braves project.
 
 Status labels used here:
 - `Live`: route exists and the backend can return a seeded payload now
+- `Compatibility`: route remains available for fallback while the frontend uses the TopoJSON-first contract
 - `Client-only`: UI behavior uses state already loaded by other routes and does not make its own server request
+
+Geometry note:
+- Static geometry is now TopoJSON-first and file-backed by the backend.
+- The frontend fetches TopoJSON, converts it with `topojson-client`, then renders the resulting features in Leaflet.
+- `GUI-19` remains Mongo-backed, but its stored geometry is also TopoJSON-first via the `topology` field.
 
 ## Interface Summary
 | GUI | Purpose | Method | URL | Status | Response body / behavior |
 | --- | --- | --- | --- | --- | --- |
 | GUI-1 | List supported states | `GET` | `/api/states` | `Live` | JSON array of `StateOptionResponse` |
-| GUI-2 | Enacted district map | `GET` | `/api/states/{stateId}/districts/enacted/geojson` | `Live` | GeoJSON `FeatureCollection` |
+| GUI-2 | Enacted district map | `GET` | `/api/states/{stateId}/districts/enacted/topology` | `Live` | TopoJSON `Topology` |
 | GUI-3 | State summary | `GET` | `/api/states/{stateId}/summary` | `Live` | Summary JSON |
+| GUI-4 | Precinct heatmap geometry | `GET` | `/api/states/{stateId}/precincts/topology` | `Live` | TopoJSON `Topology` |
 | GUI-4 | Precinct heatmap bins | `GET` | `/api/states/{stateId}/heatmap/precincts?group=...` | `Live` | Heatmap legend/bin JSON |
 | GUI-6 | Congressional representation table | `GET` | `/api/states/{stateId}/districts/enacted/table?election=...` | `Live` | District table JSON |
 | GUI-7 | Highlight district | N/A | N/A | `Client-only` | Uses `GUI-6` district row + `GUI-2` map geometry |
@@ -23,7 +30,7 @@ Status labels used here:
 | GUI-15 | EI KDE comparison | `GET` | `/api/states/{stateId}/analysis/ei-kde?group=...&election=...&metric=...` | `Live` | KDE JSON |
 | GUI-16 | Ensemble splits | `GET` | `/api/states/{stateId}/ensembles/splits?ensembleSize=...&election=...` | `Live` | Split comparison JSON |
 | GUI-17 | Box-and-whisker ensemble summary | `GET` | `/api/states/{stateId}/ensembles/box-whisker?group=...&ensembleType=...&metric=...` | `Live` | Ranked summary JSON |
-| GUI-19 | Interesting district plan | `GET` | `/api/states/{stateId}/districts/interesting?planId=...` | `Live` | Metadata + GeoJSON plan payload |
+| GUI-19 | Interesting district plan | `GET` | `/api/states/{stateId}/districts/interesting?planId=...` | `Live` | Metadata + TopoJSON plan payload |
 | GUI-20 | VRA impact threshold table | `GET` | `/api/states/{stateId}/analysis/vra-impact-thresholds?group=...&election=...` | `Live` | Threshold comparison table JSON |
 | GUI-21 | Minority effectiveness box-and-whisker comparison | `GET` | `/api/states/{stateId}/analysis/minority-effectiveness/box-whisker?election=...` | `Live` | Group comparison box summaries |
 | GUI-22 | Minority effectiveness histogram | `GET` | `/api/states/{stateId}/analysis/minority-effectiveness/histogram?group=...&election=...` | `Live` | Overlapping histogram JSON |
@@ -42,13 +49,19 @@ Status labels used here:
 ### GUI-2
 ```json
 {
-  "type": "FeatureCollection",
-  "features": [
-    { "type": "Feature", "properties": { "district": 1 }, "geometry": { "type": "Polygon", "coordinates": [] } }
-  ]
+  "type": "Topology",
+  "objects": {
+    "layer": {
+      "type": "GeometryCollection",
+      "geometries": []
+    }
+  },
+  "arcs": []
 }
 ```
-Actual payload source: enacted GeoJSON in `src/data/*.geojson`.
+District geometries include `properties.RESULT` for party color styling.
+Actual payload source: file-backed Topology JSON in `src/data/*_congressional_districts.json`.
+Compatibility route: `GET /api/states/{stateId}/districts/enacted/geojson` still serves GeoJSON during the cutover.
 
 ### GUI-3
 ```json
@@ -66,6 +79,25 @@ Actual payload source: enacted GeoJSON in `src/data/*.geojson`.
 ```
 
 ### GUI-4
+Geometry route:
+`GET /api/states/{stateId}/precincts/topology`
+
+```json
+{
+  "type": "Topology",
+  "objects": {
+    "OR": {
+      "type": "GeometryCollection",
+      "geometries": []
+    }
+  },
+  "arcs": []
+}
+```
+
+Legend/bin route:
+`GET /api/states/{stateId}/heatmap/precincts?group=...`
+
 ```json
 {
   "schemaVersion": "v1",
@@ -181,13 +213,19 @@ Sample payload source: [`mock-data/v1/box-whisker/OR_latino_cvap_vra.json`](/Use
     "demWins": 4,
     "effectiveMinorityDistricts": 2
   },
-  "geojson": {
-    "type": "FeatureCollection",
-    "features": []
+  "topology": {
+    "type": "Topology",
+    "objects": {
+      "districts": {
+        "type": "GeometryCollection",
+        "geometries": []
+      }
+    },
+    "arcs": []
   }
 }
 ```
-The live seeded payload contains full GeoJSON features copied from the stored district map.
+The live seeded payload stores TopoJSON in Mongo so `GUI-19` remains one collection-backed lookup returning metadata plus geometry in a single response.
 
 ### GUI-20
 ```json
