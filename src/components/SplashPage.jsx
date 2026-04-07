@@ -73,35 +73,35 @@ function Map({switchPage})
       return isActive ? "#008000ff" : "#0a0a0aff";
     }
 
-  function style(feature) {
-    return {
-      fillColor: getColor(feature.properties.isActive),
-      weight: 2,
-      opacity: 1,
-      color: "white",
-      dashArray: "3",
-      fillOpacity: 0.7,
-    };
-  }
+    function style(feature) {
+      return {
+        fillColor: getColor(feature.properties.isActive),
+        weight: 2,
+        opacity: 1,
+        color: "white",
+        dashArray: "3",
+        fillOpacity: 0.7,
+      };
+    }
 
-  function highlightFeature(e) {
-    const layer = e.target;
+    function highlightFeature(e) {
+      const layer = e.target;
 
-    layer.setStyle({
-      weight: 5,
-      color: "#ffffffff",
-      dashArray: "",
-      fillOpacity: 0.7,
-    });
+      layer.setStyle({
+        weight: 5,
+        color: "#ffffffff",
+        dashArray: "",
+        fillOpacity: 0.7,
+      });
 
-    layer.bringToFront();
-    infoRef.current.update(layer.feature.properties);
-  }
+      layer.bringToFront();
+      info.update(layer.feature.properties);
+    }
 
-  function resetHighlight(e) {
-    layerRef.current.resetStyle(e.target);
-    infoRef.current.update();
-  }
+    function resetHighlight(e) {
+      geojson.resetStyle(e.target);
+      info.update();
+    }
 
     async function openStatePage(e) {
       const stateName = e.target.feature.properties.name;
@@ -124,39 +124,20 @@ function Map({switchPage})
       }
     }
 
-  function onEachFeature(feature, layer) {
-    layer.on({
-      mouseover: highlightFeature,
-      mouseout: resetHighlight,
-      click: openStatePage,
-    });
-  }
-
-  function addData(layer, jsonData) {
-    if (jsonData.type === "Topology") {
-      for (let key in jsonData.objects) {
-        let geojson = topojson.feature(jsonData, jsonData.objects[key])
-        layer.addData(geojson)
-      }
-    } else {
-      layer.addData(jsonData)
+    function onEachFeature(feature, layer) {
+      layer.on({
+        mouseover: highlightFeature,
+        mouseout: resetHighlight,
+        click: openStatePage,
+      });
     }
-  }
 
-  useEffect(() => {
-    const layer = layerRef.current
-    layer.clearLayers()
-    addData(layer, data)
-  }, [data]);
+    const geojson = L.geoJson(statesData, {
+      style,
+      onEachFeature,
+    }).addTo(map);
 
-  return <GeoJSON ref={layerRef} style={style} onEachFeature={onEachFeature} />
-}
-
-function Info({infoRef}) {
-  const map = useMap();
-
-  useEffect(() => {
-    const info = L.control({ position: "topright" });
+    const info = L.control();
 
     info.onAdd = function () {
       this._div = L.DomUtil.create("div", "info");
@@ -169,28 +150,15 @@ function Info({infoRef}) {
         "<h4>US State</h4>" +
         (props
           ? "<b>" + props.name + "</b><br />"
-          : "Click on a state");
+          : "Hover over a state");
     };
 
     info.addTo(map);
 
-    infoRef.current = info;
-
-    return () => {
-      info.remove();
-    };
-  }, [map, infoRef]);
-}
-
-function Legend() {
-  const map = useMap();
-
-  useEffect(() => {
     const legend = L.control({ position: "bottomright" });
 
     legend.onAdd = function () {
       const div = L.DomUtil.create("div", "info legend");
-
       const grades = [true, false];
 
       grades.forEach((grade) => {
@@ -198,7 +166,7 @@ function Legend() {
           '<i style="background:' +
           getColor(grade) +
           '"></i>' +
-          (grade ? "Active" + "<br><br>" : "Inactive")
+          (grade ? "Active" + "<br><br>": "Inactive")
       });
 
       return div;
@@ -206,8 +174,9 @@ function Legend() {
 
     legend.addTo(map);
 
+    // Cleanup
     return () => {
-      legend.remove();
+      map.remove();
     };
   }, [navigate, statesData, switchPage]);
 
@@ -222,29 +191,12 @@ function Legend() {
   }
 
   return (
-    <MapContainer center={[38.3, -96]}
-      zoomControl={false}
-      zoom={4.8}
-      zoomSnap={0.1}
-      dragging={false}
-      scrollWheelZoom={false}
-      style={{ width: "85rem", height: "85vh" }}
-      doubleClickZoom={false}
-      keyboard={false}
-      maxBounds={[[50, -125.88], [24.84, -66.2]]}>
-      <TileLayer
-        attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
-      />
-      <TopoJSON
-        data={data}
-        infoRef={infoRef}
-        switchPage={switchPage}
-      />
-      <Info infoRef={infoRef}/>
-      <Legend />
-    </MapContainer >
-  )
+    <>
+      <div id="mapContainer">
+        <div id="countrymap"></div>
+      </div>
+    </>
+  );
 }
 
 export default function SplashPage({switchPage}) {
