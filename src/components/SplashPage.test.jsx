@@ -185,4 +185,50 @@ describe("SplashPage", () => {
     expect(axios.get).toHaveBeenNthCalledWith(2, "/api/states/OR/state-summary");
     expect(screen.getByTestId("route-state")).toHaveTextContent("null");
   });
+
+  it("renders splash navigation from renamed JSON topology payloads", async () => {
+    axios.get.mockImplementation((url) => {
+      if (url === "/api/maps/us-states/topology") {
+        return Promise.resolve({
+          data: {
+            type: "Topology",
+            objects: {
+              "us-states": {
+                type: "GeometryCollection",
+                geometries: [
+                  {
+                    type: "Polygon",
+                    arcs: [[0]],
+                    properties: {
+                      name: "Oregon",
+                      isActive: true,
+                    },
+                  },
+                ],
+              },
+            },
+            arcs: [[]],
+          },
+        });
+      }
+
+      if (url === "/api/states/OR/state-summary") {
+        return Promise.resolve({
+          data: {
+            state: "OR",
+            population: "4,272,371",
+          },
+        });
+      }
+
+      return Promise.reject(new Error(`Unhandled url: ${url}`));
+    });
+
+    renderSplashPage();
+
+    fireEvent.click(await screen.findByText("Oregon"));
+
+    await waitFor(() => expect(screen.getByTestId("pathname")).toHaveTextContent("/state/Oregon"));
+    expect(screen.getByTestId("route-state")).toHaveTextContent("\"prefetchedStateId\":\"OR\"");
+  });
 });

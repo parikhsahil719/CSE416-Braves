@@ -380,7 +380,7 @@ public class SeedDataLoader implements ApplicationRunner {
                 "Oregon Opportunity Corridor",
                 "race_blind",
                 "High Latino opportunity with competitive statewide split",
-                readJsonMap(root.resolve("src/data/oregon_congressional_districts.topojson"))
+                readJsonMap(root.resolve("src/data/oregon_congressional_districts.json"))
         ));
         interestingPlanRepository.save(buildInterestingPlanDoc(
                 "SC",
@@ -388,7 +388,7 @@ public class SeedDataLoader implements ApplicationRunner {
                 "South Carolina Coastal Rebalance",
                 "vra_constrained",
                 "Expands Black-effective district probability while keeping core coastal continuity",
-                readJsonMap(root.resolve("src/data/south_carolina_congressional_districts.topojson"))
+                readJsonMap(root.resolve("src/data/south_carolina_congressional_districts.json"))
         ));
     }
 

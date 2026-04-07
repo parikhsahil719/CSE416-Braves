@@ -17,6 +17,35 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class StateControllerTest {
 
     @Test
+    void getDistrictTopologyReturnsJsonAssetWithResultField() throws Exception {
+        MockMvc mockMvc = mockMvcFor(dataServiceForResponse(Map.of()));
+
+        mockMvc.perform(get("/api/states/OR/districts/enacted/topology"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.type").value("Topology"))
+                .andExpect(jsonPath("$.objects.layer.geometries[0].properties.RESULT").value("DEMOCRATIC"));
+    }
+
+    @Test
+    void getUsStatesTopologyReturnsRenamedJsonAsset() throws Exception {
+        MockMvc mockMvc = mockMvcFor(dataServiceForResponse(Map.of()));
+
+        mockMvc.perform(get("/api/maps/us-states/topology"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.type").value("Topology"))
+                .andExpect(jsonPath("$.objects['us-states'].geometries[0].properties.name").value("Alabama"));
+    }
+
+    @Test
+    void getPrecinctTopologyReturnsJsonAsset() throws Exception {
+        MockMvc mockMvc = mockMvcFor(dataServiceForResponse(Map.of()));
+
+        mockMvc.perform(get("/api/states/OR/precincts/topology"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.type").value("Topology"));
+    }
+
+    @Test
     void getEnsembleSummaryReturnsSeededPayloadForSupportedState() throws Exception {
         BackendDataService dataService = dataServiceForResponse(Map.of(
                 "schemaVersion", "v1",

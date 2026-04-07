@@ -15,7 +15,8 @@
 
 ## GUI-2 Enacted District Map
 - TopoJSON `Topology`
-- `objects.districts` (GeometryCollection): enacted district geometries
+- `objects.layer` (GeometryCollection): enacted district geometries in the current checked-in JSON assets
+- `geometries[].properties.RESULT` (string): district party result used for map color styling
 - `arcs[]`: shared or per-ring topology arcs consumed by `topojson-client`
 
 ## GUI-3 State Summary

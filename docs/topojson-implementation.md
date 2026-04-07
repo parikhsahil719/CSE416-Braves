@@ -16,11 +16,11 @@ The frontend still converts TopoJSON to renderable features with `topojson-clien
 ### File-backed static geometry
 
 Static geometry is served directly from checked-in files:
-- `src/data/oregon_congressional_districts.topojson`
-- `src/data/south_carolina_congressional_districts.topojson`
+- `src/data/oregon_congressional_districts.json`
+- `src/data/south_carolina_congressional_districts.json`
 - `src/data/OR-precincts-with-results.json`
 - `src/data/SC-precincts-with-results.json`
-- `src/data/us_states.topojson`
+- `src/data/us-states.json`
 
 This geometry is stable by state and does not need MongoDB storage.
 
@@ -61,7 +61,7 @@ This pattern is used by:
 
 ## Artifact Generation
 
-Static district and US overview TopoJSON artifacts are generated with:
+Static district and US overview topology JSON artifacts are generated with:
 - `scripts/geojson_to_topology.py`
 
-This converter is intentionally dependency-free and produces deterministic TopoJSON artifacts from local GeoJSON-style sources. Raw district GeoJSON files are retained as source inputs, and generated TopoJSON artifacts are committed separately.
+This converter is intentionally dependency-free and produces deterministic topology JSON artifacts from local GeoJSON-style sources. Raw district GeoJSON files are retained as source inputs, and generated topology JSON artifacts are committed separately.

@@ -35,13 +35,13 @@ public class GeometryAssetService {
     }
 
     public Map<String, Object> getUsStatesTopology() {
-        return readJsonMap("geometry/us_states.topojson", "US states topology not found");
+        return readJsonMap("geometry/us-states.json", "US states topology not found");
     }
 
     private String relativeDistrictTopologyPath(String stateId) {
         return switch (stateId) {
-            case "OR" -> "geometry/oregon_congressional_districts.topojson";
-            case "SC" -> "geometry/south_carolina_congressional_districts.topojson";
+            case "OR" -> "geometry/oregon_congressional_districts.json";
+            case "SC" -> "geometry/south_carolina_congressional_districts.json";
             default -> throw new IllegalArgumentException("Unsupported stateId=" + stateId);
         };
     }

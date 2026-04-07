@@ -53,7 +53,7 @@ vi.mock("react-leaflet", async () => {
     };
   }
 
-  const GeoJSON = ReactModule.forwardRef(function MockGeoJSON({ data, onEachFeature }, ref) {
+  const GeoJSON = ReactModule.forwardRef(function MockGeoJSON({ data, onEachFeature, style }, ref) {
     const layers = ReactModule.useMemo(
       () => (data?.features ?? []).map((feature) => createLayer(feature)),
       [data]
@@ -80,6 +80,7 @@ vi.mock("react-leaflet", async () => {
               key={districtNumber}
               type="button"
               data-testid={`map-district-${districtNumber}`}
+              data-fill-color={style?.(layer.feature)?.fillColor ?? ""}
               onClick={() => layer.handlers.click?.({ target: layer })}
             >
               Map district {districtNumber}
@@ -218,6 +219,48 @@ describe("StatePage", () => {
     expect(axios.get).toHaveBeenCalledTimes(2);
     expect(axios.get).toHaveBeenNthCalledWith(1, "/api/states/OR/districts/enacted/topology");
     expect(axios.get).toHaveBeenNthCalledWith(2, "/api/states/OR/state-summary");
+  });
+
+  it("renders Kobe-style topology objects and colors districts from RESULT", async () => {
+    mockBackendResponses({
+      topology: {
+        type: "Topology",
+        objects: {
+          layer: {
+            type: "GeometryCollection",
+            geometries: [
+              {
+                type: "Polygon",
+                arcs: [[0]],
+                properties: {
+                  district_number: 4,
+                  NAMELSAD: "Congressional District 4",
+                  RESULT: "DEMOCRATIC",
+                },
+              },
+              {
+                type: "Polygon",
+                arcs: [[1]],
+                properties: {
+                  district_number: 5,
+                  NAMELSAD: "Congressional District 5",
+                  RESULT: "REPUBLICAN",
+                },
+              },
+            ],
+          },
+        },
+        arcs: [[], []],
+      },
+    });
+
+    renderStatePage();
+
+    const demDistrict = await screen.findByTestId("map-district-4");
+    const repDistrict = await screen.findByTestId("map-district-5");
+
+    expect(demDistrict).toHaveAttribute("data-fill-color", "#0011ff");
+    expect(repDistrict).toHaveAttribute("data-fill-color", "#ff0000");
   });
 
   it("uses splash-prefetched summary without issuing a duplicate summary request", async () => {
