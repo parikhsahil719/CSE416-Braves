@@ -5,17 +5,15 @@ import { CountryHeaderBar } from './components/CountryHeaderBar'
 import { SideBar } from './components/SideBar'
 import '../styles/main.css'
 import { Routes, Route, useParams } from 'react-router-dom'
-import Compare from './components/Compare'
 
 const StateMinorityAnalysis = lazy(() => import('./components/StateMinorityAnalysis'))
 const StateCustomAnalysis = lazy(() => import('./components/StateCustomAnalysis'))
 const StateSimulationMinorityData = lazy(() => import('./components/StateSimulationMinorityData'))
 const CrossStateAnalysis = lazy(() => import('./components/CrossStateAnalysis'))
 const VRAAnalysis = lazy(() => import('./components/VRAAnalysis'))
+const Compare = lazy(() => import('./components/Compare'))
+const EI = lazy(() => import('./components/EI'))
 
-/**
- * Based on the current view (state variable), switch to it. Basically large switch statement
- */
 export default function App() {
 
   // State variable for switching between views
@@ -24,6 +22,8 @@ export default function App() {
   const [currMap, switchMap] = useState('District Map');
   // State variable for switching minority group for heat map
   const [currMinority, switchMinority] = useState('');
+  // State variable for switching EI chart
+  const [currEI, switchEI] = useState('');
   // Store relevant data that will ALMOST ALWAYS be used here, others can be pulled on demand
   // Minority data
   const minorityData = [
@@ -59,9 +59,9 @@ export default function App() {
         <Route path={`/state/:stateName`} element={
           <>
             <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' />
-            <SideBar currPage={currPage} switchPage={switchPage} currMap={currMap} switchMap={switchMap} precinctMapSelectable={true} currMinority={currMinority} switchMinority={switchMinority} />
+            <SideBar currPage={currPage} switchPage={switchPage} currMap={currMap} switchMap={switchMap} precinctMapSelectable={true} currMinority={currMinority} switchMinority={switchMinority} currEI={currEI} switchEI={switchEI} />
             <span className="main-container">
-              <StatePage currMap={currMap} currMinority={currMinority} />
+              <StatePage currMap={currMap} currMinority={currMinority} switchMinority={switchMinority} />
             </span>
           </>
         } />
@@ -108,9 +108,18 @@ export default function App() {
         <Route path={`/state/:stateName/Compare`} element={
           <>
             <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' />
-            <SideBar currPage={currPage} switchPage={switchPage} currMap={currMap} switchMap={switchMap} precinctMapSelectable={false} />
+            <SideBar currPage={currPage} switchPage={switchPage} currMap={currMap} switchMap={switchMap} precinctMapSelectable={false} currEI={currEI} switchEI={switchEI} />
             <span className="main-container">
               <Compare />
+            </span>
+          </>
+        } />
+        <Route path={`/state/:stateName/Ecological Inference`} element={
+          <>
+            <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' />
+            <SideBar currPage={currPage} switchPage={switchPage} currMap={currMap} switchMap={switchMap} precinctMapSelectable={true} currMinority={currMinority} switchMinority={switchMinority} currEI={currEI} switchEI={switchEI} />
+            <span className="main-container">
+              <EI currMap={currMap} currMinority={currMinority} switchMinority={switchMinority} currEI={currEI} switchEI={switchEI} />
             </span>
           </>
         } />

@@ -152,7 +152,7 @@ export default function DistrictMap({ stateName, data, selectedDistrict, onSelec
   const infoRef = useRef(null);
 
     if (!data) {
-      return <div id="districtmap" className="statePageMapPlaceholder" />;
+      return <div id="districtmap" className="districtMapPlaceholder" />;
     }
 
     return (

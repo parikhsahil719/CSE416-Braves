@@ -5,11 +5,12 @@ import { useEffect, useRef } from "react";
 import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 
 function getColor(result) {
-  return result === "DEMOCRATIC"
-    ? "#0011ff"
-    : result === "REPUBLICAN"
-      ? "#ff0000"
-      : "#666666";
+  return "#666666";
+  // return result === "DEMOCRATIC"
+  //   ? "#0011ff"
+  //   : result === "REPUBLICAN"
+  //     ? "#ff0000"
+  //     : "#666666";
 }
 
 function getBaseDistrictStyle(feature) {
@@ -129,7 +130,7 @@ export default function InterestingMap({ stateName, data }) {
   const infoRef = useRef(null);
 
     if (!data) {
-      return <div id="interestingmap" className="statePageMapPlaceholder" />;
+      return <div id="interestingmap" className="interestingMapPlaceholder" />;
     }
 
     return (

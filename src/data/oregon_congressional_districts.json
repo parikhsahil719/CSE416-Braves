@@ -17,21 +17,10 @@
                     ],
                     "properties": {
                         "RESULT": "DEMOCRATIC",
-                        "STATEFP": "41",
-                        "CD118FP": "01",
-                        "GEOID": "4101",
-                        "GEOIDFQ": "5001800US4101",
                         "NAMELSAD": "Congressional District 1",
-                        "LSAD": "C2",
-                        "CDSESSN": "118",
-                        "MTFCC": "G5200",
-                        "FUNCSTAT": "N",
-                        "ALAND": 8681584017,
-                        "AWATER": 1358321209,
                         "INTPTLAT": "+45.7636060",
                         "INTPTLON": "-123.4560758",
-                        "district_number": 1,
-                        "state": "Oregon"
+                        "district_number": 1
                     }
                 },
                 {
@@ -46,21 +35,10 @@
                     ],
                     "properties": {
                         "RESULT": "REPUBLICAN",
-                        "STATEFP": "41",
-                        "CD118FP": "02",
-                        "GEOID": "4102",
-                        "GEOIDFQ": "5001800US4102",
                         "NAMELSAD": "Congressional District 2",
-                        "LSAD": "C2",
-                        "CDSESSN": "118",
-                        "MTFCC": "G5200",
-                        "FUNCSTAT": "N",
-                        "ALAND": 186890566373,
-                        "AWATER": 1859535972,
                         "INTPTLAT": "+43.7699313",
                         "INTPTLON": "-119.7426476",
-                        "district_number": 2,
-                        "state": "Oregon"
+                        "district_number": 2
                     }
                 },
                 {
@@ -76,21 +54,10 @@
                     ],
                     "properties": {
                         "RESULT": "DEMOCRATIC",
-                        "STATEFP": "41",
-                        "CD118FP": "04",
-                        "GEOID": "4104",
-                        "GEOIDFQ": "5001800US4104",
                         "NAMELSAD": "Congressional District 4",
-                        "LSAD": "C2",
-                        "CDSESSN": "118",
-                        "MTFCC": "G5200",
-                        "FUNCSTAT": "N",
-                        "ALAND": 30077681632,
-                        "AWATER": 2713711195,
                         "INTPTLAT": "+43.6296441",
                         "INTPTLON": "-123.5163052",
-                        "district_number": 4,
-                        "state": "Oregon"
+                        "district_number": 4
                     }
                 },
                 {
@@ -106,21 +73,10 @@
                     ],
                     "properties": {
                         "RESULT": "DEMOCRATIC",
-                        "STATEFP": "41",
-                        "CD118FP": "05",
-                        "GEOID": "4105",
-                        "GEOIDFQ": "5001800US4105",
                         "NAMELSAD": "Congressional District 5",
-                        "LSAD": "C2",
-                        "CDSESSN": "118",
-                        "MTFCC": "G5200",
-                        "FUNCSTAT": "N",
-                        "ALAND": 14482242384,
-                        "AWATER": 100999313,
                         "INTPTLAT": "+44.6183029",
                         "INTPTLON": "-122.2483834",
-                        "district_number": 5,
-                        "state": "Oregon"
+                        "district_number": 5
                     }
                 },
                 {
@@ -134,21 +90,10 @@
                     ],
                     "properties": {
                         "RESULT": "DEMOCRATIC",
-                        "STATEFP": "41",
-                        "CD118FP": "06",
-                        "GEOID": "4106",
-                        "GEOIDFQ": "5001800US4106",
                         "NAMELSAD": "Congressional District 6",
-                        "LSAD": "C2",
-                        "CDSESSN": "118",
-                        "MTFCC": "G5200",
-                        "FUNCSTAT": "N",
-                        "ALAND": 4908107442,
-                        "AWATER": 30564626,
                         "INTPTLAT": "+45.0647035",
                         "INTPTLON": "-123.2628219",
-                        "district_number": 6,
-                        "state": "Oregon"
+                        "district_number": 6
                     }
                 },
                 {
@@ -163,21 +108,10 @@
                     ],
                     "properties": {
                         "RESULT": "DEMOCRATIC",
-                        "STATEFP": "41",
-                        "CD118FP": "03",
-                        "GEOID": "4103",
-                        "GEOIDFQ": "5001800US4103",
                         "NAMELSAD": "Congressional District 3",
-                        "LSAD": "C2",
-                        "CDSESSN": "118",
-                        "MTFCC": "G5200",
-                        "FUNCSTAT": "N",
-                        "ALAND": 3590238047,
-                        "AWATER": 105828023,
                         "INTPTLAT": "+45.4562687",
                         "INTPTLON": "-121.9561275",
-                        "district_number": 3,
-                        "state": "Oregon"
+                        "district_number": 3
                     }
                 }
             ]

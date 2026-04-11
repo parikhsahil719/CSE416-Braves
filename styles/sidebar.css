@@ -36,7 +36,16 @@
 .sidebar-header {
   font-size: 1.5rem;
   font-weight: bold;
-  padding: 2rem 0rem 1rem 0rem;
+  padding: 1.5rem 0rem 1rem 0rem;
+}
+
+.sidebar-subheader {
+  width: 70%;
+  color: #88ab75;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  box-sizing: border-box;
 }
 
 .sidebar-tab {
@@ -49,12 +58,15 @@
 }
 
 .sidebar-tab:hover,
-.minority-option:hover {
+.minority-option:hover,
+.ei-option:hover {
   background-color: #e2e8f0;
 }
 
-.minority-option {
+.minority-option,
+.ei-option {
   width: 70%;
+  color: #60656f;
   font-size: 1rem;
   padding: 0.25rem 1.5rem;
   cursor: pointer;

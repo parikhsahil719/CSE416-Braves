@@ -132,7 +132,7 @@ function VoteMarginBadge({ margin }) {
   return <span>{isDem ? `D+${absMargin}%` : `R+${absMargin}%`}</span>;
 }
 
-function DistrictData({ districts, selectedDistrict, onSelectDistrict, onChangeTab, loading, loadFailed, hasCachedData, hasRequestedData }) {
+function DistrictData({ districts, selectedDistrict, onSelectDistrict, onChangeTab, loading, loadFailed, hasCachedData, hasRequestedData, currMap }) {
   if (loading || (hasRequestedData && !hasCachedData && !loadFailed)) {
     return (
       <div id="statePageDataContainer">
@@ -158,6 +158,10 @@ function DistrictData({ districts, selectedDistrict, onSelectDistrict, onChangeT
     onChangeTab("District");
   }
 
+  useEffect(() => {
+    onSelectDistrict(0);
+  }, [currMap]);
+
   return (
     <div id="statePageDataContainer">
       <div className="districts-table-container">
@@ -180,9 +184,13 @@ function DistrictData({ districts, selectedDistrict, onSelectDistrict, onChangeT
                 key={district.districtNumber}
                 className={district.districtNumber === selectedDistrict ? "districts-table-row districts-table-row--selected" : "districts-table-row"}
               >
+                {currMap === "District Map" ?
                 <td className="districts-table-data districts-table-distnum" onClick={() => handleDistrictClick(district.districtNumber)}>
                   {district.districtNumber}
-                </td>
+                </td> :
+                <td className="districts-table-data districts-table-distnum">
+                  {district.districtNumber}
+                </td>}
                 <td className="districts-table-data">{district.representative}</td>
                 <td className="districts-table-data">{district.party}</td>
                 <td className="districts-table-data">{district.racialEthnicGroup}</td>
@@ -624,6 +632,7 @@ export default function StatePage(props) {
           loadFailed={districtTableLoadFailed}
           hasCachedData={Boolean(districtTable)}
           hasRequestedData={requestedTabs.District}
+          currMap={props.currMap}
         />
       );
     }
@@ -642,7 +651,7 @@ export default function StatePage(props) {
   return (
     <span id="statePageMain">
       <div id="statePageMapContainer">
-        <div className="statePageMapLabel">{props.currMap}</div>
+        <div className="statePageMapLabel">{props.currMinority ? `${props.currMap} of ${props.currMinority} Population` : props.currMap}</div>
         {props.currMap === "District Map" ?
         <DistrictMap
           stateName={stateName}
@@ -653,6 +662,7 @@ export default function StatePage(props) {
         /> :
         <MinorityHeatMap
           minority={props.currMinority}
+          switchMinority={props.switchMinority}
         />}
         {mapLoading ? <div className="statePageStatusMessage">Loading {props.currMap}...</div> : null}
         {mapLoadFailed ? (
