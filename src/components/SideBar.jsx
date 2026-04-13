@@ -8,8 +8,8 @@ export function SideBar(props)
   const {currPage, switchPage, currMap, switchMap, precinctMapSelectable, currMinority, switchMinority, currEI, switchEI } = props; // (maybe add showMaps boolean)
   const navigate = useNavigate();
   const { stateName } = useParams();
-  const OregonGroups = ["Asian", "Hispanic"];
-  const SCGroups = ["Black", "Hispanic"];
+  const OregonGroups = ["Latino", "Asian"];
+  const SCGroups = ["Black", "Latino"];
   const minorityOptions = stateName === "Oregon" ?
     OregonGroups.map((minority) =>
     <div
