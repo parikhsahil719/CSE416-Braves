@@ -11,9 +11,6 @@ const LANGUAGE_OPTIONS = ["English", "Spanish", "French"];
 const duplicateAllowedUseCases = new Set(["GUI-12", "GUI-16", "GUI-17"]);
 
 const dataDescriptionList = [
-  { id: "GUI-5", label: "GUI-5", needsMinority: true, extraDropdowns: 0, implemented: false },
-  { id: "GUI-6", label: "GUI-6", needsMinority: false, extraDropdowns: 0, implemented: true },
-  { id: "GUI-7", label: "GUI-7", needsMinority: false, extraDropdowns: 0, implemented: false },
   { id: "GUI-8", label: "GUI-8", needsMinority: false, extraDropdowns: 0, implemented: false },
   { id: "GUI-12", label: "GUI-12", needsMinority: true, extraDropdowns: 2, implemented: true },
   { id: "GUI-16", label: "GUI-16", needsMinority: false, extraDropdowns: 1, implemented: true },
@@ -60,77 +57,15 @@ function renderPlaceholderCard(title, descriptionLines = []) {
   );
 }
 
-function VoteMarginBadge({ margin }) {
-  const isDem = margin >= 0;
-  const absMargin = Math.abs(margin).toFixed(1);
-  const label = isDem ? `D+${absMargin}%` : `R+${absMargin}%`;
-  return (
-    <span className={`congTable_marginBadge ${isDem ? "congTable_marginBadge--dem" : "congTable_marginBadge--rep"}`}>
-      {label}
-    </span>
-  );
-}
-
-function PartyDot({ party }) {
-  const cls =
-    party === "Democrat"
-      ? "congTable_partyDot congTable_partyDot--dem"
-      : party === "Republican"
-        ? "congTable_partyDot congTable_partyDot--rep"
-        : "congTable_partyDot congTable_partyDot--ind";
-  return <span className={cls} title={party} />;
-}
-
-export function CongressionalRepresentationTable({ payload }) {
-  const districts = payload?.districts ?? [];
-
-  if (districts.length === 0) {
-    return (
-      <div className="congTable_unavailable">
-        Congressional representation data is not available for this state.
-      </div>
-    );
-  }
-
-  return (
-    <div className="congTable_root">
-      <div className="congTable_tableWrapper">
-        <table className="congTable_table">
-          <thead>
-            <tr>
-              <th className="congTable_th congTable_th--district">District</th>
-              <th className="congTable_th--rep">Representative</th>
-              <th className="congTable_th congTable_th--party">Party</th>
-              <th className="congTable_th">Race / Ethnicity</th>
-              <th className="congTable_th congTable_th--margin">
-                Vote Margin
-                <span className="congTable_electionTag">2024 Presidential</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {districts.map((district) => (
-              <tr key={district.districtNumber} className="congTable_row">
-                <td className="congTable_td congTable_td--district">
-                  <span className="congTable_districtBadge">{district.districtNumber}</span>
-                </td>
-                <td className="congTable_td congTable_td--rep">{district.representative}</td>
-                <td className="congTable_td congTable_td--partyCell">
-                  <PartyDot party={district.party} />
-                  <span className="congTable_partyLabel">{district.party}</span>
-                </td>
-                <td className="congTable_td">{district.racialEthnicGroup}</td>
-                <td className="congTable_td congTable_td--marginCell">
-                  <VoteMarginBadge margin={district.voteMargin2024} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
+// function PartyDot({ party }) {
+//   const cls =
+//     party === "Democrat"
+//       ? "congTable_partyDot congTable_partyDot--dem"
+//       : party === "Republican"
+//         ? "congTable_partyDot congTable_partyDot--rep"
+//         : "congTable_partyDot congTable_partyDot--ind";
+//   return <span className={cls} title={party} />;
+// }
 
 function updateData(currentData, minoritySelection, secondData, thirdData, payloads) {
   switch (currentData) {
@@ -141,31 +76,6 @@ function updateData(currentData, minoritySelection, secondData, thirdData, paylo
           "Demographic heat map by precinct",
           `Selected group: ${minoritySelection}`,
           "Map rendering is not yet connected in custom analysis.",
-        ]),
-        "customAnalysis_dataContainer"
-      );
-    case "GUI-5":
-      return displayData(
-        <div className="customAnalysis_dataLabel">Heatmap of Minority by Census Block</div>,
-        renderPlaceholderCard("Heatmap of Minority by Census Block", [
-          "Demographic heat map by census block",
-          `Selected group: ${minoritySelection}`,
-          "Block-level map data is not yet wired.",
-        ]),
-        "customAnalysis_dataContainer"
-      );
-    case "GUI-6":
-      return displayData(
-        <div className="customAnalysis_dataLabel">Congressional Representation by District</div>,
-        payloads.districtTable ? <CongressionalRepresentationTable payload={payloads.districtTable} /> : renderPlaceholderCard("Congressional Representation by District", ["No backend GUI-6 payload is available for this state."]),
-        "customAnalysis_dataContainer"
-      );
-    case "GUI-7":
-      return displayData(
-        <div className="customAnalysis_dataLabel">GUI-7</div>,
-        renderPlaceholderCard("GUI-7", [
-          "Highlighted district view",
-          "Requires interactive map-layer district focus.",
         ]),
         "customAnalysis_dataContainer"
       );

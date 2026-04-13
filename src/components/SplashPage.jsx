@@ -70,7 +70,7 @@ function Map({switchPage})
     }).addTo(map);
 
     function getColor(isActive) {
-      return isActive ? "#008000ff" : "#0a0a0aff";
+      return isActive ? "rgb(0, 150, 0)" : "rgb(80, 80, 80)";
     }
 
     function style(feature) {
@@ -150,7 +150,7 @@ function Map({switchPage})
         "<h4>US State</h4>" +
         (props
           ? "<b>" + props.name + "</b><br />"
-          : "Hover over a state");
+          : "Click on an active state");
     };
 
     info.addTo(map);
@@ -166,7 +166,7 @@ function Map({switchPage})
           '<i style="background:' +
           getColor(grade) +
           '"></i>' +
-          (grade ? "Active" + "<br><br>": "Inactive")
+          (grade ? "Active" + "<br>": "Inactive")
       });
 
       return div;

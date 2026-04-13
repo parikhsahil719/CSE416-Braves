@@ -1,0 +1,74 @@
+.sidebar-wrapper {
+  position: fixed;
+  height: 100%;
+  z-index: 1000;
+}
+
+.sidebar {
+  background-color: #f1f5f9;
+  position: absolute;
+  width: 310px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1rem 1rem 1rem;
+
+  transform: translateX(-280px);
+  transition: transform 300ms;
+}
+
+.sidebar-wrapper:hover .sidebar {
+  transform: translateX(0);
+}
+
+#sidebar-icon {
+  position: fixed;
+  padding: 1rem;
+  width: 24px;
+  z-index: 1100;
+}
+
+.sidebar .activeTab {
+  background-color: #e2e8f0;
+  border-left: 4px solid #22c55e;
+}
+
+.sidebar-header {
+  font-size: 1.5rem;
+  font-weight: bold;
+  padding: 1.5rem 0rem 1rem 0rem;
+}
+
+.sidebar-subheader {
+  width: 70%;
+  color: #88ab75;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  box-sizing: border-box;
+}
+
+.sidebar-tab {
+  width: 70%;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.sidebar-tab:hover,
+.minority-option:hover,
+.ei-option:hover {
+  background-color: #e2e8f0;
+}
+
+.minority-option,
+.ei-option {
+  width: 70%;
+  color: #60656f;
+  font-size: 1rem;
+  padding: 0.25rem 1.5rem;
+  cursor: pointer;
+  box-sizing: border-box;
+}

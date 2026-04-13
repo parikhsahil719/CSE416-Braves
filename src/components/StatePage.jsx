@@ -2,12 +2,11 @@ import React, { useEffect, useRef, useState } from "react";
 import "../../styles/state-page.css";
 import { useLocation, useParams } from "react-router-dom";
 import axios from "axios";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 import Oregon from "../data/oregon.js";
 import SouthCarolina from "../data/sc.js";
 import { topologyToFeatureCollection } from "../utils/topology.js";
+import DistrictMap from "./DistrictMap"
+import MinorityHeatMap from "./MinorityHeatMap";
 
 const DEFAULT_ELECTION = "2024_pres";
 const dataMap = { Oregon, SouthCarolina };
@@ -57,33 +56,33 @@ function mergeSummaryData(localData, summaryData) {
   };
 }
 
-function getColor(result) {
-  return result === "DEMOCRATIC"
-    ? "#0011ff"
-    : result === "REPUBLICAN"
-      ? "#ff0000"
-      : "#666666";
-}
+// function getColor(result) {
+//   return result === "DEMOCRATIC"
+//     ? "#0011ff"
+//     : result === "REPUBLICAN"
+//       ? "#ff0000"
+//       : "#666666";
+// }
 
-function getBaseDistrictStyle(feature) {
-  return {
-    fillColor: getColor(feature?.properties?.RESULT),
-    weight: 2,
-    opacity: 1,
-    color: "white",
-    dashArray: "3",
-    fillOpacity: 0.4,
-  };
-}
+// function getBaseDistrictStyle(feature) {
+//   return {
+//     fillColor: getColor(feature?.properties?.RESULT),
+//     weight: 2,
+//     opacity: 1,
+//     color: "white",
+//     dashArray: "3",
+//     fillOpacity: 0.4,
+//   };
+// }
 
-function getSelectedDistrictStyle() {
-  return {
-    weight: 3,
-    color: "#666",
-    dashArray: "",
-    fillOpacity: 0.5,
-  };
-}
+// function getSelectedDistrictStyle() {
+//   return {
+//     weight: 3,
+//     color: "#666",
+//     dashArray: "",
+//     fillOpacity: 0.5,
+//   };
+// }
 
 function StateData({ stateData, stateName, loading, loadFailed }) {
   return (
@@ -122,7 +121,7 @@ function StateData({ stateData, stateName, loading, loadFailed }) {
           <p className="statePageData">{stateData.republicanReps}</p>
         </span>
       </div>
-      <p id="statePageDataFooter">Omitted racial group populations do not meet the threshold of 200,000.</p>
+      <p id="statePageDataFooter">Omitted racial group populations do not meet the feasible group threshold of 200,000.</p>
     </>
   );
 }
@@ -133,7 +132,7 @@ function VoteMarginBadge({ margin }) {
   return <span>{isDem ? `D+${absMargin}%` : `R+${absMargin}%`}</span>;
 }
 
-function DistrictData({ districts, selectedDistrict, onSelectDistrict, onChangeTab, loading, loadFailed, hasCachedData, hasRequestedData }) {
+function DistrictData({ districts, selectedDistrict, onSelectDistrict, onChangeTab, loading, loadFailed, hasCachedData, hasRequestedData, currMap }) {
   if (loading || (hasRequestedData && !hasCachedData && !loadFailed)) {
     return (
       <div id="statePageDataContainer">
@@ -159,6 +158,10 @@ function DistrictData({ districts, selectedDistrict, onSelectDistrict, onChangeT
     onChangeTab("District");
   }
 
+  useEffect(() => {
+    onSelectDistrict(0);
+  }, [currMap]);
+
   return (
     <div id="statePageDataContainer">
       <div className="districts-table-container">
@@ -181,9 +184,13 @@ function DistrictData({ districts, selectedDistrict, onSelectDistrict, onChangeT
                 key={district.districtNumber}
                 className={district.districtNumber === selectedDistrict ? "districts-table-row districts-table-row--selected" : "districts-table-row"}
               >
+                {currMap === "District Map" ?
                 <td className="districts-table-data districts-table-distnum" onClick={() => handleDistrictClick(district.districtNumber)}>
                   {district.districtNumber}
-                </td>
+                </td> :
+                <td className="districts-table-data districts-table-distnum">
+                  {district.districtNumber}
+                </td>}
                 <td className="districts-table-data">{district.representative}</td>
                 <td className="districts-table-data">{district.party}</td>
                 <td className="districts-table-data">{district.racialEthnicGroup}</td>
@@ -234,161 +241,161 @@ function EnsembleData({ ensembleSummary, loading, loadFailed, hasCachedData, has
   );
 }
 
-function TopoLayer({ data, infoRef, selectedDistrict, onSelectDistrict, onChangeTab }) {
-  const layerRef = useRef(null);
+// function TopoLayer({ data, infoRef, selectedDistrict, onSelectDistrict, onChangeTab }) {
+//   const layerRef = useRef(null);
 
-  function applySelection(layer) {
-    const districtNumber = layer?.feature?.properties?.district_number;
+//   function applySelection(layer) {
+//     const districtNumber = layer?.feature?.properties?.district_number;
 
-    if (districtNumber === selectedDistrict) {
-      layer.setStyle(getSelectedDistrictStyle());
-      layer.bringToFront();
-      return;
-    }
+//     if (districtNumber === selectedDistrict) {
+//       layer.setStyle(getSelectedDistrictStyle());
+//       layer.bringToFront();
+//       return;
+//     }
 
-    layer.setStyle(getBaseDistrictStyle(layer.feature));
-  }
+//     layer.setStyle(getBaseDistrictStyle(layer.feature));
+//   }
 
-  function highlightFeature(event) {
-    const layer = event.target;
-    layer.setStyle(getSelectedDistrictStyle());
-    layer.bringToFront();
+//   function highlightFeature(event) {
+//     const layer = event.target;
+//     layer.setStyle(getSelectedDistrictStyle());
+//     layer.bringToFront();
 
-    if (infoRef.current) {
-      infoRef.current.update(layer.feature.properties.NAMELSAD);
-    }
-  }
+//     if (infoRef.current) {
+//       infoRef.current.update(layer.feature.properties.NAMELSAD);
+//     }
+//   }
 
-  function resetHighlight(event) {
-    if (!layerRef.current) {
-      return;
-    }
+//   function resetHighlight(event) {
+//     if (!layerRef.current) {
+//       return;
+//     }
 
-    layerRef.current.resetStyle(event.target);
-    applySelection(event.target);
+//     layerRef.current.resetStyle(event.target);
+//     applySelection(event.target);
 
-    if (infoRef.current) {
-      infoRef.current.update();
-    }
-  }
+//     if (infoRef.current) {
+//       infoRef.current.update();
+//     }
+//   }
 
-  function handleMapClick(event) {
-    onSelectDistrict(event.target.feature.properties.district_number);
-    onChangeTab("District");
-  }
+//   function handleMapClick(event) {
+//     onSelectDistrict(event.target.feature.properties.district_number);
+//     onChangeTab("District");
+//   }
 
-  function onEachFeature(feature, layer) {
-    layer.on({
-      mouseover: highlightFeature,
-      mouseout: resetHighlight,
-      click: handleMapClick,
-    });
-  }
+//   function onEachFeature(feature, layer) {
+//     layer.on({
+//       mouseover: highlightFeature,
+//       mouseout: resetHighlight,
+//       click: handleMapClick,
+//     });
+//   }
 
-  useEffect(() => {
-    if (!layerRef.current) {
-      return;
-    }
+//   useEffect(() => {
+//     if (!layerRef.current) {
+//       return;
+//     }
 
-    layerRef.current.eachLayer((layer) => {
-      applySelection(layer);
-    });
-  }, [selectedDistrict]);
+//     layerRef.current.eachLayer((layer) => {
+//       applySelection(layer);
+//     });
+//   }, [selectedDistrict]);
 
-  return <GeoJSON ref={layerRef} data={data} style={getBaseDistrictStyle} onEachFeature={onEachFeature} />;
-}
+//   return <GeoJSON ref={layerRef} data={data} style={getBaseDistrictStyle} onEachFeature={onEachFeature} />;
+// }
 
-function Info({ infoRef, stateName }) {
-  const map = useMap();
+// function Info({ infoRef, stateName }) {
+//   const map = useMap();
 
-  useEffect(() => {
-    const info = L.control({ position: "topright" });
+//   useEffect(() => {
+//     const info = L.control({ position: "topright" });
 
-    info.onAdd = function onAdd() {
-      this._div = L.DomUtil.create("div", "info");
-      this.update();
-      return this._div;
-    };
+//     info.onAdd = function onAdd() {
+//       this._div = L.DomUtil.create("div", "info");
+//       this.update();
+//       return this._div;
+//     };
 
-    info.update = function update(props) {
-      this._div.innerHTML =
-        `<h4>${stateName}</h4>` +
-        (props ? `<b>${props}</b><br />` : "Click on a district");
-    };
+//     info.update = function update(props) {
+//       this._div.innerHTML =
+//         `<h4>${stateName}</h4>` +
+//         (props ? `<b>${props}</b><br />` : "Click on a district");
+//     };
 
-    info.addTo(map);
-    infoRef.current = info;
+//     info.addTo(map);
+//     infoRef.current = info;
 
-    return () => {
-      info.remove();
-      infoRef.current = null;
-    };
-  }, [map, infoRef, stateName]);
+//     return () => {
+//       info.remove();
+//       infoRef.current = null;
+//     };
+//   }, [map, infoRef, stateName]);
 
-  return null;
-}
+//   return null;
+// }
 
-function Legend() {
-  const map = useMap();
+// function Legend() {
+//   const map = useMap();
 
-  useEffect(() => {
-    const legend = L.control({ position: "bottomright" });
+//   useEffect(() => {
+//     const legend = L.control({ position: "bottomright" });
 
-    legend.onAdd = function onAdd() {
-      const div = L.DomUtil.create("div", "info legend");
-      div.innerHTML += `<i style="background:${getColor("DEMOCRATIC")}"></i> Democratic<br>`;
-      div.innerHTML += `<i style="background:${getColor("REPUBLICAN")}"></i> Republican<br>`;
-      return div;
-    };
+//     legend.onAdd = function onAdd() {
+//       const div = L.DomUtil.create("div", "info legend");
+//       div.innerHTML += `<i style="background:${getColor("DEMOCRATIC")}"></i> Democratic<br>`;
+//       div.innerHTML += `<i style="background:${getColor("REPUBLICAN")}"></i> Republican<br>`;
+//       return div;
+//     };
 
-    legend.addTo(map);
+//     legend.addTo(map);
 
-    return () => {
-      legend.remove();
-    };
-  }, [map]);
+//     return () => {
+//       legend.remove();
+//     };
+//   }, [map]);
 
-  return null;
-}
+//   return null;
+// }
 
-function Map({ stateName, data, selectedDistrict, onSelectDistrict, onChangeTab }) {
-  const infoRef = useRef(null);
+// function Map({ stateName, data, selectedDistrict, onSelectDistrict, onChangeTab }) {
+//   const infoRef = useRef(null);
 
-  if (!data) {
-    return <div id="statePagemap" className="statePageMapPlaceholder" />;
-  }
+//   if (!data) {
+//     return <div id="statePagemap" className="statePageMapPlaceholder" />;
+//   }
 
-  return (
-    <div id="statePagemap">
-      <MapContainer
-        center={stateName === "Oregon" ? [44.1, -120.6] : [33.6, -80.9]}
-        zoomControl={false}
-        zoom={stateName === "Oregon" ? 6.5 : 7.3}
-        zoomSnap={0.1}
-        minZoom={6.5}
-        maxZoom={10}
-        maxBounds={stateName === "Oregon" ? [[47, -125], [41, -116.4]] : [[35.6, -84], [31.5, -77.5]]}
-        className="statePageLeafletMap"
-      >
-        <TileLayer
-          attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
-        />
-        <TopoLayer
-          data={data}
-          infoRef={infoRef}
-          selectedDistrict={selectedDistrict}
-          onSelectDistrict={onSelectDistrict}
-          onChangeTab={onChangeTab}
-        />
-        <Info infoRef={infoRef} stateName={stateName} />
-        <Legend />
-      </MapContainer>
-    </div>
-  );
-}
+//   return (
+//     <div id="statePagemap">
+//       <MapContainer
+//         center={stateName === "Oregon" ? [44.1, -120.6] : [33.6, -80.9]}
+//         zoomControl={false}
+//         zoom={stateName === "Oregon" ? 6.5 : 7.3}
+//         zoomSnap={0.1}
+//         minZoom={6.5}
+//         maxZoom={10}
+//         maxBounds={stateName === "Oregon" ? [[47, -125], [41, -116.4]] : [[35.6, -84], [31.5, -77.5]]}
+//         className="statePageLeafletMap"
+//       >
+//         <TileLayer
+//           attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+//           url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
+//         />
+//         <TopoLayer
+//           data={data}
+//           infoRef={infoRef}
+//           selectedDistrict={selectedDistrict}
+//           onSelectDistrict={onSelectDistrict}
+//           onChangeTab={onChangeTab}
+//         />
+//         <Info infoRef={infoRef} stateName={stateName} />
+//         <Legend />
+//       </MapContainer>
+//     </div>
+//   );
+// }
 
-export default function StatePage() {
+export default function StatePage(props) {
   const { stateName } = useParams();
   const location = useLocation();
   const stateCode = toStateCode(stateName);
@@ -625,6 +632,7 @@ export default function StatePage() {
           loadFailed={districtTableLoadFailed}
           hasCachedData={Boolean(districtTable)}
           hasRequestedData={requestedTabs.District}
+          currMap={props.currMap}
         />
       );
     }
@@ -643,21 +651,26 @@ export default function StatePage() {
   return (
     <span id="statePageMain">
       <div id="statePageMapContainer">
-        <div className="statePageMapLabel">District View of the State</div>
-        <Map
+        <div className="statePageMapLabel">{props.currMinority ? `${props.currMap} of ${props.currMinority} Population` : props.currMap}</div>
+        {props.currMap === "District Map" ?
+        <DistrictMap
           stateName={stateName}
           data={mapData}
           selectedDistrict={selectedDistrict}
           onSelectDistrict={setSelectedDistrict}
           onChangeTab={handleTabSelect}
-        />
-        {mapLoading ? <div className="statePageStatusMessage">Loading district map...</div> : null}
+        /> :
+        <MinorityHeatMap
+          minority={props.currMinority}
+          switchMinority={props.switchMinority}
+        />}
+        {mapLoading ? <div className="statePageStatusMessage">Loading {props.currMap}...</div> : null}
         {mapLoadFailed ? (
-          <div className="statePageStatusMessage">Unable to load district map</div>
+          <div className="statePageStatusMessage">Unable to load {props.currMap}</div>
         ) : null}
       </div>
       <div id="statePageDataMainContainer">
-        <div className="statePageDataLabel">{tab} Data</div>
+        <div className="statePageDataLabel">{tab} Overview</div>
         <span className="statePageLabelsContainer">
           <div
             className={tab === "State" ? "statePageDataTab statePageLeftDataTab statePageActiveTab" : "statePageDataTab statePageLeftDataTab"}

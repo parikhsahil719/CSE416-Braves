@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
+import "../../styles/minority-map.css";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import L from "leaflet";
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
 import { topologyToFeatureCollection } from "../utils/topology.js";
 
@@ -53,7 +53,7 @@ function TopoJSON(props) {
     const layer = event.target;
 
     layer.setStyle({
-      weight: 5,
+      weight: 2,
       color: "#666",
       dashArray: "",
       fillOpacity: 0.7,
@@ -127,7 +127,7 @@ function Legend({ bins }) {
   return null;
 }
 
-export default function MinorityHeatMap({ minority }) {
+export default function MinorityHeatMap({ minority, switchMinority }) {
   const { stateName } = useParams();
   const [bins, setBins] = useState([]);
   const [topologyData, setTopologyData] = useState(null);
@@ -177,6 +177,8 @@ export default function MinorityHeatMap({ minority }) {
 
     return () => {
       isActive = false;
+      if (switchMinority)
+        switchMinority('')
     };
   }, [minority, stateName]);
 
@@ -192,21 +194,23 @@ export default function MinorityHeatMap({ minority }) {
   }
 
   return (
-    <MapContainer center={stateName === "Oregon" ? [44.1, -119.6] : [33.33, -80.5]}
-      zoom={stateName === "Oregon" ? 6.3 : 7.1}
-      zoomSnap={0.1}
-      minZoom={stateName === "Oregon" ? 6.1 : 6.9}
-      style={{ width: "100%", height: "50vh" }}
-      zoomControl={false}
-      doubleClickZoom={false}
-      keyboard={false}
-      maxBounds={stateName === "Oregon" ? [[47, -125], [41, -114.4]] : [[35.6, -83.3], [31.5, -77.5]]}>
-      <TileLayer
-        attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
-      />
-      <TopoJSON data={topologyData} bins={bins} />
-      <Legend bins={bins} />
-    </MapContainer>
+    <div id="minoritymap">
+      <MapContainer center={stateName === "Oregon" ? [44.1, -119.6] : [33.33, -80.5]}
+        zoom={stateName === "Oregon" ? 6.3 : 7.1}
+        zoomSnap={0.1}
+        minZoom={stateName === "Oregon" ? 6.1 : 6.9}
+        zoomControl={false}
+        doubleClickZoom={false}
+        keyboard={false}
+        maxBounds={stateName === "Oregon" ? [[47, -125], [41, -114.4]] : [[35.6, -83.3], [31.5, -77.5]]}
+        className="minorityLeafletMap">
+        <TileLayer
+          attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
+        />
+        <TopoJSON data={topologyData} bins={bins} />
+        <Legend bins={bins} />
+      </MapContainer>
+    </div>
   );
 }

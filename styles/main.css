@@ -1,15 +1,23 @@
-:root{
-    font-family: 'Inter', sans-serif; /*base fonts, one imported through google*/
-    --color-line: #b3b3b3;
+:root {
+  font-family: "Inter", sans-serif; /*base fonts, one imported through google*/
+  --color-line: #b3b3b3;
 }
 /* body { PROBABLY SHOULD NOT DO, makes everything have an offset from the outside
   margin: 0;
   padding: 0;
 } */
-html, body{
+html,
+body {
   overflow-x: hidden;
   overflow-y: auto;
+  margin: 0;
 }
-.chosenPage{
-  color:#48A145;
+#root {
+  height: 100vh;
+}
+.chosenPage {
+  color: #48a145;
+}
+.main-container {
+  height: 100%;
 }
