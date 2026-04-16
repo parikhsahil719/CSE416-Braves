@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "v1",
+  "chartType": "ei-precinct-bar-ci",
+  "state": "OR",
+  "totalDistricts": 6,
+  "election": "2024 Presidential",
+  "selectedCandidate": "Hardy",
+  "categories": [
+    {
+      "category": "Asian",
+      "peak": 0.68,
+      "ciLow": 0.61,
+      "ciHigh": 0.76
+    },
+    {
+      "category": "Latino",
+      "peak": 0.71,
+      "ciLow": 0.64,
+      "ciHigh": 0.79
+    },
+    {
+      "category": "White",
+      "peak": 0.36,
+      "ciLow": 0.29,
+      "ciHigh": 0.43
+    },
+    {
+      "category": "Other",
+      "peak": 0.52,
+      "ciLow": 0.42,
+      "ciHigh": 0.63
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "v1",
+  "chartType": "box-whisker",
+  "state": "SC",
+  "totalDistricts": 7,
+  "election": "2024 Presidential",
+  "ensembleType": "race_blind",
+  "selectedGroup": "Latino",
+  "metricLabel": "Latino CVAP share",
+  "units": {
+    "share": "decimal_0_to_1"
+  },
+  "rankSummaries": [
+    {
+      "districtRank": 1,
+      "min": 0.014,
+      "q1": 0.021,
+      "median": 0.027,
+      "q3": 0.034,
+      "max": 0.044,
+      "enactedValue": 0.024,
+      "proposedValue": null
+    },
+    {
+      "districtRank": 2,
+      "min": 0.025,
+      "q1": 0.033,
+      "median": 0.04,
+      "q3": 0.048,
+      "max": 0.059,
+      "enactedValue": 0.037,
+      "proposedValue": null
+    },
+    {
+      "districtRank": 3,
+      "min": 0.037,
+      "q1": 0.045,
+      "median": 0.052,
+      "q3": 0.061,
+      "max": 0.073,
+      "enactedValue": 0.05,
+      "proposedValue": null
+    },
+    {
+      "districtRank": 4,
+      "min": 0.048,
+      "q1": 0.057,
+      "median": 0.065,
+      "q3": 0.074,
+      "max": 0.088,
+      "enactedValue": 0.063,
+      "proposedValue": null
+    },
+    {
+      "districtRank": 5,
+      "min": 0.06,
+      "q1": 0.07,
+      "median": 0.079,
+      "q3": 0.089,
+      "max": 0.105,
+      "enactedValue": 0.077,
+      "proposedValue": null
+    },
+    {
+      "districtRank": 6,
+      "min": 0.074,
+      "q1": 0.085,
+      "median": 0.095,
+      "q3": 0.107,
+      "max": 0.124,
+      "enactedValue": 0.093,
+      "proposedValue": null
+    },
+    {
+      "districtRank": 7,
+      "min": 0.093,
+      "q1": 0.106,
+      "median": 0.118,
+      "q3": 0.132,
+      "max": 0.153,
+      "enactedValue": 0.116,
+      "proposedValue": null
+    }
+  ]
+}

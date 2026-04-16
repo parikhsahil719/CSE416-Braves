@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "v1",
+  "chartType": "box-whisker",
+  "state": "OR",
+  "totalDistricts": 6,
+  "election": "2024 Presidential",
+  "ensembleType": "vra_constrained",
+  "selectedGroup": "Asian",
+  "metricLabel": "Asian CVAP share",
+  "units": {
+    "share": "decimal_0_to_1"
+  },
+  "rankSummaries": [
+    {
+      "districtRank": 1,
+      "min": 0.016,
+      "q1": 0.023,
+      "median": 0.029,
+      "q3": 0.037,
+      "max": 0.046,
+      "enactedValue": 0.023,
+      "proposedValue": null
+    },
+    {
+      "districtRank": 2,
+      "min": 0.028,
+      "q1": 0.036,
+      "median": 0.043,
+      "q3": 0.051,
+      "max": 0.062,
+      "enactedValue": 0.036,
+      "proposedValue": null
+    },
+    {
+      "districtRank": 3,
+      "min": 0.04,
+      "q1": 0.048,
+      "median": 0.056,
+      "q3": 0.065,
+      "max": 0.077,
+      "enactedValue": 0.048,
+      "proposedValue": null
+    },
+    {
+      "districtRank": 4,
+      "min": 0.052,
+      "q1": 0.062,
+      "median": 0.07,
+      "q3": 0.08,
+      "max": 0.094,
+      "enactedValue": 0.061,
+      "proposedValue": null
+    },
+    {
+      "districtRank": 5,
+      "min": 0.066,
+      "q1": 0.077,
+      "median": 0.088,
+      "q3": 0.1,
+      "max": 0.117,
+      "enactedValue": 0.076,
+      "proposedValue": null
+    },
+    {
+      "districtRank": 6,
+      "min": 0.095,
+      "q1": 0.112,
+      "median": 0.127,
+      "q3": 0.145,
+      "max": 0.17,
+      "enactedValue": 0.105,
+      "proposedValue": null
+    }
+  ]
+}

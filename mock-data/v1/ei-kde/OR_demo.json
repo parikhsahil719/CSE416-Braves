@@ -3,17 +3,265 @@
   "chartType": "ei-kde",
   "state": "OR",
   "totalDistricts": 6,
-  "metricLabel": "Support difference (Latino - non-Latino) for Hardy",
-  "domain": [-0.5, 1.0],
-  "thresholdX": 0.4,
-  "thresholdLabel": "Prob(difference > 0.40)",
-  "thresholdProbability": 0.73,
+  "selectedGroup": "Latino",
+  "metricLabel": "Latino − non-Latino Dem support gap (2024 Presidential)",
+  "domain": [
+    -0.2,
+    0.75
+  ],
+  "thresholdX": 0.25,
+  "thresholdLabel": "Prob(gap > 0.25)",
+  "thresholdProbability": 0.81,
   "series": [
-    { "key": "latino", "label": "Latino", "points": [
-      { "x": 0.10, "density": 0.3 }, { "x": 0.20, "density": 0.7 }, { "x": 0.30, "density": 1.5 }, { "x": 0.40, "density": 2.6 }, { "x": 0.50, "density": 3.1 }, { "x": 0.60, "density": 2.4 }, { "x": 0.70, "density": 1.2 }, { "x": 0.80, "density": 0.4 }
-    ]},
-    { "key": "non_latino", "label": "Non-Latino", "points": [
-      { "x": -0.10, "density": 0.2 }, { "x": 0.00, "density": 0.8 }, { "x": 0.10, "density": 1.9 }, { "x": 0.20, "density": 2.4 }, { "x": 0.30, "density": 1.4 }, { "x": 0.40, "density": 0.5 }
-    ]}
+    {
+      "key": "support_gap",
+      "label": "Latino support gap",
+      "points": [
+        {
+          "x": -0.2,
+          "density": 0
+        },
+        {
+          "x": -0.184,
+          "density": 0
+        },
+        {
+          "x": -0.168,
+          "density": 0
+        },
+        {
+          "x": -0.153,
+          "density": 0
+        },
+        {
+          "x": -0.137,
+          "density": 0.0001
+        },
+        {
+          "x": -0.121,
+          "density": 0.0002
+        },
+        {
+          "x": -0.105,
+          "density": 0.0003
+        },
+        {
+          "x": -0.089,
+          "density": 0.0006
+        },
+        {
+          "x": -0.073,
+          "density": 0.0012
+        },
+        {
+          "x": -0.058,
+          "density": 0.0022
+        },
+        {
+          "x": -0.042,
+          "density": 0.004
+        },
+        {
+          "x": -0.026,
+          "density": 0.0071
+        },
+        {
+          "x": -0.01,
+          "density": 0.0123
+        },
+        {
+          "x": 0.006,
+          "density": 0.0208
+        },
+        {
+          "x": 0.022,
+          "density": 0.0344
+        },
+        {
+          "x": 0.037,
+          "density": 0.0553
+        },
+        {
+          "x": 0.053,
+          "density": 0.0868
+        },
+        {
+          "x": 0.069,
+          "density": 0.1329
+        },
+        {
+          "x": 0.085,
+          "density": 0.1984
+        },
+        {
+          "x": 0.101,
+          "density": 0.2887
+        },
+        {
+          "x": 0.117,
+          "density": 0.4099
+        },
+        {
+          "x": 0.132,
+          "density": 0.5674
+        },
+        {
+          "x": 0.148,
+          "density": 0.7661
+        },
+        {
+          "x": 0.164,
+          "density": 1.0086
+        },
+        {
+          "x": 0.18,
+          "density": 1.2952
+        },
+        {
+          "x": 0.196,
+          "density": 1.6219
+        },
+        {
+          "x": 0.212,
+          "density": 1.9808
+        },
+        {
+          "x": 0.227,
+          "density": 2.3592
+        },
+        {
+          "x": 0.243,
+          "density": 2.7404
+        },
+        {
+          "x": 0.259,
+          "density": 3.1043
+        },
+        {
+          "x": 0.275,
+          "density": 3.4294
+        },
+        {
+          "x": 0.291,
+          "density": 3.6949
+        },
+        {
+          "x": 0.307,
+          "density": 3.8823
+        },
+        {
+          "x": 0.322,
+          "density": 3.9782
+        },
+        {
+          "x": 0.338,
+          "density": 3.9756
+        },
+        {
+          "x": 0.354,
+          "density": 3.8746
+        },
+        {
+          "x": 0.37,
+          "density": 3.6827
+        },
+        {
+          "x": 0.386,
+          "density": 3.4136
+        },
+        {
+          "x": 0.402,
+          "density": 3.0859
+        },
+        {
+          "x": 0.417,
+          "density": 2.7205
+        },
+        {
+          "x": 0.433,
+          "density": 2.3391
+        },
+        {
+          "x": 0.449,
+          "density": 1.9613
+        },
+        {
+          "x": 0.465,
+          "density": 1.6038
+        },
+        {
+          "x": 0.481,
+          "density": 1.279
+        },
+        {
+          "x": 0.497,
+          "density": 0.9948
+        },
+        {
+          "x": 0.512,
+          "density": 0.7545
+        },
+        {
+          "x": 0.528,
+          "density": 0.5581
+        },
+        {
+          "x": 0.544,
+          "density": 0.4026
+        },
+        {
+          "x": 0.56,
+          "density": 0.2833
+        },
+        {
+          "x": 0.576,
+          "density": 0.1944
+        },
+        {
+          "x": 0.592,
+          "density": 0.1301
+        },
+        {
+          "x": 0.607,
+          "density": 0.0849
+        },
+        {
+          "x": 0.623,
+          "density": 0.054
+        },
+        {
+          "x": 0.639,
+          "density": 0.0335
+        },
+        {
+          "x": 0.655,
+          "density": 0.0203
+        },
+        {
+          "x": 0.671,
+          "density": 0.012
+        },
+        {
+          "x": 0.687,
+          "density": 0.0069
+        },
+        {
+          "x": 0.702,
+          "density": 0.0039
+        },
+        {
+          "x": 0.718,
+          "density": 0.0021
+        },
+        {
+          "x": 0.734,
+          "density": 0.0011
+        },
+        {
+          "x": 0.75,
+          "density": 0.0006
+        }
+      ]
+    }
   ]
 }

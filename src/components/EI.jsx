@@ -17,7 +17,7 @@ import {
   ErrorBar,
   AreaChart,
   Area,
-  Legend,
+  ReferenceLine,
 } from "recharts";
 
 function toStateCode(stateName) {
@@ -87,61 +87,73 @@ function EiBarPanel({ payload, loading, failed }) {
   );
 }
 
-// GUI-15: EI KDE comparison
+// GUI-15: EI KDE — single support-gap curve with threshold reference line
 function EiKdePanel({ payload, loading, failed, minority }) {
   if (loading) return <div className="ei_placeholder">Loading EI KDE...</div>;
   if (failed || !payload) return <div className="ei_placeholder">No EI KDE data available for {minority}.</div>;
 
-  const rowMap = new Map();
-  for (const s of payload.series ?? []) {
-    for (const pt of s.points ?? []) {
-      const k = pt.x.toFixed(4);
-      if (!rowMap.has(k)) rowMap.set(k, { x: pt.x });
-      rowMap.get(k)[s.key] = pt.density;
-    }
-  }
-  const data = [...rowMap.values()].sort((a, b) => a.x - b.x);
-  const colors = ["#2a9d8f", "#d48b19", "#264653"];
+  // Single series: support_gap density points
+  const gapSeries = payload.series?.[0];
+  const data = (gapSeries?.points ?? [])
+    .map((pt) => ({ x: pt.x, density: pt.density }))
+    .sort((a, b) => a.x - b.x);
+
+  const thresholdPct = payload.thresholdProbability != null
+    ? `${(payload.thresholdProbability * 100).toFixed(0)}%`
+    : null;
 
   return (
     <div className="ei-chartStack">
       <div className="ei-chartTitle">{payload.metricLabel}</div>
-      <div className="ei-chartSubtitle">
-        P(difference &gt; {payload.thresholdX}) = {(payload.thresholdProbability * 100).toFixed(0)}%
-      </div>
+      {thresholdPct && (
+        <div className="ei-chartSubtitle">
+          {payload.thresholdLabel}: <strong>{thresholdPct}</strong>
+        </div>
+      )}
       <div style={{ width: "100%", height: "320px" }}>
         <ResponsiveContainer>
-          <AreaChart data={data} margin={{ top: 12, right: 18, left: 12, bottom: 30 }}>
+          <AreaChart data={data} margin={{ top: 12, right: 18, left: 12, bottom: 40 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#d4d4d8" />
             <XAxis
               dataKey="x"
               type="number"
               domain={payload.domain ?? ["auto", "auto"]}
-              tickFormatter={(v) => v.toFixed(1)}
+              tickFormatter={(v) => v.toFixed(2)}
               tick={{ fontSize: 12 }}
-              label={{ value: payload.metricLabel, position: "bottom", offset: 8, fontSize: 11 }}
+              label={{ value: "Support gap (minority − non-minority)", position: "insideBottom", offset: -20, fontSize: 11 }}
             />
             <YAxis
               tick={{ fontSize: 12 }}
               label={{ value: "Density", angle: -90, position: "insideLeft", offset: -2, style: { fontSize: 12 } }}
             />
-            <Tooltip />
-            <Legend verticalAlign="top" wrapperStyle={{ fontSize: "12px" }} />
-            {(payload.series ?? []).map((s, i) => (
-              <Area
-                key={s.key}
-                type="monotone"
-                dataKey={s.key}
-                name={s.label}
-                stroke={colors[i % colors.length]}
-                fill={colors[i % colors.length] + "44"}
-                dot={false}
-                activeDot={false}
+            <Tooltip formatter={(v) => [v.toFixed(4), "Density"]} labelFormatter={(v) => `Gap: ${Number(v).toFixed(3)}`} />
+            {/* Primary KDE curve */}
+            <Area
+              type="monotone"
+              dataKey="density"
+              name={gapSeries?.label ?? "Support gap"}
+              stroke="#2a9d8f"
+              fill="#2a9d8f44"
+              dot={false}
+              activeDot={false}
+              strokeWidth={2.5}
+              isAnimationActive={false}
+            />
+            {/* Threshold reference line */}
+            {payload.thresholdX != null && (
+              <ReferenceLine
+                x={payload.thresholdX}
+                stroke="#e63946"
                 strokeWidth={2}
-                isAnimationActive={false}
-                connectNulls
+                strokeDasharray="6 3"
+                label={{
+                  value: `threshold: ${payload.thresholdX}`,
+                  position: "insideTopRight",
+                  fill: "#e63946",
+                  fontSize: 11,
+                }}
               />
-            ))}
+            )}
           </AreaChart>
         </ResponsiveContainer>
       </div>

@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "v1",
+  "chartType": "ei-support",
+  "state": "OR",
+  "totalDistricts": 6,
+  "election": "2024 Presidential",
+  "selectedCandidate": "Hardy",
+  "selectedGroup": "Asian",
+  "units": {
+    "share": "decimal_0_to_1"
+  },
+  "series": [
+    {
+      "key": "asian",
+      "label": "Asian",
+      "confidenceScore": 0.79,
+      "points": [
+        {
+          "xSupportShare": 0.3,
+          "density": 0.1
+        },
+        {
+          "xSupportShare": 0.4,
+          "density": 0.35
+        },
+        {
+          "xSupportShare": 0.5,
+          "density": 0.9
+        },
+        {
+          "xSupportShare": 0.6,
+          "density": 2.2
+        },
+        {
+          "xSupportShare": 0.65,
+          "density": 3.4
+        },
+        {
+          "xSupportShare": 0.7,
+          "density": 3.9
+        },
+        {
+          "xSupportShare": 0.75,
+          "density": 3.2
+        },
+        {
+          "xSupportShare": 0.8,
+          "density": 1.8
+        },
+        {
+          "xSupportShare": 0.85,
+          "density": 0.6
+        },
+        {
+          "xSupportShare": 0.9,
+          "density": 0.15
+        }
+      ]
+    },
+    {
+      "key": "non_asian",
+      "label": "Non-Asian",
+      "confidenceScore": 0.72,
+      "points": [
+        {
+          "xSupportShare": 0.15,
+          "density": 0.3
+        },
+        {
+          "xSupportShare": 0.25,
+          "density": 1.5
+        },
+        {
+          "xSupportShare": 0.35,
+          "density": 3.2
+        },
+        {
+          "xSupportShare": 0.4,
+          "density": 2.8
+        },
+        {
+          "xSupportShare": 0.45,
+          "density": 1.4
+        },
+        {
+          "xSupportShare": 0.55,
+          "density": 0.4
+        },
+        {
+          "xSupportShare": 0.65,
+          "density": 0.08
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "v1",
+  "chartType": "ei-precinct-bar-ci",
+  "state": "SC",
+  "totalDistricts": 7,
+  "election": "2024 Presidential",
+  "selectedCandidate": "Hardy",
+  "categories": [
+    {
+      "category": "Latino",
+      "peak": 0.54,
+      "ciLow": 0.44,
+      "ciHigh": 0.65
+    },
+    {
+      "category": "Black",
+      "peak": 0.78,
+      "ciLow": 0.7,
+      "ciHigh": 0.86
+    },
+    {
+      "category": "White",
+      "peak": 0.22,
+      "ciLow": 0.16,
+      "ciHigh": 0.3
+    },
+    {
+      "category": "Other",
+      "peak": 0.38,
+      "ciLow": 0.25,
+      "ciHigh": 0.52
+    }
+  ]
+}
