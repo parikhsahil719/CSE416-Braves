@@ -160,7 +160,7 @@ export default function DistrictMap({ stateName, data, selectedDistrict, onSelec
         <MapContainer
           center={stateName === "Oregon" ? [44.1, -120.6] : [33.6, -80.9]}
           zoomControl={false}
-          zoom={stateName === "Oregon" ? 6.5 : 7.3}
+          zoom={stateName === "Oregon" ? 6.6 : 7.3}
           zoomSnap={0.1}
           minZoom={6.5}
           maxZoom={10}

@@ -49,9 +49,9 @@ function EiAnalysisPanel({ payload, loading, failed, minority }) {
 }
 
 // GUI-13: EI Bar Chart with confidence intervals
-function EiBarPanel({ payload, loading, failed, minority }) {
+function EiBarPanel({ payload, loading, failed }) {
   if (loading) return <div className="ei_placeholder">Loading EI bar chart...</div>;
-  if (failed || !payload) return <div className="ei_placeholder">No EI bar data available for {minority}.</div>;
+  if (failed || !payload) return <div className="ei_placeholder">No EI bar data available.</div>;
 
   const data = (payload.categories ?? []).map((cat) => ({
     category: cat.category,
@@ -152,7 +152,25 @@ function EiKdePanel({ payload, loading, failed, minority }) {
 export default function EI(props) {
   const { stateName } = useParams();
   const stateCode = toStateCode(stateName);
-  const { currMap, currMinority, currEI, switchEI, switchMinority } = props;
+  const { currMap, currMinority, switchMinority, currEI, switchEI } = props;
+  const OregonGroups = ["Latino", "Asian"];
+  const SCGroups = ["Black", "Latino"];
+  const minorityOptions = stateName === "Oregon" ?
+    OregonGroups.map((minority) =>
+    <option
+      key={minority}
+      value={minority}
+    >
+      {minority}
+    </option>)
+  : SCGroups.map((minority) =>
+    <option
+      key={minority}
+      value={minority}
+    >
+      {minority}
+    </option>);
+
 
   const groupKey = toGroupKey(currMinority) ?? defaultGroup(stateCode);
 
@@ -269,9 +287,24 @@ export default function EI(props) {
     return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: State not found</div>;
   }
 
+  // cleanup
+  useEffect(() => {
+    return () => switchEI('');
+  }, [])
+
   function renderActivePanel() {
     if (currEI === "EI Analysis") {
-      return <EiAnalysisPanel payload={eiPayload} loading={eiLoading} failed={eiLoadFailed} minority={currMinority} />;
+      return (
+        <>
+          <div className="minority-selector-container">
+            <label htmlFor="minoritySelector" style={{ fontWeight: "bolder" }}>Select a racial group: </label>
+            <select name="minoritySelector" value={currMinority} onChange={(e) => {switchMinority(e.target.value)}}>
+              {minorityOptions}
+            </select>
+          </div>
+          <EiAnalysisPanel payload={eiPayload} loading={eiLoading} failed={eiLoadFailed} minority={currMinority} />
+        </>
+      );
     }
     if (currEI === "EI Bar Chart") {
       return <EiBarPanel payload={barPayload} loading={barLoading} failed={barLoadFailed} minority={currMinority} />;
@@ -286,12 +319,12 @@ export default function EI(props) {
     <span id="ei-page-main">
       <div id="ei-page-map-container">
         <div className="ei-page-map-label">
-          {currMinority ? `${currMap} of ${currMinority} Population` : currMap}
+          {props.currMap === 'Precinct Heat Map' ? `${props.currMap} of ${props.currMinority} Population` : props.currMap}
         </div>
         {currMap === "District Map" ? (
           <DistrictMap stateName={stateName} data={mapData} />
         ) : (
-          <MinorityHeatMap minority={currMinority} switchMinority={switchMinority} />
+          <MinorityHeatMap currMinority={currMinority} switchMinority={switchMinority} />
         )}
         {mapLoading && (
           <div className="ei-page-status-message">Loading {stateName} {currMap}...</div>
@@ -300,6 +333,7 @@ export default function EI(props) {
           <div className="ei-page-status-message">Unable to load {stateName} {currMap}</div>
         )}
       </div>
+
       <div id="ei-page-chart-main-container">
         <div className="ei-page-chart-label">{currEI}</div>
         {renderActivePanel()}

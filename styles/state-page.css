@@ -81,7 +81,7 @@
 }
 
 #statePageDataContainer {
-  width: min(100%, 46rem);
+  width: min(100%, 39rem);
   height: fit-content;
   display: flex;
   flex-direction: column;

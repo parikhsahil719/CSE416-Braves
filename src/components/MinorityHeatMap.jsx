@@ -127,16 +127,35 @@ function Legend({ bins }) {
   return null;
 }
 
-export default function MinorityHeatMap({ minority, switchMinority }) {
+export default function MinorityHeatMap({ currMinority, switchMinority }) {
   const { stateName } = useParams();
   const [bins, setBins] = useState([]);
   const [topologyData, setTopologyData] = useState(null);
   const [geometryLoadFailed, setGeometryLoadFailed] = useState(false);
 
+  const OregonGroups = ["Latino", "Asian"];
+  const SCGroups = ["Black", "Latino"];
+  const minorityOptions = stateName === "Oregon" ?
+    OregonGroups.map((minority) =>
+    <option
+      key={minority}
+      value={minority}
+    >
+      {minority}
+    </option>)
+  : SCGroups.map((minority) =>
+    <option
+      key={minority}
+      value={minority}
+    >
+      {minority}
+    </option>);
+
   useEffect(() => {
     let isActive = true;
     const stateCode = stateName === "Oregon" ? "OR" : stateName === "South Carolina" ? "SC" : null;
-    const group = minority?.trim().toLowerCase().replace(/\s+/g, "_");
+    const group = currMinority?.trim().toLowerCase().replace(/\s+/g, "_");
+    console.log(currMinority)
 
     if (!stateCode || !group) {
       setBins([]);
@@ -177,10 +196,8 @@ export default function MinorityHeatMap({ minority, switchMinority }) {
 
     return () => {
       isActive = false;
-      if (switchMinority)
-        switchMinority('')
     };
-  }, [minority, stateName]);
+  }, [currMinority, stateName]);
 
   if (!stateName) {
     return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: State not found</div>;
@@ -194,23 +211,31 @@ export default function MinorityHeatMap({ minority, switchMinority }) {
   }
 
   return (
-    <div id="minoritymap">
-      <MapContainer center={stateName === "Oregon" ? [44.1, -119.6] : [33.33, -80.5]}
-        zoom={stateName === "Oregon" ? 6.3 : 7.1}
-        zoomSnap={0.1}
-        minZoom={stateName === "Oregon" ? 6.1 : 6.9}
-        zoomControl={false}
-        doubleClickZoom={false}
-        keyboard={false}
-        maxBounds={stateName === "Oregon" ? [[47, -125], [41, -114.4]] : [[35.6, -83.3], [31.5, -77.5]]}
-        className="minorityLeafletMap">
-        <TileLayer
-          attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
-        />
-        <TopoJSON data={topologyData} bins={bins} />
-        <Legend bins={bins} />
-      </MapContainer>
-    </div>
+    <>
+      <div className="minority-selector-container">
+        <label htmlFor="minoritySelector" style={{ fontWeight: "bolder" }}>Select a racial group: </label>
+        <select name="minoritySelector" value={currMinority} onChange={(e) => {switchMinority(e.target.value)}}>
+          {minorityOptions}
+        </select>
+      </div>
+      <div id="minoritymap">
+        <MapContainer center={stateName === "Oregon" ? [44.1, -119.6] : [33.33, -80.5]}
+          zoom={stateName === "Oregon" ? 6.3 : 7.1}
+          zoomSnap={0.1}
+          minZoom={stateName === "Oregon" ? 6.1 : 6.9}
+          zoomControl={false}
+          doubleClickZoom={false}
+          keyboard={false}
+          maxBounds={stateName === "Oregon" ? [[47, -125], [41, -114.4]] : [[35.6, -83.3], [31.5, -77.5]]}
+          className="minorityLeafletMap">
+          <TileLayer
+            attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
+          />
+          <TopoJSON data={topologyData} bins={bins} />
+          <Legend bins={bins} />
+        </MapContainer>
+      </div>
+    </>
   );
 }
