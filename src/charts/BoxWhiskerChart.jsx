@@ -3,8 +3,8 @@ import '../../styles/chart-integration.css';
 import { pct } from '../utils/chartFormat.js';
 
 function BoxWhiskerSvg({ payload }) {
-  const width = 760;
-  const height = 620;
+  const width = 1000;
+  const height = 420;
   const margin = { top: 14, right: 18, bottom: 54, left: 108 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
@@ -90,7 +90,7 @@ export default function BoxWhiskerChart({ payload, eyebrow, title, subtitle, sho
         <span><i className="chartLegendSwatch chartLegendEnacted" /> Enacted plan</span>
         <span><i className="chartLegendSwatch chartLegendProposed" /> Proposed plan</span>
       </div>
-      <div className="chartFrame chartFrameBox">
+      <div className="chartFrameBox">
         <BoxWhiskerSvg payload={payload} />
       </div>
     </div>

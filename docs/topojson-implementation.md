@@ -43,7 +43,19 @@ Static geometry routes use `GeometryAssetService`, which:
 - resolves the repository root with `ProjectPathResolver`
 - maps route parameters to a checked-in geometry file
 - parses the JSON payload with Jackson
-- returns the raw TopoJSON document to the controller
+- strips geometry properties that the current frontend does not use
+- computes a stable ETag for the sanitized payload
+- returns a cached TopoJSON document to the controller
+
+The current sanitized property contract is:
+- enacted district topology keeps `RESULT`, `NAMELSAD`, `district_number`, and `GEOID`
+- precinct topology keeps `GEOID`
+- US states topology keeps `name` and `isActive`
+
+Static geometry responses are also browser-cacheable:
+- `Cache-Control: public, max-age=604800`
+- strong `ETag`
+- conditional `304 Not Modified` support via `If-None-Match`
 
 Interesting plan geometry is seeded by `SeedDataLoader` into Mongo using the `topology` field instead of `geojson`.
 

@@ -111,8 +111,8 @@ public class SeedDataLoader implements ApplicationRunner {
         if (ensembleSummaryRepository.count() == 0) seedEnsembleSummaries();
         if (districtTableRepository.count() == 0) seedDistrictTables();
         seedHeatmapBins();
-        if (ginglesResultRepository.count() == 0) seedGingles(root);
-        if (ginglesTableRepository.count() == 0) seedGinglesTables(root);
+        seedGingles(root);
+        seedGinglesTables(root);
         if (eiSupportResultRepository.count() == 0) seedEiSupport(root);
         if (eiPrecinctBarCiRepository.count() == 0) seedEiPrecinctBarCi(root);
         if (eiKdeRepository.count() == 0) seedEiKde(root);
@@ -317,31 +317,71 @@ public class SeedDataLoader implements ApplicationRunner {
     }
 
     private void seedGingles(Path root) throws IOException {
-        ginglesResultRepository.save(buildDoc(new GinglesResultDocument(), "OR", "2024_pres", "latino", null, null, "TOTAL",
-                readJsonMap(root.resolve("mock-data/v1/gingles-scatter/OR_2024_latino.json"))));
-        ginglesResultRepository.save(buildDoc(new GinglesResultDocument(), "SC", "2024_pres", "black", null, null, "TOTAL",
-                readJsonMap(root.resolve("mock-data/v1/gingles-scatter/SC_2024_black.json"))));
+        upsertGinglesResult("OR", "latino", root.resolve("mock-data/v1/gingles-scatter/OR_2024_latino.json"));
+        upsertGinglesResult("OR", "asian", root.resolve("mock-data/v1/gingles-scatter/OR_2024_asian.json"));
+        upsertGinglesResult("SC", "black", root.resolve("mock-data/v1/gingles-scatter/SC_2024_black.json"));
+        upsertGinglesResult("SC", "latino", root.resolve("mock-data/v1/gingles-scatter/SC_2024_latino.json"));
     }
 
     private void seedGinglesTables(Path root) throws IOException {
-        ginglesTableRepository.save(buildDoc(new GinglesTableDocument(), "OR", "2024_pres", "latino", null, null, "TOTAL",
-                readJsonMap(root.resolve("mock-data/v1/gingles-table/OR_2024_latino.json"))));
-        ginglesTableRepository.save(buildDoc(new GinglesTableDocument(), "SC", "2024_pres", "black", null, null, "TOTAL",
-                readJsonMap(root.resolve("mock-data/v1/gingles-table/SC_2024_black.json"))));
+        upsertGinglesTable("OR", "latino", root.resolve("mock-data/v1/gingles-table/OR_2024_latino.json"));
+        upsertGinglesTable("OR", "asian", root.resolve("mock-data/v1/gingles-table/OR_2024_asian.json"));
+        upsertGinglesTable("SC", "black", root.resolve("mock-data/v1/gingles-table/SC_2024_black.json"));
+        upsertGinglesTable("SC", "latino", root.resolve("mock-data/v1/gingles-table/SC_2024_latino.json"));
+    }
+
+    private void upsertGinglesResult(String stateId, String groupKey, Path path) throws IOException {
+        GinglesResultDocument doc = buildDoc(
+                new GinglesResultDocument(),
+                stateId,
+                "2024_pres",
+                groupKey,
+                null,
+                null,
+                "TOTAL",
+                readJsonMap(path)
+        );
+        ginglesResultRepository.findByStateIdAndGroupKeyAndElectionId(stateId, groupKey, "2024_pres")
+                .ifPresent(existing -> doc.setId(existing.getId()));
+        ginglesResultRepository.save(doc);
+    }
+
+    private void upsertGinglesTable(String stateId, String groupKey, Path path) throws IOException {
+        GinglesTableDocument doc = buildDoc(
+                new GinglesTableDocument(),
+                stateId,
+                "2024_pres",
+                groupKey,
+                null,
+                null,
+                "TOTAL",
+                readJsonMap(path)
+        );
+        ginglesTableRepository.findByStateIdAndGroupKeyAndElectionId(stateId, groupKey, "2024_pres")
+                .ifPresent(existing -> doc.setId(existing.getId()));
+        ginglesTableRepository.save(doc);
     }
 
     private void seedEiSupport(Path root) throws IOException {
         eiSupportResultRepository.save(buildDoc(new EiSupportResultDocument(), "OR", "2024_pres", "latino", null, null, "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/ei-support/OR_2024_president.json"))));
+        eiSupportResultRepository.save(buildDoc(new EiSupportResultDocument(), "OR", "2024_pres", "asian", null, null, "CVAP",
+                readJsonMap(root.resolve("mock-data/v1/ei-support/OR_asian_2024_president.json"))));
         eiSupportResultRepository.save(buildDoc(new EiSupportResultDocument(), "SC", "2024_pres", "black", null, null, "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/ei-support/SC_2024_president.json"))));
+        eiSupportResultRepository.save(buildDoc(new EiSupportResultDocument(), "SC", "2024_pres", "latino", null, null, "CVAP",
+                readJsonMap(root.resolve("mock-data/v1/ei-support/SC_latino_2024_president.json"))));
     }
 
     private void seedEiPrecinctBarCi(Path root) throws IOException {
         saveEiPrecinctBarCi("OR", "latino", "2024_pres", "DEM", root.resolve("mock-data/v1/ei-precinct-bar-ci/OR_demo.json"));
         saveEiPrecinctBarCi("OR", "latino", "2024_pres", "REP", root.resolve("mock-data/v1/ei-precinct-bar-ci/OR_demo.json"));
-        saveEiPrecinctBarCi("SC", "black", "2024_pres", "DEM", root.resolve("mock-data/v1/ei-precinct-bar-ci/SC_demo.json"));
-        saveEiPrecinctBarCi("SC", "black", "2024_pres", "REP", root.resolve("mock-data/v1/ei-precinct-bar-ci/SC_demo.json"));
+        saveEiPrecinctBarCi("OR", "asian",  "2024_pres", "DEM", root.resolve("mock-data/v1/ei-precinct-bar-ci/OR_asian_demo.json"));
+        saveEiPrecinctBarCi("OR", "asian",  "2024_pres", "REP", root.resolve("mock-data/v1/ei-precinct-bar-ci/OR_asian_demo.json"));
+        saveEiPrecinctBarCi("SC", "black",  "2024_pres", "DEM", root.resolve("mock-data/v1/ei-precinct-bar-ci/SC_demo.json"));
+        saveEiPrecinctBarCi("SC", "black",  "2024_pres", "REP", root.resolve("mock-data/v1/ei-precinct-bar-ci/SC_demo.json"));
+        saveEiPrecinctBarCi("SC", "latino", "2024_pres", "DEM", root.resolve("mock-data/v1/ei-precinct-bar-ci/SC_latino_demo.json"));
+        saveEiPrecinctBarCi("SC", "latino", "2024_pres", "REP", root.resolve("mock-data/v1/ei-precinct-bar-ci/SC_latino_demo.json"));
     }
 
     private void saveEiPrecinctBarCi(String stateId, String groupKey, String electionId, String partyKey, Path path) throws IOException {
@@ -353,8 +393,12 @@ public class SeedDataLoader implements ApplicationRunner {
     private void seedEiKde(Path root) throws IOException {
         eiKdeRepository.save(buildDoc(new EiKdeDocument(), "OR", "2024_pres", "latino", null, "support_gap", "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/ei-kde/OR_demo.json"))));
-        eiKdeRepository.save(buildDoc(new EiKdeDocument(), "SC", "2024_pres", "black", null, "support_gap", "CVAP",
+        eiKdeRepository.save(buildDoc(new EiKdeDocument(), "OR", "2024_pres", "asian",  null, "support_gap", "CVAP",
+                readJsonMap(root.resolve("mock-data/v1/ei-kde/OR_asian_demo.json"))));
+        eiKdeRepository.save(buildDoc(new EiKdeDocument(), "SC", "2024_pres", "black",  null, "support_gap", "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/ei-kde/SC_demo.json"))));
+        eiKdeRepository.save(buildDoc(new EiKdeDocument(), "SC", "2024_pres", "latino", null, "support_gap", "CVAP",
+                readJsonMap(root.resolve("mock-data/v1/ei-kde/SC_latino_demo.json"))));
     }
 
     private void seedEnsembleSplits(Path root) throws IOException {
@@ -367,12 +411,20 @@ public class SeedDataLoader implements ApplicationRunner {
     private void seedBoxWhiskers(Path root) throws IOException {
         boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "OR", "2024_pres", "latino", "vra_constrained", "minority_share", "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/box-whisker/OR_latino_cvap_vra.json"))));
-        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "OR", "2024_pres", "latino", "race_blind", "minority_share", "CVAP",
+        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "OR", "2024_pres", "latino", "race_blind",      "minority_share", "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/box-whisker/OR_latino_cvap_race_blind.json"))));
-        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "SC", "2024_pres", "black", "vra_constrained", "minority_share", "CVAP",
+        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "OR", "2024_pres", "asian",  "vra_constrained", "minority_share", "CVAP",
+                readJsonMap(root.resolve("mock-data/v1/box-whisker/OR_asian_cvap_vra.json"))));
+        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "OR", "2024_pres", "asian",  "race_blind",      "minority_share", "CVAP",
+                readJsonMap(root.resolve("mock-data/v1/box-whisker/OR_asian_cvap_race_blind.json"))));
+        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "SC", "2024_pres", "black",  "vra_constrained", "minority_share", "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/box-whisker/SC_black_cvap_vra.json"))));
-        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "SC", "2024_pres", "black", "race_blind", "minority_share", "CVAP",
+        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "SC", "2024_pres", "black",  "race_blind",      "minority_share", "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/box-whisker/SC_black_cvap_race_blind.json"))));
+        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "SC", "2024_pres", "latino", "vra_constrained", "minority_share", "CVAP",
+                readJsonMap(root.resolve("mock-data/v1/box-whisker/SC_latino_cvap_vra.json"))));
+        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "SC", "2024_pres", "latino", "race_blind",      "minority_share", "CVAP",
+                readJsonMap(root.resolve("mock-data/v1/box-whisker/SC_latino_cvap_race_blind.json"))));
     }
 
     private void seedInterestingPlans(Path root) {
@@ -425,8 +477,12 @@ public class SeedDataLoader implements ApplicationRunner {
     private void seedVraImpactThresholdTables(Path root) throws IOException {
         vraImpactThresholdTableRepository.save(buildDoc(new VraImpactThresholdTableDocument(), "OR", "2024_pres", "latino", null, null, "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/vra-impact-thresholds/OR_latino_2024_pres.json"))));
-        vraImpactThresholdTableRepository.save(buildDoc(new VraImpactThresholdTableDocument(), "SC", "2024_pres", "black", null, null, "CVAP",
+        vraImpactThresholdTableRepository.save(buildDoc(new VraImpactThresholdTableDocument(), "OR", "2024_pres", "asian",  null, null, "CVAP",
+                readJsonMap(root.resolve("mock-data/v1/vra-impact-thresholds/OR_asian_2024_pres.json"))));
+        vraImpactThresholdTableRepository.save(buildDoc(new VraImpactThresholdTableDocument(), "SC", "2024_pres", "black",  null, null, "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/vra-impact-thresholds/SC_black_2024_pres.json"))));
+        vraImpactThresholdTableRepository.save(buildDoc(new VraImpactThresholdTableDocument(), "SC", "2024_pres", "latino", null, null, "CVAP",
+                readJsonMap(root.resolve("mock-data/v1/vra-impact-thresholds/SC_latino_2024_pres.json"))));
     }
 
     private void seedMinorityEffectivenessBoxWhisker(Path root) throws IOException {
@@ -439,8 +495,12 @@ public class SeedDataLoader implements ApplicationRunner {
     private void seedMinorityEffectivenessHistogram(Path root) throws IOException {
         minorityEffectivenessHistogramRepository.save(buildDoc(new MinorityEffectivenessHistogramDocument(), "OR", "2024_pres", "latino", null, null, "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/minority-effectiveness-histogram/OR_latino_2024_pres.json"))));
-        minorityEffectivenessHistogramRepository.save(buildDoc(new MinorityEffectivenessHistogramDocument(), "SC", "2024_pres", "black", null, null, "CVAP",
+        minorityEffectivenessHistogramRepository.save(buildDoc(new MinorityEffectivenessHistogramDocument(), "OR", "2024_pres", "asian",  null, null, "CVAP",
+                readJsonMap(root.resolve("mock-data/v1/minority-effectiveness-histogram/OR_asian_2024_pres.json"))));
+        minorityEffectivenessHistogramRepository.save(buildDoc(new MinorityEffectivenessHistogramDocument(), "SC", "2024_pres", "black",  null, null, "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/minority-effectiveness-histogram/SC_black_2024_pres.json"))));
+        minorityEffectivenessHistogramRepository.save(buildDoc(new MinorityEffectivenessHistogramDocument(), "SC", "2024_pres", "latino", null, null, "CVAP",
+                readJsonMap(root.resolve("mock-data/v1/minority-effectiveness-histogram/SC_latino_2024_pres.json"))));
     }
 
     private void seedManifests() {

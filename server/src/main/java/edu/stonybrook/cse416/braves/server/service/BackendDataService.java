@@ -5,6 +5,7 @@ import edu.stonybrook.cse416.braves.server.model.BasePayloadDocument;
 import edu.stonybrook.cse416.braves.server.repository.*;
 import edu.stonybrook.cse416.braves.server.util.GroupThresholds;
 import edu.stonybrook.cse416.braves.server.util.StateCodeUtil;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedHashMap;
@@ -73,6 +74,7 @@ public class BackendDataService {
         this.minorityEffectivenessHistogramRepository = minorityEffectivenessHistogramRepository;
     }
 
+    @Cacheable("states")
     public List<StateOptionResponse> getStates() {
         return stateRepository.findAllByOrderByStateIdAsc().stream()
                 .map(doc -> new StateOptionResponse(
@@ -83,6 +85,7 @@ public class BackendDataService {
                 .toList();
     }
 
+    @Cacheable("stateSummary")
     public Map<String, Object> getStateSummary(String stateIdInput) {
         String stateId = normalizeState(stateIdInput);
         return payloadFrom(
@@ -91,36 +94,16 @@ public class BackendDataService {
         );
     }
 
+    @Cacheable("ensembleSummary")
     public Map<String, Object> getEnsembleSummary(String stateIdInput) {
         String stateId = normalizeState(stateIdInput);
-        Optional<? extends BasePayloadDocument> summaryDoc = ensembleSummaryRepository.findByStateId(stateId);
-        if (summaryDoc.isPresent()) {
-            return withStoredMetadata(summaryDoc.get());
-        }
-
-        Map<String, Object> stateSummary = payloadFrom(
-                stateSummaryRepository.findByStateId(stateId),
+        return payloadFrom(
+                ensembleSummaryRepository.findByStateId(stateId),
                 "Ensemble summary not found for stateId=" + stateId
         );
-        Object legacyEnsembleSummary = stateSummary.get("ensembleSummary");
-        if (!(legacyEnsembleSummary instanceof Map<?, ?> legacyMap)) {
-            throw new NoSuchElementException("Ensemble summary not found for stateId=" + stateId);
-        }
-
-        Map<String, Object> fallbackPayload = new LinkedHashMap<>();
-        Object finalPlanCount = legacyMap.containsKey("finalPlanCount") ? legacyMap.get("finalPlanCount") : 5000;
-        Object populationEqualityThreshold = legacyMap.containsKey("populationEqualityThreshold")
-                ? legacyMap.get("populationEqualityThreshold")
-                : "0.50%";
-
-        fallbackPayload.put("schemaVersion", stateSummary.getOrDefault("schemaVersion", "v1"));
-        fallbackPayload.put("state", stateSummary.getOrDefault("state", stateId));
-        fallbackPayload.put("finalPlanCount", finalPlanCount);
-        fallbackPayload.put("populationEqualityThreshold", populationEqualityThreshold);
-        fallbackPayload.put("populationMeasureUsed", stateSummary.getOrDefault("populationMeasureUsed", "TOTAL"));
-        return fallbackPayload;
     }
 
+    @Cacheable("heatmap")
     public Map<String, Object> getHeatmap(String stateIdInput, String groupInput) {
         String stateId = normalizeState(stateIdInput);
         String group = normalizeGroup(groupInput);
@@ -131,6 +114,7 @@ public class BackendDataService {
         );
     }
 
+    @Cacheable("districtTable")
     public Map<String, Object> getDistrictTable(String stateIdInput, String electionInput) {
         String stateId = normalizeState(stateIdInput);
         String election = normalizeElection(electionInput);
@@ -140,6 +124,7 @@ public class BackendDataService {
         );
     }
 
+    @Cacheable("gingles")
     public Map<String, Object> getGingles(String stateIdInput, String groupInput, String electionInput) {
         String stateId = normalizeState(stateIdInput);
         String group = normalizeGroup(groupInput);
@@ -151,6 +136,7 @@ public class BackendDataService {
         );
     }
 
+    @Cacheable("ginglesTable")
     public Map<String, Object> getGinglesTable(String stateIdInput, String groupInput, String electionInput) {
         String stateId = normalizeState(stateIdInput);
         String group = normalizeGroup(groupInput);
@@ -162,6 +148,7 @@ public class BackendDataService {
         );
     }
 
+    @Cacheable("eiSupport")
     public Map<String, Object> getEiSupport(String stateIdInput, String groupsInput, String electionInput, String partyInput) {
         String stateId = normalizeState(stateIdInput);
         String group = normalizeGroupSelector(groupsInput);
@@ -174,6 +161,7 @@ public class BackendDataService {
         );
     }
 
+    @Cacheable("eiPrecinctBarCi")
     public Map<String, Object> getEiPrecinctBarCi(String stateIdInput, String groupInput, String electionInput, String partyInput) {
         String stateId = normalizeState(stateIdInput);
         String group = normalizeGroup(groupInput);
@@ -186,6 +174,7 @@ public class BackendDataService {
         );
     }
 
+    @Cacheable("eiKde")
     public Map<String, Object> getEiKde(String stateIdInput, String groupInput, String electionInput, String metricInput) {
         String stateId = normalizeState(stateIdInput);
         String group = normalizeGroup(groupInput);
@@ -198,6 +187,7 @@ public class BackendDataService {
         );
     }
 
+    @Cacheable("ensembleSplits")
     public Map<String, Object> getEnsembleSplits(String stateIdInput, String ensembleSizeInput, String electionInput) {
         String stateId = normalizeState(stateIdInput);
         String ensembleSize = normalizeToken(ensembleSizeInput, "ensembleSize");
@@ -208,6 +198,7 @@ public class BackendDataService {
         );
     }
 
+    @Cacheable("boxWhisker")
     public Map<String, Object> getBoxWhisker(String stateIdInput, String groupInput, String ensembleTypeInput, String metricInput) {
         String stateId = normalizeState(stateIdInput);
         String group = normalizeGroup(groupInput);
@@ -220,6 +211,7 @@ public class BackendDataService {
         );
     }
 
+    @Cacheable("interestingPlan")
     public Map<String, Object> getInterestingPlan(String stateIdInput, String planIdInput) {
         String stateId = normalizeState(stateIdInput);
         String planId = normalizePlanId(planIdInput);
@@ -229,6 +221,7 @@ public class BackendDataService {
         );
     }
 
+    @Cacheable("vraImpactThresholds")
     public Map<String, Object> getVraImpactThresholds(String stateIdInput, String groupInput, String electionInput) {
         String stateId = normalizeState(stateIdInput);
         String group = normalizeGroup(groupInput);
@@ -240,6 +233,7 @@ public class BackendDataService {
         );
     }
 
+    @Cacheable("minorityEffectivenessBoxWhisker")
     public Map<String, Object> getMinorityEffectivenessBoxWhisker(String stateIdInput, String electionInput) {
         String stateId = normalizeState(stateIdInput);
         String election = normalizeElection(electionInput);
@@ -249,6 +243,7 @@ public class BackendDataService {
         );
     }
 
+    @Cacheable("minorityEffectivenessHistogram")
     public Map<String, Object> getMinorityEffectivenessHistogram(String stateIdInput, String groupInput, String electionInput) {
         String stateId = normalizeState(stateIdInput);
         String group = normalizeGroup(groupInput);

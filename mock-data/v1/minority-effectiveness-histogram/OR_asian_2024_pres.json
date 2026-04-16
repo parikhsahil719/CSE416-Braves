@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "v1",
+  "chartType": "minority-effectiveness-histogram",
+  "state": "OR",
+  "election": "2024 Presidential",
+  "totalDistricts": 6,
+  "selectedGroup": "Asian",
+  "ensembleSize": 250,
+  "units": {
+    "count": "plans"
+  },
+  "series": {
+    "raceBlind": [
+      {
+        "effectiveDistricts": 0,
+        "frequency": 191,
+        "shareOfEnsemble": 0.764
+      },
+      {
+        "effectiveDistricts": 1,
+        "frequency": 52,
+        "shareOfEnsemble": 0.208
+      },
+      {
+        "effectiveDistricts": 2,
+        "frequency": 7,
+        "shareOfEnsemble": 0.028
+      }
+    ],
+    "vraConstrained": [
+      {
+        "effectiveDistricts": 0,
+        "frequency": 37,
+        "shareOfEnsemble": 0.148
+      },
+      {
+        "effectiveDistricts": 1,
+        "frequency": 149,
+        "shareOfEnsemble": 0.596
+      },
+      {
+        "effectiveDistricts": 2,
+        "frequency": 64,
+        "shareOfEnsemble": 0.256
+      }
+    ]
+  }
+}

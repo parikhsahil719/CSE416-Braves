@@ -1,6 +1,6 @@
 #districtmap {
   flex: 1 1 auto;
-  width: min(42.5vw, 50rem);
+  width: min(40vw, 40rem);
   height: min(75vh, 50rem);
   min-height: 0;
   border: 1px solid var(--color-line);

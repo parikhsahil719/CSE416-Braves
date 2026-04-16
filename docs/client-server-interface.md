@@ -13,14 +13,15 @@ The team is implementing the following subset of the professor's master use case
 
 Status labels used here:
 - `Live`: route exists and the backend can return a seeded payload now
-- `Compatibility`: route remains available for fallback while the frontend uses the TopoJSON-first contract
 - `Client-only`: UI behavior uses state already loaded by other routes and does not make its own server request
 
 Geometry note:
-- Static geometry is now TopoJSON-first and file-backed by the backend.
-- `GUI-2` enacted district maps and `GUI-4` precinct maps are served from static classpath TopoJSON assets through `GeometryAssetService`.
+- All geometry is TopoJSON-first and file-backed by the backend via `GeometryAssetService`.
+- `GUI-2` enacted district maps and `GUI-4` precinct maps are served from static classpath TopoJSON assets.
 - The frontend fetches TopoJSON, converts it with `topojson-client`, then renders the resulting features in Leaflet.
 - `GUI-19` remains Mongo-backed, but its stored geometry is also TopoJSON-first via the `topology` field.
+- Static geometry routes now return browser-cacheable responses with `ETag` and `Cache-Control: public, max-age=604800`.
+- Static geometry payloads are sanitized to map-only properties before delivery.
 
 ## Interface Summary
 | GUI | Purpose | Method | URL | Status | Response body / behavior |
@@ -69,8 +70,8 @@ Geometry note:
 }
 ```
 District geometries include `properties.RESULT` for party color styling.
+Delivered district geometry properties are limited to `RESULT`, `NAMELSAD`, `district_number`, and `GEOID`.
 Actual payload source: file-backed Topology JSON in `server/src/main/resources/geometry/*_congressional_districts.json`.
-Compatibility route: `GET /api/states/{stateId}/districts/enacted/geojson` still serves GeoJSON during the cutover.
 
 ### GUI-3
 ```json
@@ -103,6 +104,7 @@ Geometry route:
   "arcs": []
 }
 ```
+Delivered precinct geometry properties are limited to `GEOID`.
 
 Legend/bin route:
 `GET /api/states/{stateId}/heatmap/precincts?group=...`
@@ -188,16 +190,24 @@ Sample payload source: [`mock-data/v1/ei-support/OR_2024_president.json`](/Users
 ```
 
 ### GUI-15
+Single-series support-gap KDE with histogram bins and threshold overlay.
 ```json
 {
   "schemaVersion": "v1",
   "chartType": "ei-kde",
   "state": "OR",
   "totalDistricts": 6,
-  "metricLabel": "Support difference (Latino - non-Latino) for Hardy",
-  "thresholdProbability": 0.73,
+  "metricLabel": "Support gap (Latino − non-Latino)",
+  "thresholdX": 0.0,
+  "thresholdLabel": "P(gap > 0)",
+  "thresholdProbability": 0.84,
+  "domain": [-0.4, 0.8],
   "series": [
-    { "key": "latino", "label": "Latino", "points": [{ "x": 0.1, "density": 0.3 }] }
+    {
+      "key": "support_gap",
+      "label": "Support gap",
+      "points": [{ "x": -0.3, "density": 0.05 }, { "x": 0.0, "density": 0.2 }, { "x": 0.33, "density": 1.1 }]
+    }
   ]
 }
 ```

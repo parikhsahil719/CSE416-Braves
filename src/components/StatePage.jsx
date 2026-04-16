@@ -651,7 +651,7 @@ export default function StatePage(props) {
   return (
     <span id="statePageMain">
       <div id="statePageMapContainer">
-        <div className="statePageMapLabel">{props.currMinority ? `${props.currMap} of ${props.currMinority} Population` : props.currMap}</div>
+        <div className="statePageMapLabel">{props.currMap === 'Precinct Heat Map' ? `${props.currMap} of ${props.currMinority} Population` : props.currMap}</div>
         {props.currMap === "District Map" ?
         <DistrictMap
           stateName={stateName}
@@ -661,7 +661,7 @@ export default function StatePage(props) {
           onChangeTab={handleTabSelect}
         /> :
         <MinorityHeatMap
-          minority={props.currMinority}
+          currMinority={props.currMinority}
           switchMinority={props.switchMinority}
         />}
         {mapLoading ? <div className="statePageStatusMessage">Loading {props.currMap}...</div> : null}
