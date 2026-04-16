@@ -111,8 +111,8 @@ public class SeedDataLoader implements ApplicationRunner {
         if (ensembleSummaryRepository.count() == 0) seedEnsembleSummaries();
         if (districtTableRepository.count() == 0) seedDistrictTables();
         seedHeatmapBins();
-        if (ginglesResultRepository.count() == 0) seedGingles(root);
-        if (ginglesTableRepository.count() == 0) seedGinglesTables(root);
+        seedGingles(root);
+        seedGinglesTables(root);
         if (eiSupportResultRepository.count() == 0) seedEiSupport(root);
         if (eiPrecinctBarCiRepository.count() == 0) seedEiPrecinctBarCi(root);
         if (eiKdeRepository.count() == 0) seedEiKde(root);
@@ -317,25 +317,49 @@ public class SeedDataLoader implements ApplicationRunner {
     }
 
     private void seedGingles(Path root) throws IOException {
-        ginglesResultRepository.save(buildDoc(new GinglesResultDocument(), "OR", "2024_pres", "latino", null, null, "TOTAL",
-                readJsonMap(root.resolve("mock-data/v1/gingles-scatter/OR_2024_latino.json"))));
-        ginglesResultRepository.save(buildDoc(new GinglesResultDocument(), "OR", "2024_pres", "asian", null, null, "TOTAL",
-                readJsonMap(root.resolve("mock-data/v1/gingles-scatter/OR_2024_asian.json"))));
-        ginglesResultRepository.save(buildDoc(new GinglesResultDocument(), "SC", "2024_pres", "black", null, null, "TOTAL",
-                readJsonMap(root.resolve("mock-data/v1/gingles-scatter/SC_2024_black.json"))));
-        ginglesResultRepository.save(buildDoc(new GinglesResultDocument(), "SC", "2024_pres", "latino", null, null, "TOTAL",
-                readJsonMap(root.resolve("mock-data/v1/gingles-scatter/SC_2024_latino.json"))));
+        upsertGinglesResult("OR", "latino", root.resolve("mock-data/v1/gingles-scatter/OR_2024_latino.json"));
+        upsertGinglesResult("OR", "asian", root.resolve("mock-data/v1/gingles-scatter/OR_2024_asian.json"));
+        upsertGinglesResult("SC", "black", root.resolve("mock-data/v1/gingles-scatter/SC_2024_black.json"));
+        upsertGinglesResult("SC", "latino", root.resolve("mock-data/v1/gingles-scatter/SC_2024_latino.json"));
     }
 
     private void seedGinglesTables(Path root) throws IOException {
-        ginglesTableRepository.save(buildDoc(new GinglesTableDocument(), "OR", "2024_pres", "latino", null, null, "TOTAL",
-                readJsonMap(root.resolve("mock-data/v1/gingles-table/OR_2024_latino.json"))));
-        ginglesTableRepository.save(buildDoc(new GinglesTableDocument(), "OR", "2024_pres", "asian", null, null, "TOTAL",
-                readJsonMap(root.resolve("mock-data/v1/gingles-table/OR_2024_asian.json"))));
-        ginglesTableRepository.save(buildDoc(new GinglesTableDocument(), "SC", "2024_pres", "black", null, null, "TOTAL",
-                readJsonMap(root.resolve("mock-data/v1/gingles-table/SC_2024_black.json"))));
-        ginglesTableRepository.save(buildDoc(new GinglesTableDocument(), "SC", "2024_pres", "latino", null, null, "TOTAL",
-                readJsonMap(root.resolve("mock-data/v1/gingles-table/SC_2024_latino.json"))));
+        upsertGinglesTable("OR", "latino", root.resolve("mock-data/v1/gingles-table/OR_2024_latino.json"));
+        upsertGinglesTable("OR", "asian", root.resolve("mock-data/v1/gingles-table/OR_2024_asian.json"));
+        upsertGinglesTable("SC", "black", root.resolve("mock-data/v1/gingles-table/SC_2024_black.json"));
+        upsertGinglesTable("SC", "latino", root.resolve("mock-data/v1/gingles-table/SC_2024_latino.json"));
+    }
+
+    private void upsertGinglesResult(String stateId, String groupKey, Path path) throws IOException {
+        GinglesResultDocument doc = buildDoc(
+                new GinglesResultDocument(),
+                stateId,
+                "2024_pres",
+                groupKey,
+                null,
+                null,
+                "TOTAL",
+                readJsonMap(path)
+        );
+        ginglesResultRepository.findByStateIdAndGroupKeyAndElectionId(stateId, groupKey, "2024_pres")
+                .ifPresent(existing -> doc.setId(existing.getId()));
+        ginglesResultRepository.save(doc);
+    }
+
+    private void upsertGinglesTable(String stateId, String groupKey, Path path) throws IOException {
+        GinglesTableDocument doc = buildDoc(
+                new GinglesTableDocument(),
+                stateId,
+                "2024_pres",
+                groupKey,
+                null,
+                null,
+                "TOTAL",
+                readJsonMap(path)
+        );
+        ginglesTableRepository.findByStateIdAndGroupKeyAndElectionId(stateId, groupKey, "2024_pres")
+                .ifPresent(existing -> doc.setId(existing.getId()));
+        ginglesTableRepository.save(doc);
     }
 
     private void seedEiSupport(Path root) throws IOException {

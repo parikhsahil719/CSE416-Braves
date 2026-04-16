@@ -14,14 +14,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +33,8 @@ import java.util.Map;
 @Validated
 @Tag(name = "State API", description = "Professor-facing client/server routes for GUI use cases")
 public class StateController {
+    private static final CacheControl STATIC_GEOMETRY_CACHE = CacheControl.maxAge(Duration.ofDays(7)).cachePublic();
+
     private final BackendDataService dataService;
     private final GeometryAssetService geometryAssetService;
 
@@ -55,28 +60,6 @@ public class StateController {
     }
 
     @Operation(
-            summary = "GUI-2 compatibility: Enacted district map GeoJSON for state",
-            description = "Status: Compatibility. Returns the enacted district GeoJSON payload for a supported state."
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "GeoJSON FeatureCollection payload for the enacted congressional district map"
-            )
-    })
-    @GetMapping("/states/{stateId}/districts/enacted/geojson")
-    public ResponseEntity<Map<String, Object>> getDistrictMap(
-            @Parameter(description = "Required state code. Current supported values: OR or SC.")
-            @PathVariable @NotBlank String stateId
-    ) {
-        return ResponseEntity.ok()
-                .cacheControl(CacheControl.noStore().mustRevalidate())
-                .header(HttpHeaders.PRAGMA, "no-cache")
-                .header(HttpHeaders.EXPIRES, "0")
-                .body(geometryAssetService.getDistrictGeoJson(stateId));
-    }
-
-    @Operation(
             summary = "GUI-2: Enacted district map topology for state",
             description = "Status: Live. Returns the enacted district TopoJSON payload for a supported state."
     )
@@ -89,13 +72,10 @@ public class StateController {
     @GetMapping("/states/{stateId}/districts/enacted/topology")
     public ResponseEntity<Map<String, Object>> getDistrictTopology(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
-            @PathVariable @NotBlank String stateId
+            @PathVariable @NotBlank String stateId,
+            WebRequest webRequest
     ) {
-        return ResponseEntity.ok()
-                .cacheControl(CacheControl.noStore().mustRevalidate())
-                .header(HttpHeaders.PRAGMA, "no-cache")
-                .header(HttpHeaders.EXPIRES, "0")
-                .body(geometryAssetService.getDistrictTopology(stateId));
+        return cachedGeometryResponse(geometryAssetService.getDistrictTopologyAsset(stateId), webRequest);
     }
 
     @Operation(
@@ -111,13 +91,10 @@ public class StateController {
     @GetMapping("/states/{stateId}/precincts/topology")
     public ResponseEntity<Map<String, Object>> getPrecinctTopology(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
-            @PathVariable @NotBlank String stateId
+            @PathVariable @NotBlank String stateId,
+            WebRequest webRequest
     ) {
-        return ResponseEntity.ok()
-                .cacheControl(CacheControl.noStore().mustRevalidate())
-                .header(HttpHeaders.PRAGMA, "no-cache")
-                .header(HttpHeaders.EXPIRES, "0")
-                .body(geometryAssetService.getPrecinctTopology(stateId));
+        return cachedGeometryResponse(geometryAssetService.getPrecinctTopologyAsset(stateId), webRequest);
     }
 
     @Operation(
@@ -131,12 +108,8 @@ public class StateController {
             )
     })
     @GetMapping("/maps/us-states/topology")
-    public ResponseEntity<Map<String, Object>> getUsStatesTopology() {
-        return ResponseEntity.ok()
-                .cacheControl(CacheControl.noStore().mustRevalidate())
-                .header(HttpHeaders.PRAGMA, "no-cache")
-                .header(HttpHeaders.EXPIRES, "0")
-                .body(geometryAssetService.getUsStatesTopology());
+    public ResponseEntity<Map<String, Object>> getUsStatesTopology(WebRequest webRequest) {
+        return cachedGeometryResponse(geometryAssetService.getUsStatesTopologyAsset(), webRequest);
     }
 
     @Operation(
@@ -459,5 +432,19 @@ public class StateController {
             @RequestParam(required = false, defaultValue = "2024_pres") String election
     ) {
         return dataService.getMinorityEffectivenessHistogram(stateId, group, election);
+    }
+
+    private ResponseEntity<Map<String, Object>> cachedGeometryResponse(GeometryAssetService.GeometryAsset asset, WebRequest webRequest) {
+        if (webRequest.checkNotModified(asset.etag())) {
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+                    .cacheControl(STATIC_GEOMETRY_CACHE)
+                    .eTag(asset.etag())
+                    .build();
+        }
+
+        return ResponseEntity.ok()
+                .cacheControl(STATIC_GEOMETRY_CACHE)
+                .eTag(asset.etag())
+                .body(asset.body());
     }
 }

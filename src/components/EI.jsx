@@ -9,13 +9,13 @@ import EiSupportChart from "../charts/EiSupportChart.jsx";
 import {
   ResponsiveContainer,
   BarChart,
+  ComposedChart,
   Bar as RechartsBar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ErrorBar,
-  AreaChart,
   Area,
   ReferenceLine,
 } from "recharts";
@@ -112,7 +112,7 @@ function EiKdePanel({ payload, loading, failed, minority }) {
       )}
       <div style={{ width: "100%", height: "320px" }}>
         <ResponsiveContainer>
-          <AreaChart data={data} margin={{ top: 12, right: 18, left: 12, bottom: 40 }}>
+          <ComposedChart data={data} margin={{ top: 12, right: 18, left: 12, bottom: 40 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#d4d4d8" />
             <XAxis
               dataKey="x"
@@ -127,13 +127,15 @@ function EiKdePanel({ payload, loading, failed, minority }) {
               label={{ value: "Density", angle: -90, position: "insideLeft", offset: -2, style: { fontSize: 12 } }}
             />
             <Tooltip formatter={(v) => [v.toFixed(4), "Density"]} labelFormatter={(v) => `Gap: ${Number(v).toFixed(3)}`} />
-            {/* Primary KDE curve */}
+            {/* Histogram bars */}
+            <RechartsBar dataKey="density" name="Density" fill="#2a9d8f44" stroke="none" isAnimationActive={false} />
+            {/* KDE curve overlay */}
             <Area
               type="monotone"
               dataKey="density"
               name={gapSeries?.label ?? "Support gap"}
               stroke="#2a9d8f"
-              fill="#2a9d8f44"
+              fill="none"
               dot={false}
               activeDot={false}
               strokeWidth={2.5}
@@ -154,7 +156,7 @@ function EiKdePanel({ payload, loading, failed, minority }) {
                 }}
               />
             )}
-          </AreaChart>
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
     </div>

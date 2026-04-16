@@ -124,6 +124,16 @@ Mongo remains the source of truth for plan-specific geometry where a single coll
 
 The frontend fetches TopoJSON from the backend, converts it with `topojson-client`, and renders the resulting features in Leaflet. This keeps large geometry out of the production bundle and avoids the prior Vite heap OOM during `npm run build`.
 
+Static geometry responses are optimized for repeat loads:
+- browser-cacheable with `Cache-Control: public, max-age=604800`
+- strong `ETag` support for `304 Not Modified`
+- sanitized map-only properties before serialization
+
+Delivered geometry property sets:
+- district topology: `RESULT`, `NAMELSAD`, `district_number`, `GEOID`
+- precinct topology: `GEOID`
+- US states overview: `name`, `isActive`
+
 ## Start the Backend Server
 
 From `server/`:
@@ -168,6 +178,7 @@ Expected responses:
   - returns supported state options
 - topology endpoints
   - return TopoJSON payloads for US states, enacted districts, and precinct geometry
+  - include `ETag`; repeated browser requests may receive `304 Not Modified`
 - compatibility GeoJSON endpoints
   - return enacted district GeoJSON for `OR` and `SC`
 - summary and analysis endpoints
