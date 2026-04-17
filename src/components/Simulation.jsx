@@ -534,7 +534,6 @@ export default function Simulation(props) {
     if (currSimData === "Minority Effectiveness Box Whisker") {
       return (
         <>
-          {renderMinoritySelector()}
           <MinorityEffectivenessBoxWhisker
             payload={effectBoxWhiskerPayload}
             loading={effectBoxWhiskerLoading}
