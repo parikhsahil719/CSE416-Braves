@@ -534,7 +534,6 @@ export default function Simulation(props) {
     if (currSimData === "Minority Effectiveness Box Whisker") {
       return (
         <>
-          {renderMinoritySelector()}
           <MinorityEffectivenessBoxWhisker
             payload={effectBoxWhiskerPayload}
             loading={effectBoxWhiskerLoading}
@@ -573,8 +572,7 @@ export default function Simulation(props) {
       <div id="sim-page-map-container">
         <div className="sim-page-map-label">
           {props.currMap === 'Precinct Heat Map'
-            ? `${props.currMap} of ${props.currMinority} Population`
-            : props.currMap}
+            ? `${props.currMap} of ${props.currMinority} Population in ${stateName}` : `Map of Current Congressional Districts of ${stateName}`}
         </div>
         {currMap === "District Map" ? (
           <DistrictMap stateName={stateName} data={mapData} />

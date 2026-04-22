@@ -105,7 +105,7 @@ export default function Compare(props) {
   return (
     <span id="compare-page-main">
       <div id="compare-page-left-map-container" className="compare-page-map-container">
-        <div className="compare-page-left-map-label">Current District Plan of {stateName}</div>
+        <div className="compare-page-left-map-label">Current Congressional District Plan of {stateName}</div>
         <DistrictMap
           stateName={stateName}
           data={leftMapData}

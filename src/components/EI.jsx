@@ -333,7 +333,7 @@ export default function EI(props) {
     <span id="ei-page-main">
       <div id="ei-page-map-container">
         <div className="ei-page-map-label">
-          {props.currMap === 'Precinct Heat Map' ? `${props.currMap} of ${props.currMinority} Population` : props.currMap}
+          {props.currMap === 'Precinct Heat Map' ? `${props.currMap} of ${props.currMinority} Population in ${stateName}` : `Map of Current Congressional Districts of ${stateName}`}
         </div>
         {currMap === "District Map" ? (
           <DistrictMap stateName={stateName} data={mapData} />
