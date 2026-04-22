@@ -20,15 +20,13 @@
 | File | Purpose |
 |------|---------|
 | `use-case-requirements.md` | Full professor requirements for all implemented use cases (19 GUI, 10 Prepro, 12 SeaWulf) with descriptions and scoping notes |
-| `client-server-interface.md` | Endpoint contracts and example JSON payloads for every GUI use case — primary reference for backend ↔ frontend contracts |
+| `seawulf-prepro-payload-schemas.md` | Frontend-first API response contracts, MongoDB collection schemas, and pipeline compute table — primary reference for backend ↔ frontend contracts |
 | `schema-field-guide.md` | MongoDB collection and field reference for all 21+ collections |
 | `mongo-schema-and-use-case-mapping.md` | Maps MongoDB collections to the GUI use cases they support |
 | `topojson-implementation.md` | Architecture rationale for serving geometry as static classpath TopoJSON instead of MongoDB |
 | `chart-specs-required-and-preferred-recharts.md` | Recharts implementation specs for GUI-9, 12, 13, 15, 16, 17, 18 |
 | `chart-handoff-contracts.md` | Payload schemas and handoff contracts between prototype and full integration |
 | `api-test-data-catalog.md` | Catalog of test data payloads with semantic descriptions and validation procedures |
-| `mock-data-validation-checklist.md` | Invariant checklist for ensemble splits, box plots, confidence intervals, histograms |
-| `prototype-conventions.md` | Shared mock data conventions: decimals for shares, integers for counts, null for missing values |
 | `codebase-file-index.md` | This file — one-line descriptions of every source file for quick navigation |
 
 ---
