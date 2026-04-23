@@ -80,9 +80,11 @@ export default function Compare(props) {
 
     (async () => {
       try {
-        const response = await axios.get(`/api/states/${stateCode}/districts/enacted/topology`);
+        const response = await axios.get(`/api/states/${stateCode}/districts/interesting`, {
+          params: { planId: "plan-42" },
+        });
         if (isActive) {
-          setRightMapData(topologyToFeatureCollection(response.data, "districts"));
+          setRightMapData(topologyToFeatureCollection(response.data.topology, "districts"));
           setRightMapLoadFailed(false);
         }
       } catch {

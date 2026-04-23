@@ -26,7 +26,7 @@ export function SideBar(props)
           <div className="sidebar-header">Analysis</div>
           <div className={currPage === "State" ? "sidebar-tab activeTab" : "sidebar-tab"} onClick={() => { switchPage('State'); navigate(`/state/${stateName}`)}}>State Data Summary</div>
           <div className={currPage === "Compare" ? "sidebar-tab activeTab" : "sidebar-tab"} onClick={() => { switchMap('District Map'); switchPage('Compare'); navigate(`/state/${stateName}/Compare`)}}>Compare District Plans</div>
-          <div className={currPage === "Gingles" ? "sidebar-tab activeTab" : "sidebar-tab"} onClick={() => { switchPage('Gingles'); navigate(`/state/${stateName}/Gingles `)}}>Gingles Charts</div>
+          <div className={currPage === "Gingles" ? "sidebar-tab activeTab" : "sidebar-tab"} onClick={() => { switchPage('Gingles'); navigate(`/state/${stateName}/Gingles`)}}>Gingles Charts</div>
           <div className={currPage === "EI" ? "sidebar-subheader activeTab" : "sidebar-subheader"}>Minority-Preferred Candidates</div>
           <div className={currEI === "EI Analysis" ? "ei-option activeTab" : "ei-option"} onClick={() => { switchEI('EI Analysis'); switchPage('EI'); navigate(`/state/${stateName}/Ecological Inference`)}}>EI Analysis</div>
           <div className={currEI === "EI Bar Chart" ? "ei-option activeTab" : "ei-option"} onClick={() => { switchEI('EI Bar Chart'); switchPage('EI'); navigate(`/state/${stateName}/Ecological Inference`)}}>EI Bar Chart</div>

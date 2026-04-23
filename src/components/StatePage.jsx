@@ -53,6 +53,7 @@ function mergeSummaryData(localData, summaryData) {
     partyControl: summaryData.partyControl ?? localData.partyControl,
     democratReps: summaryData.democratReps ?? localData.democratReps,
     republicanReps: summaryData.republicanReps ?? localData.republicanReps,
+    feasibleGroups: summaryData.feasibleGroups ?? localData.feasibleGroups,
   };
 }
 
@@ -84,6 +85,13 @@ function mergeSummaryData(localData, summaryData) {
 //   };
 // }
 
+const GROUP_POP_FIELD = {
+  Latino: "LatinoPopulation",
+  Asian: "AsianPopulation",
+  White: "WhitePopulation",
+  Black: "BlackPopulation",
+};
+
 function StateData({ stateData, stateName, loading, loadFailed }) {
   return (
     <>
@@ -95,14 +103,12 @@ function StateData({ stateData, stateName, loading, loadFailed }) {
             <p className="statePageDataBubbleLabel">Population:</p>
             <p className="statePageData statePageDataNum">{stateData.population}</p>
           </span>
-          <span className="statePageDataBubble">
-            <p className="statePageDataBubbleLabel">White Population:</p>
-            <p className="statePageData statePageDataNum">{stateData.WhitePopulation}</p>
-          </span>
-          <span className="statePageDataBubble">
-            <p className="statePageDataBubbleLabel">{stateName === "Oregon" ? "Asian" : "Black"} Population:</p>
-            <p className="statePageData statePageDataNum">{stateName === "Oregon" ? stateData.AsianPopulation : stateData.BlackPopulation}</p>
-          </span>
+          {(stateData.feasibleGroups ?? []).map((group) => (
+            <span key={group} className="statePageDataBubble">
+              <p className="statePageDataBubbleLabel">{group} Population:</p>
+              <p className="statePageData statePageDataNum">{stateData[GROUP_POP_FIELD[group]] ?? "N/A"}</p>
+            </span>
+          ))}
         </span>
         <span className="statePageDataBubble">
           <p className="statePageDataBubbleLabel">Party Control of Redistricting:</p>

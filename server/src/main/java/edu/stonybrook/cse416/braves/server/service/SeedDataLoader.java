@@ -297,8 +297,8 @@ public class SeedDataLoader implements ApplicationRunner {
         heatmapBinRepository.deleteAll();
         try {
             heatmapBinRepository.save(buildDoc(new HeatmapBinDocument(), "OR", null, "latino", null, null, "TOTAL", heatmapPayload(root, "OR", "Latino")));
-            heatmapBinRepository.save(buildDoc(new HeatmapBinDocument(), "OR", null, "asian", null, null, "TOTAL", heatmapPayload(root, "OR", "Asian")));
-            heatmapBinRepository.save(buildDoc(new HeatmapBinDocument(), "SC", null, "black", null, null, "TOTAL", heatmapPayload(root, "SC", "Black")));
+            heatmapBinRepository.save(buildDoc(new HeatmapBinDocument(), "OR", null, "asian",  null, null, "TOTAL", heatmapPayload(root, "OR", "Asian")));
+            heatmapBinRepository.save(buildDoc(new HeatmapBinDocument(), "SC", null, "black",  null, null, "TOTAL", heatmapPayload(root, "SC", "Black")));
             heatmapBinRepository.save(buildDoc(new HeatmapBinDocument(), "SC", null, "latino", null, null, "TOTAL", heatmapPayload(root, "SC", "Latino")));
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to seed heatmap precinct shares", exception);
