@@ -11,6 +11,7 @@ __pycache__/
 coverage/
 
 .claude/
+.cursor/
 AGENTS.md
 CLAUDE.md
 nimbalyst-local/
