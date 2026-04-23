@@ -1,4 +1,4 @@
-# Chart Handoff Contracts (for future /frontend integration)
+# Chart Handoff Contracts
 
 ## Components
 - `EnsembleSplitsChart`
@@ -19,5 +19,5 @@
 - Container provides enough width/height for labels.
 - State/group/candidate selection can be handled in parent UI and passed as payload updates.
 
-## Future integration target
-- Move or reuse chart components under `/frontend` once backend endpoints are available.
+## Integration target
+- Reuse these payload contracts in the repo's current React frontend at the project root.

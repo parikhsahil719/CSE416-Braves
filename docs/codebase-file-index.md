@@ -25,10 +25,10 @@
 | `mongo-schema-and-use-case-mapping.md` | Maps MongoDB collections to the GUI use cases they support |
 | `topojson-implementation.md` | Architecture rationale for serving geometry as static classpath TopoJSON instead of MongoDB |
 | `chart-specs-required-and-preferred-recharts.md` | Recharts implementation specs for GUI-9, 12, 13, 15, 16, 17, 18 |
-| `chart-handoff-contracts.md` | Payload schemas and handoff contracts between prototype and full integration |
+| `chart-handoff-contracts.md` | Payload schemas and handoff contracts for integrating chart payloads into the current frontend |
 | `api-test-data-catalog.md` | Catalog of test data payloads with semantic descriptions and validation procedures |
 | `mock-data-validation-checklist.md` | Invariant checklist for ensemble splits, box plots, confidence intervals, histograms |
-| `prototype-conventions.md` | Shared mock data conventions: decimals for shares, integers for counts, null for missing values |
+| `prototype-conventions.md` | Shared chart payload conventions: decimals for shares, integers for counts, null for missing values |
 | `codebase-file-index.md` | This file — one-line descriptions of every source file for quick navigation |
 
 ---
@@ -194,29 +194,6 @@ Each repository provides Spring Data MongoDB CRUD + custom queries for its docum
 | File | Purpose |
 |------|---------|
 | `src/test/setupTests.js` | Vitest environment setup with testing-library/jsdom |
-
----
-
-## Chart Demo (`chart-demo/`)
-
-Standalone Vite app for validating chart payloads before backend integration.
-
-| File | Purpose |
-|------|---------|
-| `README.md` | Demo docs: purpose, mock data schema, state structure, chart semantics for GUI-9/12/16/17/13/15/18 |
-| `src/App.jsx` | Demo shell: chart selector, state switcher (OR/SC), payload loader, chart router |
-| `src/components/Controls.jsx` | Dropdown UI for chart/state selection |
-| `src/data/payloads.js` | Central mock data catalog keyed by use case (GUI-9, 12, 13, 15, 16, 17, 18) and state |
-| `src/charts/GinglesScatterChart.jsx` | Scatter plot demo with regression curves — GUI-9 |
-| `src/charts/EiSupportChart.jsx` | Filled area chart demo — GUI-12 |
-| `src/charts/EnsembleSplitsChart.jsx` | Bar chart demo for seat split comparison — GUI-16 |
-| `src/charts/BoxWhiskerChart.jsx` | Custom SVG box-whisker demo — GUI-17 |
-| `src/charts/EiPrecinctBarCIChart.jsx` | Bar + error whisker demo — GUI-13 |
-| `src/charts/EiKdeChart.jsx` | Filled area overlay demo for KDE density comparison — GUI-15 |
-| `src/charts/VoteShareSeatShareChart.jsx` | Line curve demo for vote share vs. seat share — GUI-18 (not implemented) |
-| `src/utils/format.js` | Percentage and count formatting shared across chart components |
-
----
 
 ## Mock Data (`mock-data/v1/`)
 

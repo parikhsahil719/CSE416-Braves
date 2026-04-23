@@ -15,7 +15,7 @@ Covers chart use cases the team is implementing: GUI-9, GUI-12, GUI-13, GUI-15, 
 - X-axis: Selected group share in precinct.
 - Y-axis: Party vote share.
 - Series: Democratic (blue), Republican (red).
-- Controls: State selector (group is pre-selected in payload for prototype).
+- Controls: State selector (group is pre-selected in the current payload shape).
 - Tooltip: Precinct ID, shares, population counts.
 
 ## GUI-12 EI Support Distribution (required)
@@ -23,7 +23,7 @@ Covers chart use cases the team is implementing: GUI-9, GUI-12, GUI-13, GUI-15, 
 - X-axis: Estimated support share.
 - Y-axis: Density/probability.
 - Series: One line per group.
-- Controls: State selector, candidate selector (single candidate in mock payload).
+- Controls: State selector, candidate selector (single candidate in the current payload).
 
 ## GUI-17 Box & Whisker (required)
 - Purpose: Summarize ensemble district-rank values and compare to enacted plan.
@@ -43,4 +43,3 @@ Covers chart use cases the team is implementing: GUI-9, GUI-12, GUI-13, GUI-15, 
 - X-axis: Support/support-difference metric (payload metadata documents which).
 - Y-axis: Density.
 - Optional annotation: threshold probability.
-

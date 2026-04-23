@@ -11,5 +11,6 @@ __pycache__/
 coverage/
 
 .claude/
+.playwright-mcp/
 AGENTS.md
 CLAUDE.md
