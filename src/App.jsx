@@ -1,10 +1,30 @@
-import React, { Suspense, lazy, useState } from 'react'
+import React, { Suspense, lazy, useEffect, useState } from 'react'
 import SplashPage from './components/SplashPage'
 import StatePage from './components/StatePage'
 import { CountryHeaderBar } from './components/CountryHeaderBar'
 import { SideBar } from './components/SideBar'
 import '../styles/main.css'
-import { Routes, Route, useParams } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
+import { useServerMeta } from './queries/stateQueries.js'
+
+// Detects server restarts by comparing /api/meta bootTime against localStorage.
+// On mismatch, clears the entire TanStack Query cache so components refetch fresh data.
+function CacheBuster() {
+  const { data: meta } = useServerMeta();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!meta?.bootTime) return;
+    const stored = localStorage.getItem('serverBootTime');
+    if (stored !== meta.bootTime) {
+      queryClient.clear();
+      localStorage.setItem('serverBootTime', meta.bootTime);
+    }
+  }, [meta, queryClient]);
+
+  return null;
+}
 
 const StateMinorityAnalysis = lazy(() => import('./components/StateMinorityAnalysis'))
 const StateCustomAnalysis = lazy(() => import('./components/StateCustomAnalysis'))
@@ -44,6 +64,7 @@ export default function App() {
 
   return (
     <>
+      <CacheBuster />
       <Routes>
         <Route path='/' element={
           <>

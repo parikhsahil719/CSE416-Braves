@@ -24,6 +24,7 @@
 | `schema-field-guide.md` | MongoDB collection and field reference for all 21+ collections |
 | `mongo-schema-and-use-case-mapping.md` | Maps MongoDB collections to the GUI use cases they support |
 | `topojson-implementation.md` | Architecture rationale for serving geometry as static classpath TopoJSON instead of MongoDB |
+| `caching-architecture.md` | Two-tier caching design: TanStack Query (frontend) + Caffeine + HTTP ETag (backend); includes server-restart invalidation flow |
 | `chart-specs-required-and-preferred-recharts.md` | Recharts implementation specs for GUI-9, 12, 13, 15, 16, 17, 18 |
 | `chart-handoff-contracts.md` | Payload schemas and handoff contracts for integrating chart payloads into the current frontend |
 | `api-test-data-catalog.md` | Catalog of test data payloads with semantic descriptions and validation procedures |
@@ -53,6 +54,7 @@
 | File | Purpose |
 |------|---------|
 | `HealthController.java` | `/health` and `/health/db` endpoints for service and MongoDB connectivity checks |
+| `MetaController.java` | `GET /api/meta` — returns server `bootTime` (ISO-8601) for frontend TanStack Query cache invalidation on restart |
 | `StateController.java` | All ~25 REST routes implementing GUI-1 through GUI-24 (state listing, topology, heatmaps, Gingles, EI, ensembles, VRA, minority effectiveness) |
 
 ### `config/`
@@ -144,8 +146,8 @@ Each repository provides Spring Data MongoDB CRUD + custom queries for its docum
 
 | File | Purpose |
 |------|---------|
-| `main.jsx` | React entry point; mounts root inside `BrowserRouter` |
-| `App.jsx` | Route definitions: `/` splash, `/state/:stateName` state view, analysis sub-routes; lazy-loads analysis components |
+| `main.jsx` | React entry point; mounts root inside `QueryClientProvider` + `BrowserRouter` |
+| `App.jsx` | Route definitions + `CacheBuster` component that detects server restarts and clears TanStack Query cache |
 
 ### `components/`
 
@@ -172,6 +174,14 @@ Each repository provides Spring Data MongoDB CRUD + custom queries for its docum
 | `VRAAnalysis.jsx` | VRA impact analysis view container — GUI-20 |
 | `Compare.jsx` | Side-by-side district plan comparison — GUI-8 |
 
+### `lib/` & `queries/`
+
+| File | Purpose |
+|------|---------|
+| `lib/queryClient.js` | TanStack QueryClient with defaults: 5-min staleTime, 30-min gcTime, no window-focus refetch |
+| `lib/queryKeys.js` | Centralized query key factory — all `useQuery` calls reference these keys for consistent invalidation |
+| `queries/stateQueries.js` | One `useQuery` hook per API endpoint (20 hooks); topology hooks use `staleTime: Infinity` |
+
 ### `data/` & `utils/`
 
 | File | Purpose |
@@ -186,6 +196,7 @@ Each repository provides Spring Data MongoDB CRUD + custom queries for its docum
 | `data/precincts_sc.json` | South Carolina precinct TopoJSON source used for backend precinct heatmap geometry |
 | `utils/chartFormat.js` | Chart formatting: `pct()` percentage formatter, share-to-percentage conversion, axis label helpers |
 | `utils/topology.js` | TopoJSON → GeoJSON FeatureCollection conversion for Leaflet rendering |
+| `utils/stateUtils.js` | Shared helpers: `toStateCode`, `toGroupKey`, `defaultGroup`, `groupOptionsForState` — used across all analysis components |
 
 ### Tests
 
