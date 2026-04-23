@@ -14,3 +14,4 @@ coverage/
 .playwright-mcp/
 AGENTS.md
 CLAUDE.md
+nimbalyst-local/

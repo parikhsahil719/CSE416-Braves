@@ -170,7 +170,7 @@ The `party` parameter is hardcoded to `"DEM"` in all three EI requests (lines 24
 | SMELL | `src/components/MinorityHeatMap.jsx:158` | `console.log(currMinority)` — debug log left in production code. Remove. |
 | SMELL | `src/components/StatePage.jsx:161-163` | `useEffect` inside `DistrictData` calls `onSelectDistrict(0)` on `currMap` changes but `onSelectDistrict` is not in the dependency array. React will warn (or in Strict Mode, behave unexpectedly). Add `onSelectDistrict` to the deps array. |
 | SMELL | `src/components/InterestingMap.jsx:80` | Uses `L.control(...)` via the implicit Leaflet global without importing `L`. Works today because `leaflet/dist/leaflet.css` import loads Leaflet as a side effect, but is fragile compared to how `SplashPage.jsx` explicitly imports `L from "leaflet"`. Add the import. |
-| MINOR | `docs/client-server-interface.md:32` | GUI-3 URL listed as `GET /api/states/{stateId}/summary` but the backend exposes `GET /api/states/{stateId}/state-summary` (StateController.java:125). Both frontend files correctly use `/state-summary`. The doc is stale — update it to match. |
+| MINOR | `docs/seawulf-prepro-payload-schemas.md` | Primary endpoint contract doc — replaces the deleted `client-server-interface.md`. GUI-3 URL is correctly listed as `/api/states/{stateId}/state-summary` in this doc. |
 | MINOR | `src/components/App.jsx:33-40` | `minorityData` hardcodes `'Black'` in Oregon's list (`minorityList: ['Latino', 'Asian', 'Black']`). Black is not a feasible group for Oregon (threshold < 200,000). This is passed only to `CrossStateAnalysis` / `StateMinorityAnalysis` which are legacy routes, so it's not a live bug, but it's misleading. |
 | MINOR | `server/.../service/SeedDataLoader.java:293-299` | `seedHeatmapBins` calls `heatmapBinRepository.deleteAll()` before re-inserting on every startup, unlike all other seed methods which check `count() == 0` first. This causes an unnecessary delete+insert cycle on every server restart. Apply the same guard pattern used for other collections. |
 
@@ -192,6 +192,5 @@ Ordered by urgency (blockers first, then by tier):
 10. **(Tests — Backend)** Add SC-state assertions to `StateControllerTest`. Add `BackendDataService` unit tests for input normalization and `requireFeasibleGroup` guard.
 11. **(Tests — Backend)** Add payload invariant tests: read mock-data JSON files and assert `min ≤ q1 ≤ median ≤ q3 ≤ max`, histogram sums, VRA table 3-row rule.
 12. **(Tests — Frontend)** Add at least 3 React component smoke tests: `DistrictMap` null-data placeholder, `Simulation` panel routing, `GinglesScatterChart` dot count from fixture.
-13. **(Docs)** Update `docs/client-server-interface.md:32` — GUI-3 URL should be `/api/states/{stateId}/state-summary`, not `/summary`.
-14. **(Minor)** Fix `useEffect` deps array in `DistrictData` component to include `onSelectDistrict`. `src/components/StatePage.jsx:161-163`.
-15. **(Minor)** Fix `SeedDataLoader.seedHeatmapBins` to use the same `count() == 0` guard as every other seed method to avoid redundant delete+insert on startup. `server/.../service/SeedDataLoader.java:293`.
+13. **(Minor)** Fix `useEffect` deps array in `DistrictData` component to include `onSelectDistrict`. `src/components/StatePage.jsx:161-163`.
+14. **(Minor)** Fix `SeedDataLoader.seedHeatmapBins` to use the same `count() == 0` guard as every other seed method to avoid redundant delete+insert on startup. `server/.../service/SeedDataLoader.java:293`.

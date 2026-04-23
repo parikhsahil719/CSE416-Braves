@@ -8,15 +8,19 @@ This document is frontend-first. Every field listed in an API response section i
 
 | Term | Value |
 |------|-------|
-| Feasible group threshold | Statewide population ≥ 200,000 |
+| Feasible group threshold | Statewide population ≥ 400,000 (≥ 200,000 for primarily-white states) |
 | OR feasible groups | Latino, Asian, White |
 | SC feasible groups | Black, Latino, White |
 | Population measure | CVAP throughout (citizen voting-age population) |
 | Effective district | Calibrated statewide effectiveness score (`s_state`) ≥ 0.6 |
 | Rough proportionality benchmark | `floor(groupCvapShare × totalDistricts)` |
+| Rough proportionality ratio (GUI-3) | `(enactedEffectiveDistricts / totalDistricts) / cvapShare` — displayed in state summary table per feasible group |
 | Party of choice | Party with highest avg EI-estimated vote share in 2024 Presidential election for that group |
 | Race-blind ensemble | ReCom, no minority constraints (~250 test / ~5,000 final plans) |
-| VRA-constrained ensemble | ReCom, must meet or exceed enacted effective-district count per feasible group |
+| VRA-constrained ensemble | ReCom using `s_state`, must meet or exceed enacted effective-district count per feasible group |
+| Robust VRA-constrained ensemble | ReCom using `s_dist` (precinct-EI-based district effectiveness), must meet or exceed enacted effective-district count per feasible group |
+| `s_dist` | District-level effectiveness score derived from precinct-level EI samples during ReCom; used only by Robust VRA-constrained ReCom (SeaWulf-14) |
+| Effectiveness threshold variants | SeaWulf-15 generates VRA-constrained ensembles at thresholds 0.5, 0.6, and 0.7 |
 
 ---
 
@@ -85,9 +89,27 @@ Note: `StatePage` calls `/state-summary`, **not** `/summary`. These are the only
   "voterDistributionRep": "910,702 (41.3%)",
   "partyControl": "Democrat",
   "democratReps": 5,
-  "republicanReps": 1
+  "republicanReps": 1,
+  "groupRoughProportionality": [
+    {
+      "groupKey": "latino",
+      "label": "Latino",
+      "enactedEffectiveDistricts": 1,
+      "cvapShare": 0.12,
+      "roughProportionalityRatio": 1.39
+    },
+    {
+      "groupKey": "asian",
+      "label": "Asian",
+      "enactedEffectiveDistricts": 0,
+      "cvapShare": 0.05,
+      "roughProportionalityRatio": 0.0
+    }
+  ]
 }
 ```
+
+`groupRoughProportionality` covers all feasible groups for the state. `roughProportionalityRatio = (enactedEffectiveDistricts / totalDistricts) / cvapShare`; a value of 1.0 means exactly proportional. `enactedEffectiveDistricts` is the count of enacted plan districts where `s_state ≥ 0.6` for that group.
 
 ---
 
@@ -152,9 +174,11 @@ Same TopoJSON structure as §2.2 but for the `precincts` object key. The only pr
 
 ---
 
-### 2.7 `GET /api/states/{stateId}/districts/enacted/table?election=` — GUI-6
+### 2.7 `GET /api/states/{stateId}/districts/enacted/table?election=&group=` — GUI-6
 
 **Component:** `StatePage` → `DistrictData`
+
+`group=` selects the feasible group for effectiveness columns (e.g., `group=latino`). When omitted, effectiveness fields are null.
 
 ```json
 {
@@ -164,13 +188,17 @@ Same TopoJSON structure as §2.2 but for the `precincts` object key. The only pr
       "representative": "Suzanne Bonamici",
       "party": "Democrat",
       "racialEthnicGroup": "White",
-      "voteMargin2024": 24.1
+      "voteMargin2024": 24.1,
+      "effectivenessScore": 0.65,
+      "calibratedEffectivenessScore": 0.72
     }
   ]
 }
 ```
 
 `voteMargin2024` is `(demVotes − repVotes) / totalVotes × 100`. Positive = Democratic margin, negative = Republican. The `VoteMarginBadge` component formats it as `D+24.1%` or `R+5.2%`.
+
+`effectivenessScore` is the raw (uncalibrated) district effectiveness score for the selected group. `calibratedEffectivenessScore` is the `s_state` calibrated statewide score (threshold ≥ 0.6). Both are `null` when no `group=` is supplied.
 
 ---
 
@@ -368,6 +396,10 @@ Invariant: `ciLow ≤ peak ≤ ciHigh`, all in `[0, 1]`.
     "vraConstrained": [
       { "splitLabel": "1R/5D", "repWins": 1, "demWins": 5, "frequency": 890,  "shareOfEnsemble": 0.178 },
       { "splitLabel": "2R/4D", "repWins": 2, "demWins": 4, "frequency": 3210, "shareOfEnsemble": 0.642 }
+    ],
+    "robustVraConstrained": [
+      { "splitLabel": "1R/5D", "repWins": 1, "demWins": 5, "frequency": 950,  "shareOfEnsemble": 0.190 },
+      { "splitLabel": "2R/4D", "repWins": 2, "demWins": 4, "frequency": 3300, "shareOfEnsemble": 0.660 }
     ]
   }
 }
@@ -380,7 +412,7 @@ Invariant: `ciLow ≤ peak ≤ ciHigh`, all in `[0, 1]`.
 - `totalDistricts` → `SingleEnsembleSplitsChart` meta display
 - `ensembleSize` → `SingleEnsembleSplitsChart` meta display
 
-`splitLabel` format: `"{repWins}R/{demWins}D"`. Omit splits where frequency = 0 in **both** series (GUI-16: tails omitted). Invariant: `repWins + demWins = totalDistricts`; frequencies in each series sum to `ensembleSize`.
+`robustVraConstrained` is present only when SeaWulf-14 has been run (GUI-24); omit the key entirely if no robust ensemble exists. `splitLabel` format: `"{repWins}R/{demWins}D"`. Omit splits where frequency = 0 in **all** present series (GUI-16: tails omitted). Invariant: `repWins + demWins = totalDistricts`; frequencies in each series sum to `ensembleSize`.
 
 ---
 
@@ -388,7 +420,7 @@ Invariant: `ciLow ≤ peak ≤ ciHigh`, all in `[0, 1]`.
 
 **Component:** `Simulation` → `BoxWhisker` → `BoxWhiskerChart` → `BoxWhiskerSvg`
 
-The frontend makes two separate calls — one with `ensembleType=vra_constrained` and one with `ensembleType=race_blind`, same `metric=minority_share`.
+The frontend makes two (or three for GUI-24) separate calls: `ensembleType=race_blind`, `ensembleType=vra_constrained`, and optionally `ensembleType=robust_vra_constrained`, all with `metric=minority_share`.
 
 ```json
 {
@@ -467,19 +499,22 @@ Invariants: `rankSummaries.length = totalDistricts`; `min ≤ q1 ≤ median ≤ 
       "metricKey": "meet_or_exceed_enacted",
       "metricLabel": "Meet or exceed enacted effective minority districts",
       "raceBlindShare": 0.18,
-      "vraConstrainedShare": 0.67
+      "vraConstrainedShare": 0.67,
+      "robustVraConstrainedShare": 0.75
     },
     {
       "metricKey": "rough_proportionality",
       "metricLabel": "Achieve rough proportionality relative to minority CVAP share",
       "raceBlindShare": 0.22,
-      "vraConstrainedShare": 0.71
+      "vraConstrainedShare": 0.71,
+      "robustVraConstrainedShare": 0.78
     },
     {
       "metricKey": "meet_both",
       "metricLabel": "Satisfy both legal thresholds jointly",
       "raceBlindShare": 0.14,
-      "vraConstrainedShare": 0.61
+      "vraConstrainedShare": 0.61,
+      "robustVraConstrainedShare": 0.69
     }
   ]
 }
@@ -490,6 +525,7 @@ Invariants: `rankSummaries.length = totalDistricts`; `min ≤ q1 ≤ median ≤ 
 - `rows[].metricLabel` → first column cell
 - `rows[].raceBlindShare` → second column cell (formatted via `pct()`)
 - `rows[].vraConstrainedShare` → third column cell
+- `rows[].robustVraConstrainedShare` → fourth column cell (GUI-24 only; `null` when SeaWulf-14 has not been run)
 
 Always exactly 3 rows. Shares in `[0, 1]`.
 
@@ -506,14 +542,16 @@ Always exactly 3 rows. Shares in `[0, 1]`.
     {
       "key": "latino",
       "label": "Latino",
-      "raceBlindSummary":      { "min": 0, "q1": 0, "median": 1, "q3": 1, "max": 2 },
-      "vraConstrainedSummary": { "min": 1, "q1": 1, "median": 2, "q3": 2, "max": 3 }
+      "raceBlindSummary":            { "min": 0, "q1": 0, "median": 1, "q3": 1, "max": 2 },
+      "vraConstrainedSummary":       { "min": 1, "q1": 1, "median": 2, "q3": 2, "max": 3 },
+      "robustVraConstrainedSummary": { "min": 1, "q1": 2, "median": 2, "q3": 3, "max": 3 }
     },
     {
       "key": "asian",
       "label": "Asian",
-      "raceBlindSummary":      { "min": 0, "q1": 0, "median": 0, "q3": 1, "max": 1 },
-      "vraConstrainedSummary": { "min": 0, "q1": 1, "median": 1, "q3": 1, "max": 2 }
+      "raceBlindSummary":            { "min": 0, "q1": 0, "median": 0, "q3": 1, "max": 1 },
+      "vraConstrainedSummary":       { "min": 0, "q1": 1, "median": 1, "q3": 1, "max": 2 },
+      "robustVraConstrainedSummary": { "min": 0, "q1": 1, "median": 1, "q3": 2, "max": 2 }
     }
   ]
 }
@@ -525,6 +563,7 @@ Always exactly 3 rows. Shares in `[0, 1]`.
 - `groupSummaries[].key` → React key
 - `groupSummaries[].label` → x-axis group label
 - `{min, q1, median, q3, max}` → box/whisker rendering for each ensemble
+- `robustVraConstrainedSummary` → present only when SeaWulf-14 has been run (GUI-24); omit the key entirely if no robust ensemble exists
 
 All values are integer district counts in `[0, totalDistricts]`. Invariant: `min ≤ q1 ≤ median ≤ q3 ≤ max`.
 
@@ -546,18 +585,24 @@ All values are integer district counts in `[0, totalDistricts]`. Invariant: `min
       { "effectiveDistricts": 1, "frequency": 212  },
       { "effectiveDistricts": 2, "frequency": 2579 },
       { "effectiveDistricts": 3, "frequency": 2209 }
+    ],
+    "robustVraConstrained": [
+      { "effectiveDistricts": 2, "frequency": 1800 },
+      { "effectiveDistricts": 3, "frequency": 2600 },
+      { "effectiveDistricts": 4, "frequency": 600  }
     ]
   }
 }
 ```
 
 **Fields the chart reads:**
-- `series.raceBlind[].effectiveDistricts` → merged x-axis values (set union across both series)
+- `series.raceBlind[].effectiveDistricts` → merged x-axis values (set union across all present series)
 - `series.raceBlind[].frequency` → `raceBlind` bar height
 - `series.vraConstrained[].effectiveDistricts` → same
 - `series.vraConstrained[].frequency` → `vraConstrained` bar height
+- `series.robustVraConstrained[].effectiveDistricts` / `.frequency` → `robustVraConstrained` bar height (GUI-24 only)
 
-Missing values are filled with 0 by the component. Frequencies in each series must sum to `ensembleSize`.
+`robustVraConstrained` is present only when SeaWulf-14 has been run (GUI-24); omit the key entirely if no robust ensemble exists. Missing values are filled with 0 by the component. Frequencies in each series must sum to `ensembleSize`.
 
 ---
 
@@ -587,10 +632,19 @@ Lookup: `stateId`
   "democratReps": 5,
   "republicanReps": 1,
   "finalPlanCount": 5000,
-  "populationEqualityThreshold": "1%"
+  "populationEqualityThreshold": "1%",
+  "groupRoughProportionality": [
+    {
+      "groupKey": "latino",
+      "label": "Latino",
+      "enactedEffectiveDistricts": 1,
+      "cvapShare": 0.12,
+      "roughProportionalityRatio": 1.39
+    }
+  ]
 }
 ```
-The backend splits this into two responses: `/state-summary` returns the top 6 fields; `/ensembles-summary` returns `finalPlanCount` and `populationEqualityThreshold`.
+The backend splits this into two responses: `/state-summary` returns all fields except `finalPlanCount` and `populationEqualityThreshold`; `/ensembles-summary` returns `finalPlanCount` and `populationEqualityThreshold`. `groupRoughProportionality` is included in the `/state-summary` response. Computed from `Prepro-11` + `Prepro-12` enacted effectiveness data.
 
 ---
 
@@ -616,22 +670,30 @@ Store only non-empty bins. `precinctGroupShareByGeoid` covers every precinct GEO
 ---
 
 ### `district_tables`
-Lookup: `stateId + electionId`
+Lookup: `stateId + electionId + groupKey`
+
+`groupKey` may be omitted for the base record (no effectiveness columns); a per-group record is stored for each feasible group.
+
 ```json
 {
   "stateId": "OR",
   "electionId": "2024_pres",
+  "groupKey": "latino",
   "districts": [
     {
       "districtNumber": 1,
       "representative": "Suzanne Bonamici",
       "party": "Democrat",
       "racialEthnicGroup": "White",
-      "voteMargin2024": 24.1
+      "voteMargin2024": 24.1,
+      "effectivenessScore": 0.65,
+      "calibratedEffectivenessScore": 0.72
     }
   ]
 }
 ```
+
+`effectivenessScore` is the raw district effectiveness score for `groupKey`; `calibratedEffectivenessScore` is `s_state`. Both are sourced from `Prepro-11` (enacted district scores). When `groupKey` is absent, those two fields are omitted and the record serves requests that supply no `group=` query param.
 
 ---
 
@@ -782,18 +844,21 @@ Lookup: `stateId + electionId`
     ],
     "vraConstrained": [
       { "splitLabel": "2R/4D", "repWins": 2, "demWins": 4, "frequency": 3210, "shareOfEnsemble": 0.642 }
+    ],
+    "robustVraConstrained": [
+      { "splitLabel": "2R/4D", "repWins": 2, "demWins": 4, "frequency": 3300, "shareOfEnsemble": 0.660 }
     ]
   }
 }
 ```
-`splitLabel` is precomputed as `"{repWins}R/{demWins}D"`. Omit splits where both frequencies are 0.
+`splitLabel` is precomputed as `"{repWins}R/{demWins}D"`. Omit splits where frequency = 0 in all present series. `robustVraConstrained` is populated by SeaWulf-14; omit the key entirely if that run has not completed.
 
 ---
 
 ### `box_whisker_results`
 Lookup: `stateId + groupKey + ensembleType + metricKey`
 
-`metricKey` = `minority_share` (the only metric the frontend currently requests).
+`metricKey` = `minority_share` (the only metric the frontend currently requests). Valid `ensembleType` values: `race_blind`, `vra_constrained`, `robust_vra_constrained` (the last populated by SeaWulf-14).
 
 ```json
 {
@@ -852,23 +917,27 @@ Lookup: `stateId + groupKey + electionId`
       "metricKey": "meet_or_exceed_enacted",
       "metricLabel": "Meet or exceed enacted effective minority districts",
       "raceBlindShare": 0.18,
-      "vraConstrainedShare": 0.67
+      "vraConstrainedShare": 0.67,
+      "robustVraConstrainedShare": 0.75
     },
     {
       "metricKey": "rough_proportionality",
       "metricLabel": "Achieve rough proportionality relative to minority CVAP share",
       "raceBlindShare": 0.22,
-      "vraConstrainedShare": 0.71
+      "vraConstrainedShare": 0.71,
+      "robustVraConstrainedShare": 0.78
     },
     {
       "metricKey": "meet_both",
       "metricLabel": "Satisfy both legal thresholds jointly",
       "raceBlindShare": 0.14,
-      "vraConstrainedShare": 0.61
+      "vraConstrainedShare": 0.61,
+      "robustVraConstrainedShare": 0.69
     }
   ]
 }
 ```
+`robustVraConstrainedShare` is populated by SeaWulf-14; store as `null` until that run completes.
 
 ---
 
@@ -883,13 +952,14 @@ Lookup: `stateId + electionId`
     {
       "key": "latino",
       "label": "Latino",
-      "raceBlindSummary":      { "min": 0, "q1": 0, "median": 1, "q3": 1, "max": 2 },
-      "vraConstrainedSummary": { "min": 1, "q1": 1, "median": 2, "q3": 2, "max": 3 }
+      "raceBlindSummary":            { "min": 0, "q1": 0, "median": 1, "q3": 1, "max": 2 },
+      "vraConstrainedSummary":       { "min": 1, "q1": 1, "median": 2, "q3": 2, "max": 3 },
+      "robustVraConstrainedSummary": { "min": 1, "q1": 2, "median": 2, "q3": 3, "max": 3 }
     }
   ]
 }
 ```
-`key` and `label` — not `groupKey`/`groupLabel`. The SVG renders directly from these field names.
+`key` and `label` — not `groupKey`/`groupLabel`. The SVG renders directly from these field names. `robustVraConstrainedSummary` is populated by SeaWulf-14; omit the key entirely if that run has not completed.
 
 ---
 
@@ -908,10 +978,16 @@ Lookup: `stateId + groupKey + electionId`
     "vraConstrained": [
       { "effectiveDistricts": 2, "frequency": 2579 },
       { "effectiveDistricts": 3, "frequency": 2209 }
+    ],
+    "robustVraConstrained": [
+      { "effectiveDistricts": 2, "frequency": 1800 },
+      { "effectiveDistricts": 3, "frequency": 2600 },
+      { "effectiveDistricts": 4, "frequency": 600  }
     ]
   }
 }
 ```
+`robustVraConstrained` is populated by SeaWulf-14; omit the key entirely if that run has not completed.
 
 ---
 
@@ -927,6 +1003,9 @@ Lookup: `stateId + groupKey + electionId`
 | Prepro-9 (PyEI) | Statewide EI posterior: support density by group/candidate; KDE support-gap series; peak + 95% CI per group | `ei_support_results`, `ei_precinct_bar_ci_results`, `ei_kde_results` |
 | Prepro-3 | Enacted plan: rep metadata + 2024 vote totals per district | `district_tables` |
 | Prepro-11 | Enacted district minority share (CVAP%) per group, ranked ascending | `box_whisker_results` (sets `enactedValue` per rank) |
+| Prepro-12 | Per-group count of effective enacted districts (`s_state ≥ 0.6`); rough proportionality ratio per group | `state_summaries` (`groupRoughProportionality`); `{state}_enacted_effectiveness.json` (SeaWulf VRA constraint floor) |
+| Prepro-13 (PyEI, preferred) | Precinct-level EI posterior samples per (group, candidate) cell | `{state}_ei_precinct_samples.json` (file storage); input to SeaWulf-14 `s_dist` computation |
+| Prepro-14 (preferred) | Compressed EI probability distribution per precinct per (group, candidate) cell via Appendix A of Becker paper | `{state}_ei_precinct_samples.json` (9-value histogram per cell, compressed form of Prepro-13 output) |
 
 ### 4.2 SeaWulf → Collections
 
@@ -938,6 +1017,8 @@ Lookup: `stateId + groupKey + electionId`
 | SeaWulf-9 | 5–10 notable plans: plan metadata + full district TopoJSON | `interesting_plans` |
 | SeaWulf-10 | Aggregate: split frequency tables, effective-district frequency distributions, threshold proportions | `ensemble_splits`, `minority_effectiveness_histograms`, `vra_impact_threshold_tables` |
 | SeaWulf-11 | For each feasible group: rank districts by minority CVAP share across all plans, compute (min, q1, median, q3, max) at each rank position | `box_whisker_results`, `minority_effectiveness_box_whisker` |
+| SeaWulf-14 (preferred) | Robust VRA-constrained ReCom using `s_dist` (from `{state}_ei_precinct_samples.json`) for per-district effectiveness during generation; produces `robust_vra_constrained` ensemble | `ensemble_splits` (`robustVraConstrained` series), `minority_effectiveness_histograms` (`robustVraConstrained` series), `minority_effectiveness_box_whisker` (`robustVraConstrainedSummary`), `vra_impact_threshold_tables` (`robustVraConstrainedShare`), `box_whisker_results` (`ensembleType=robust_vra_constrained`) |
+| SeaWulf-15 (preferred) | VRA-constrained ReCom at thresholds 0.5, 0.6, and 0.7; each threshold is a separate ensemble run | Stored with `ensembleType` values `vra_constrained_0.5`, `vra_constrained_0.6`, `vra_constrained_0.7` in the same collections as SeaWulf-6/10/11; GUI integration defined by GUI-24 extension |
 
 ### 4.3 SeaWulf Intermediate Per-Plan Format (file storage, not MongoDB)
 
@@ -961,6 +1042,7 @@ Written per-plan to shared file storage by each core during the ReCom run. Aggre
           "groupKey": "latino",
           "cvapShare": 0.38,
           "sStateScore": 0.72,
+          "sDistScore": 0.68,
           "isEffective": true
         }
       ]
@@ -969,14 +1051,16 @@ Written per-plan to shared file storage by each core during the ReCom run. Aggre
 }
 ```
 
+`ensembleType` values: `race_blind`, `vra_constrained`, `robust_vra_constrained`, `vra_constrained_0.5`, `vra_constrained_0.6`, `vra_constrained_0.7`. `sDistScore` is present only for `robust_vra_constrained` plans (requires `{state}_ei_precinct_samples.json` from Prepro-13/14); omit for other ensemble types.
+
 ### 4.4 Prepro Input Files for SeaWulf (file storage, not MongoDB)
 
 | File | Contents |
 |------|---------|
 | `{state}_precinct_graph.json` | GerryChain dual-graph (adjacency for ReCom) |
 | `{state}_precinct_data.csv` | Per-precinct: GEOID, HCVAP, BCVAP, WCVAP, OCVAP, dem2024, rep2024 |
-| `{state}_ei_precinct_samples.json` | Per-precinct 9-value compressed EI histogram per (group, candidate) cell — enables fast district-level EI lookup during ReCom |
-| `{state}_enacted_effectiveness.json` | Per-district `sStateScore` + `isEffective` per group for enacted plan; used as VRA constraint floor in SeaWulf-3 and as benchmark in GUI-20 row 1 |
+| `{state}_ei_precinct_samples.json` | Per-precinct 9-value compressed EI histogram per (group, candidate) cell — generated by Prepro-13 (full PyEI posterior) then compressed per Prepro-14 (Becker Appendix A); enables fast `s_dist` computation during SeaWulf-14 ReCom |
+| `{state}_enacted_effectiveness.json` | Per-district `sStateScore` + `isEffective` per group for enacted plan; generated by Prepro-12; used as VRA constraint floor in SeaWulf-3 and as benchmark in GUI-20 row 1 |
 
 ---
 
@@ -984,12 +1068,14 @@ Written per-plan to shared file storage by each core during the ReCom run. Aggre
 
 | Collection / Response | Invariants |
 |-----------------------|-----------|
-| `ensemble_splits` | `repWins + demWins = totalDistricts` per bucket; `sum(frequency) = ensembleSize` per series; `splitLabel = "{repWins}R/{demWins}D"` |
-| `box_whisker_results` | `rankSummaries.length = totalDistricts`; `min ≤ q1 ≤ median ≤ q3 ≤ max`; all in `[0, 1]`; `enactedValue` is never null |
+| `ensemble_splits` | `repWins + demWins = totalDistricts` per bucket; `sum(frequency) = ensembleSize` per series; `splitLabel = "{repWins}R/{demWins}D"`; `robustVraConstrained` key omitted until SeaWulf-14 completes |
+| `box_whisker_results` | `rankSummaries.length = totalDistricts`; `min ≤ q1 ≤ median ≤ q3 ≤ max`; all in `[0, 1]`; `enactedValue` is never null; valid `ensembleType` values: `race_blind`, `vra_constrained`, `robust_vra_constrained`, `vra_constrained_0.5`, `vra_constrained_0.6`, `vra_constrained_0.7` |
 | `ei_support_results` | `xSupportShare` monotonically increasing per series; `density ≥ 0` |
 | `ei_precinct_bar_ci_results` | `ciLow ≤ peak ≤ ciHigh`; all in `[0, 1]` |
 | `ei_kde_results` | `x` monotonically increasing; `density ≥ 0` |
-| `vra_impact_threshold_tables` | Exactly 3 rows; `metricKey ∈ {meet_or_exceed_enacted, rough_proportionality, meet_both}`; shares in `[0, 1]` |
-| `minority_effectiveness_box_whisker` | `min ≤ q1 ≤ median ≤ q3 ≤ max`; all are non-negative integers ≤ `totalDistricts`; uses field names `key` and `label` |
-| `minority_effectiveness_histograms` | `sum(frequency) = ensembleSize` per series; `effectiveDistricts ∈ [0, totalDistricts]` |
+| `vra_impact_threshold_tables` | Exactly 3 rows; `metricKey ∈ {meet_or_exceed_enacted, rough_proportionality, meet_both}`; all shares in `[0, 1]`; `robustVraConstrainedShare` is `null` until SeaWulf-14 completes |
+| `minority_effectiveness_box_whisker` | `min ≤ q1 ≤ median ≤ q3 ≤ max`; all are non-negative integers ≤ `totalDistricts`; uses field names `key` and `label`; `robustVraConstrainedSummary` key omitted until SeaWulf-14 completes |
+| `minority_effectiveness_histograms` | `sum(frequency) = ensembleSize` per series; `effectiveDistricts ∈ [0, totalDistricts]`; `robustVraConstrained` key omitted until SeaWulf-14 completes |
 | `interesting_plans` | `topology.type = "Topology"`; `summary.repWins + summary.demWins = totalDistricts`; 5–10 plans per state |
+| `state_summaries` | `groupRoughProportionality` covers all feasible groups; `roughProportionalityRatio ≥ 0`; `cvapShare ∈ [0, 1]`; `enactedEffectiveDistricts ∈ [0, totalDistricts]` |
+| `district_tables` | `effectivenessScore` and `calibratedEffectivenessScore` are `null` when no `groupKey` present; both in `[0, 1]` when populated |
