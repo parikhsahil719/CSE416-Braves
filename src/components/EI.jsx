@@ -233,7 +233,12 @@ export default function EI(props) {
 
   // GUI-12: EI support
   useEffect(() => {
-    if (!stateCode) return undefined;
+    if (!stateCode || currEI !== "EI Analysis") {
+      setEiLoading(false);
+      setEiPayload(null);
+      setEiLoadFailed(false);
+      return undefined;
+    }
     let isActive = true;
     setEiLoading(true);
     setEiPayload(null);
@@ -251,11 +256,16 @@ export default function EI(props) {
       }
     })();
     return () => { isActive = false; };
-  }, [stateCode, groupKey]);
+  }, [currEI, stateCode, groupKey]);
 
   // GUI-13: EI precinct bar + CI
   useEffect(() => {
-    if (!stateCode) return undefined;
+    if (!stateCode || currEI !== "EI Bar Chart") {
+      setBarLoading(false);
+      setBarPayload(null);
+      setBarLoadFailed(false);
+      return undefined;
+    }
     let isActive = true;
     setBarLoading(true);
     setBarPayload(null);
@@ -273,11 +283,16 @@ export default function EI(props) {
       }
     })();
     return () => { isActive = false; };
-  }, [stateCode, groupKey]);
+  }, [currEI, stateCode, groupKey]);
 
   // GUI-15: EI KDE
   useEffect(() => {
-    if (!stateCode) return undefined;
+    if (!stateCode || currEI !== "EI KDE") {
+      setKdeLoading(false);
+      setKdePayload(null);
+      setKdeLoadFailed(false);
+      return undefined;
+    }
     let isActive = true;
     setKdeLoading(true);
     setKdePayload(null);
@@ -295,7 +310,7 @@ export default function EI(props) {
       }
     })();
     return () => { isActive = false; };
-  }, [stateCode, groupKey]);
+  }, [currEI, stateCode, groupKey]);
 
   if (!stateCode) {
     return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: State not found</div>;
