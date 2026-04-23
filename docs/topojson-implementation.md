@@ -18,8 +18,8 @@ The frontend still converts TopoJSON to renderable features with `topojson-clien
 Static geometry is served directly from checked-in files:
 - `src/data/oregon_congressional_districts.json`
 - `src/data/south_carolina_congressional_districts.json`
-- `src/data/OR-precincts-with-results.json`
-- `src/data/SC-precincts-with-results.json`
+- `server/src/main/resources/geometry/precincts_or.json`
+- `server/src/main/resources/geometry/precincts_sc.json`
 - `src/data/us-states.json`
 
 This geometry is stable by state and does not need MongoDB storage.
@@ -49,7 +49,7 @@ Static geometry routes use `GeometryAssetService`, which:
 
 The current sanitized property contract is:
 - enacted district topology keeps `RESULT`, `NAMELSAD`, `district_number`, and `GEOID`
-- precinct topology keeps `GEOID`
+- precinct topology keeps `GEOID`, `total`, `black`, `asian`, and `hispanic`
 - US states topology keeps `name` and `isActive`
 
 Static geometry responses are also browser-cacheable:

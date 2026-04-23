@@ -116,7 +116,7 @@ Expected result:
 
 Static geometry is now served as TopoJSON directly from checked-in files instead of being bundled into the frontend:
 - enacted district topology: `src/data/oregon_congressional_districts.json`, `src/data/south_carolina_congressional_districts.json`
-- precinct topology: `src/data/OR-precincts-with-results.json`, `src/data/SC-precincts-with-results.json`
+- precinct topology: `server/src/main/resources/geometry/precincts_or.json`, `server/src/main/resources/geometry/precincts_sc.json`
 - splash page overview topology: `src/data/us-states.json`
 
 Mongo remains the source of truth for plan-specific geometry where a single collection-backed lookup matters:

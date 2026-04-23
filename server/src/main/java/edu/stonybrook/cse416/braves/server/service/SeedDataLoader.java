@@ -127,11 +127,11 @@ public class SeedDataLoader implements ApplicationRunner {
     }
 
     private void validatePrecinctCounts(Path root) throws IOException {
-        Path orPath = root.resolve("src/data/OR-precincts-with-results.json");
-        Path scPath = root.resolve("src/data/SC-precincts-with-results.json");
+        Path orPath = root.resolve("src/data/precincts_or.json");
+        Path scPath = root.resolve("src/data/precincts_sc.json");
 
-        int orCount = precinctCount(orPath, "OR");
-        int scCount = precinctCount(scPath, "SC");
+        int orCount = precinctCount(orPath);
+        int scCount = precinctCount(scPath);
 
         if (orCount < 1000 || scCount < 1000) {
             throw new IllegalStateException("Precinct realism validation failed: OR=" + orCount + ", SC=" + scCount);
@@ -143,8 +143,8 @@ public class SeedDataLoader implements ApplicationRunner {
         int orPopulation = 4_272_371;
         int scPopulation = 5_478_831;
 
-        validateStatePopulation("OR", orPopulation, root.resolve("src/data/OR-precincts-with-results.json"), 3_500_000, 5_000_000);
-        validateStatePopulation("SC", scPopulation, root.resolve("src/data/SC-precincts-with-results.json"), 4_500_000, 6_500_000);
+        validateStatePopulation("OR", orPopulation, root.resolve("src/data/precincts_or.json"), 3_500_000, 5_000_000);
+        validateStatePopulation("SC", scPopulation, root.resolve("src/data/precincts_sc.json"), 4_500_000, 6_500_000);
     }
 
     @SuppressWarnings("unchecked")
@@ -156,14 +156,12 @@ public class SeedDataLoader implements ApplicationRunner {
             int maxExpectedPopulation
     ) throws IOException {
         Map<String, Object> topo = readJsonMap(precinctPath);
-        Map<String, Object> objects = (Map<String, Object>) topo.get("objects");
-        Map<String, Object> stateObj = (Map<String, Object>) objects.get(stateId);
-        List<Map<String, Object>> geometries = (List<Map<String, Object>>) stateObj.get("geometries");
+        List<Map<String, Object>> geometries = topologyGeometries(topo);
 
         long totalVotes = 0L;
         for (Map<String, Object> geometry : geometries) {
             Map<String, Object> properties = (Map<String, Object>) geometry.get("properties");
-            Object votesTotal = properties.get("votes_total");
+            Object votesTotal = properties.get("total_votes");
             if (votesTotal instanceof Number number) {
                 totalVotes += number.longValue();
             }
@@ -190,12 +188,20 @@ public class SeedDataLoader implements ApplicationRunner {
     }
 
     @SuppressWarnings("unchecked")
-    private int precinctCount(Path topoPath, String objectKey) throws IOException {
+    private int precinctCount(Path topoPath) throws IOException {
         Map<String, Object> topo = readJsonMap(topoPath);
-        Map<String, Object> objects = (Map<String, Object>) topo.get("objects");
-        Map<String, Object> stateObj = (Map<String, Object>) objects.get(objectKey);
-        List<Object> geometries = (List<Object>) stateObj.get("geometries");
+        List<Map<String, Object>> geometries = topologyGeometries(topo);
         return geometries.size();
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> topologyGeometries(Map<String, Object> topo) {
+        Map<String, Object> objects = (Map<String, Object>) topo.get("objects");
+        if (objects == null || objects.isEmpty()) {
+            throw new IllegalStateException("Topology is missing objects collection");
+        }
+        Map<String, Object> geometryCollection = (Map<String, Object>) objects.values().iterator().next();
+        return (List<Map<String, Object>>) geometryCollection.get("geometries");
     }
 
     private void seedStates() {

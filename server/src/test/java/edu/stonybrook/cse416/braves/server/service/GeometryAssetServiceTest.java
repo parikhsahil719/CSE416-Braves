@@ -31,15 +31,15 @@ class GeometryAssetServiceTest {
     }
 
     @Test
-    void loadsPrecinctTopologyWithOnlyGeoidProperties() {
+    void loadsPrecinctTopologyWithDemographicPropertiesFromPrecinctsAsset() {
         Map<String, Object> topology = geometryAssetService.getPrecinctTopology("OR");
         Map<String, Object> objects = castMap(topology.get("objects"));
-        Map<String, Object> precincts = castMap(objects.get("OR"));
+        Map<String, Object> precincts = castMap(objects.get("precincts_or"));
         List<Map<String, Object>> geometries = castList(precincts.get("geometries"));
         Map<String, Object> properties = castMap(geometries.get(0).get("properties"));
 
         assertEquals("Topology", topology.get("type"));
-        assertEquals(Set.of("GEOID"), properties.keySet());
+        assertEquals(Set.of("GEOID", "total", "black", "asian", "hispanic"), properties.keySet());
     }
 
     @Test

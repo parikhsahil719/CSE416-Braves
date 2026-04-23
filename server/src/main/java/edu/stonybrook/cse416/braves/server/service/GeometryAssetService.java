@@ -22,7 +22,7 @@ import java.util.Set;
 @Service
 public class GeometryAssetService {
     private static final Set<String> DISTRICT_PROPERTY_KEYS = Set.of("RESULT", "NAMELSAD", "district_number", "GEOID");
-    private static final Set<String> PRECINCT_PROPERTY_KEYS = Set.of("GEOID");
+    private static final Set<String> PRECINCT_PROPERTY_KEYS = Set.of("GEOID", "total", "black", "asian", "hispanic");
     private static final Set<String> US_STATES_PROPERTY_KEYS = Set.of("name", "isActive");
 
     private final ObjectMapper objectMapper;
@@ -81,8 +81,8 @@ public class GeometryAssetService {
 
     private String relativePrecinctTopologyPath(String stateId) {
         return switch (stateId) {
-            case "OR" -> "geometry/OR-precincts-with-results.topology.json";
-            case "SC" -> "geometry/SC-precincts-with-results.topology.json";
+            case "OR" -> "geometry/precincts_or.json";
+            case "SC" -> "geometry/precincts_sc.json";
             default -> throw new IllegalArgumentException("Unsupported stateId=" + stateId);
         };
     }

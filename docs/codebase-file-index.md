@@ -127,8 +127,8 @@ Each repository provides Spring Data MongoDB CRUD + custom queries for its docum
 
 | File | Purpose |
 |------|---------|
-| `OR-precincts-with-results.topology.json` | Oregon precinct boundaries as TopoJSON (served by `GeometryAssetService`) |
-| `SC-precincts-with-results.topology.json` | South Carolina precinct boundaries as TopoJSON |
+| `precincts_or.json` | Oregon precinct boundaries with demographic fields for the precinct heatmap |
+| `precincts_sc.json` | South Carolina precinct boundaries with demographic fields for the precinct heatmap |
 | `us-states.json` | US state boundaries for splash page map |
 
 ### Tests
@@ -184,8 +184,8 @@ Each repository provides Spring Data MongoDB CRUD + custom queries for its docum
 | `data/sc.js` | South Carolina reference data |
 | `data/scCongressionalDistricts.js` | South Carolina district definitions and metadata |
 | `data/us-states.json` | US state boundaries TopoJSON (splash page) |
-| `data/OR-precincts-with-results.json` | Oregon precinct TopoJSON for heatmap rendering |
-| `data/SC-precincts-with-results.json` | South Carolina precinct TopoJSON for heatmap rendering |
+| `data/precincts_or.json` | Oregon precinct TopoJSON source used for backend precinct heatmap geometry |
+| `data/precincts_sc.json` | South Carolina precinct TopoJSON source used for backend precinct heatmap geometry |
 | `utils/chartFormat.js` | Chart formatting: `pct()` percentage formatter, share-to-percentage conversion, axis label helpers |
 | `utils/topology.js` | TopoJSON → GeoJSON FeatureCollection conversion for Leaflet rendering |
 

@@ -54,8 +54,10 @@ class StateControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(header().exists(HttpHeaders.ETAG))
                 .andExpect(jsonPath("$.type").value("Topology"))
-                .andExpect(jsonPath("$.objects.OR.geometries[0].properties.GEOID").exists())
-                .andExpect(jsonPath("$.objects.OR.geometries[0].properties.votes_total").doesNotExist());
+                .andExpect(jsonPath("$.objects.precincts_or.geometries[0].properties.GEOID").exists())
+                .andExpect(jsonPath("$.objects.precincts_or.geometries[0].properties.total").exists())
+                .andExpect(jsonPath("$.objects.precincts_or.geometries[0].properties.hispanic").exists())
+                .andExpect(jsonPath("$.objects.precincts_or.geometries[0].properties.total_votes").doesNotExist());
     }
 
     @Test
