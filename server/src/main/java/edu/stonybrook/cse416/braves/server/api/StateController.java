@@ -1,5 +1,6 @@
 package edu.stonybrook.cse416.braves.server.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.stonybrook.cse416.braves.server.dto.StateOptionResponse;
 import edu.stonybrook.cse416.braves.server.service.BackendDataService;
 import edu.stonybrook.cse416.braves.server.service.GeometryAssetService;
@@ -24,6 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -34,13 +38,16 @@ import java.util.Map;
 @Tag(name = "State API", description = "Professor-facing client/server routes for GUI use cases")
 public class StateController {
     private static final CacheControl STATIC_GEOMETRY_CACHE = CacheControl.maxAge(Duration.ofDays(7)).cachePublic();
+    private static final CacheControl STABLE_JSON_CACHE = CacheControl.maxAge(Duration.ofMinutes(5)).cachePublic().mustRevalidate();
 
     private final BackendDataService dataService;
     private final GeometryAssetService geometryAssetService;
+    private final ObjectMapper objectMapper;
 
-    public StateController(BackendDataService dataService, GeometryAssetService geometryAssetService) {
+    public StateController(BackendDataService dataService, GeometryAssetService geometryAssetService, ObjectMapper objectMapper) {
         this.dataService = dataService;
         this.geometryAssetService = geometryAssetService;
+        this.objectMapper = objectMapper;
     }
 
     @Operation(
@@ -55,8 +62,8 @@ public class StateController {
             )
     })
     @GetMapping("/states")
-    public List<StateOptionResponse> getStates() {
-        return dataService.getStates();
+    public ResponseEntity<List<StateOptionResponse>> getStates(WebRequest webRequest) {
+        return cachedJsonBodyResponse(dataService.getStates(), webRequest);
     }
 
     @Operation(
@@ -123,11 +130,12 @@ public class StateController {
             )
     })
     @GetMapping("/states/{stateId}/state-summary")
-    public Map<String, Object> getStateSummary(
+    public ResponseEntity<Map<String, Object>> getStateSummary(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
-            @PathVariable @NotBlank String stateId
+            @PathVariable @NotBlank String stateId,
+            WebRequest webRequest
     ) {
-        return dataService.getStateSummary(stateId);
+        return cachedJsonResponse(dataService.getStateSummary(stateId), webRequest);
     }
 
     @Operation(
@@ -141,11 +149,12 @@ public class StateController {
             )
     })
     @GetMapping("/states/{stateId}/ensembles-summary")
-    public Map<String, Object> getEnsembleSummary(
+    public ResponseEntity<Map<String, Object>> getEnsembleSummary(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
-            @PathVariable @NotBlank String stateId
+            @PathVariable @NotBlank String stateId,
+            WebRequest webRequest
     ) {
-        return dataService.getEnsembleSummary(stateId);
+        return cachedJsonResponse(dataService.getEnsembleSummary(stateId), webRequest);
     }
 
     @Operation(
@@ -159,13 +168,14 @@ public class StateController {
             )
     })
     @GetMapping("/states/{stateId}/heatmap/precincts")
-    public Map<String, Object> getHeatmap(
+    public ResponseEntity<Map<String, Object>> getHeatmap(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
             @PathVariable @NotBlank String stateId,
             @Parameter(description = "Required normalized group key. Seeded examples include latino, asian, and black.")
-            @RequestParam @NotBlank String group
+            @RequestParam @NotBlank String group,
+            WebRequest webRequest
     ) {
-        return dataService.getHeatmap(stateId, group);
+        return cachedJsonResponse(dataService.getHeatmap(stateId, group), webRequest);
     }
 
     @Operation(
@@ -179,13 +189,14 @@ public class StateController {
             )
     })
     @GetMapping("/states/{stateId}/districts/enacted/table")
-    public Map<String, Object> getDistrictTable(
+    public ResponseEntity<Map<String, Object>> getDistrictTable(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
             @PathVariable @NotBlank String stateId,
             @Parameter(description = "Election selector. Default is 2024_pres, which matches the current seeded examples.")
-            @RequestParam(required = false, defaultValue = "2024_pres") String election
+            @RequestParam(required = false, defaultValue = "2024_pres") String election,
+            WebRequest webRequest
     ) {
-        return dataService.getDistrictTable(stateId, election);
+        return cachedJsonResponse(dataService.getDistrictTable(stateId, election), webRequest);
     }
 
     @Operation(
@@ -199,15 +210,16 @@ public class StateController {
             )
     })
     @GetMapping("/states/{stateId}/analysis/gingles")
-    public Map<String, Object> getGingles(
+    public ResponseEntity<Map<String, Object>> getGingles(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
             @PathVariable @NotBlank String stateId,
             @Parameter(description = "Required normalized demographic group key. Seeded examples use latino for OR and black for SC.")
             @RequestParam @NotBlank String group,
             @Parameter(description = "Election selector. Default is 2024_pres, which matches the current seeded examples.")
-            @RequestParam(required = false, defaultValue = "2024_pres") String election
+            @RequestParam(required = false, defaultValue = "2024_pres") String election,
+            WebRequest webRequest
     ) {
-        return dataService.getGingles(stateId, group, election);
+        return cachedJsonResponse(dataService.getGingles(stateId, group, election), webRequest);
     }
 
     @Operation(
@@ -221,15 +233,16 @@ public class StateController {
             )
     })
     @GetMapping("/states/{stateId}/analysis/gingles/table")
-    public Map<String, Object> getGinglesTable(
+    public ResponseEntity<Map<String, Object>> getGinglesTable(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
             @PathVariable @NotBlank String stateId,
             @Parameter(description = "Required normalized demographic group key. Seeded examples use latino for OR and black for SC.")
             @RequestParam @NotBlank String group,
             @Parameter(description = "Election selector. Default is 2024_pres, which matches the current seeded examples.")
-            @RequestParam(required = false, defaultValue = "2024_pres") String election
+            @RequestParam(required = false, defaultValue = "2024_pres") String election,
+            WebRequest webRequest
     ) {
-        return dataService.getGinglesTable(stateId, group, election);
+        return cachedJsonResponse(dataService.getGinglesTable(stateId, group, election), webRequest);
     }
 
     @Operation(
@@ -243,7 +256,7 @@ public class StateController {
             )
     })
     @GetMapping("/states/{stateId}/analysis/ei-support")
-    public Map<String, Object> getEiSupport(
+    public ResponseEntity<Map<String, Object>> getEiSupport(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
             @PathVariable @NotBlank String stateId,
             @Parameter(description = "Required group selector. Current stored examples use one focal group per state.")
@@ -251,9 +264,10 @@ public class StateController {
             @Parameter(description = "Election selector. Default is 2024_pres, which matches the current seeded examples.")
             @RequestParam(required = false, defaultValue = "2024_pres") String election,
             @Parameter(description = "Required party selector. Expected values: DEM or REP.")
-            @RequestParam @NotBlank String party
+            @RequestParam @NotBlank String party,
+            WebRequest webRequest
     ) {
-        return dataService.getEiSupport(stateId, groups, election, party);
+        return cachedJsonResponse(dataService.getEiSupport(stateId, groups, election, party), webRequest);
     }
 
     @Operation(
@@ -267,7 +281,7 @@ public class StateController {
             )
     })
     @GetMapping("/states/{stateId}/analysis/ei-precinct-bar-ci")
-    public Map<String, Object> getEiPrecinctBarCi(
+    public ResponseEntity<Map<String, Object>> getEiPrecinctBarCi(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
             @PathVariable @NotBlank String stateId,
             @Parameter(description = "Required normalized demographic group key. Seeded examples use latino for OR and black for SC.")
@@ -275,9 +289,10 @@ public class StateController {
             @Parameter(description = "Election selector. Default is 2024_pres, which matches the current seeded examples.")
             @RequestParam(required = false, defaultValue = "2024_pres") String election,
             @Parameter(description = "Required party selector. Expected values: DEM or REP.")
-            @RequestParam @NotBlank String party
+            @RequestParam @NotBlank String party,
+            WebRequest webRequest
     ) {
-        return dataService.getEiPrecinctBarCi(stateId, group, election, party);
+        return cachedJsonResponse(dataService.getEiPrecinctBarCi(stateId, group, election, party), webRequest);
     }
 
     @Operation(
@@ -291,7 +306,7 @@ public class StateController {
             )
     })
     @GetMapping("/states/{stateId}/analysis/ei-kde")
-    public Map<String, Object> getEiKde(
+    public ResponseEntity<Map<String, Object>> getEiKde(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
             @PathVariable @NotBlank String stateId,
             @Parameter(description = "Required normalized demographic group key. Seeded examples use latino for OR and black for SC.")
@@ -299,9 +314,10 @@ public class StateController {
             @Parameter(description = "Election selector. Default is 2024_pres, which matches the current seeded examples.")
             @RequestParam(required = false, defaultValue = "2024_pres") String election,
             @Parameter(description = "Metric selector. Default is support_gap.")
-            @RequestParam(required = false, defaultValue = "support_gap") String metric
+            @RequestParam(required = false, defaultValue = "support_gap") String metric,
+            WebRequest webRequest
     ) {
-        return dataService.getEiKde(stateId, group, election, metric);
+        return cachedJsonResponse(dataService.getEiKde(stateId, group, election, metric), webRequest);
     }
 
     @Operation(
@@ -315,15 +331,16 @@ public class StateController {
             )
     })
     @GetMapping("/states/{stateId}/ensembles/splits")
-    public Map<String, Object> getEnsembleSplits(
+    public ResponseEntity<Map<String, Object>> getEnsembleSplits(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
             @PathVariable @NotBlank String stateId,
             @Parameter(description = "Ensemble selector. Default is final.")
             @RequestParam(required = false, defaultValue = "final") String ensembleSize,
             @Parameter(description = "Election selector. Default is 2024_pres, which matches the current seeded examples.")
-            @RequestParam(required = false, defaultValue = "2024_pres") String election
+            @RequestParam(required = false, defaultValue = "2024_pres") String election,
+            WebRequest webRequest
     ) {
-        return dataService.getEnsembleSplits(stateId, ensembleSize, election);
+        return cachedJsonResponse(dataService.getEnsembleSplits(stateId, ensembleSize, election), webRequest);
     }
 
     @Operation(
@@ -337,7 +354,7 @@ public class StateController {
             )
     })
     @GetMapping("/states/{stateId}/ensembles/box-whisker")
-    public Map<String, Object> getBoxWhisker(
+    public ResponseEntity<Map<String, Object>> getBoxWhisker(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
             @PathVariable @NotBlank String stateId,
             @Parameter(description = "Required normalized demographic group key. Seeded examples use latino for OR and black for SC.")
@@ -345,9 +362,10 @@ public class StateController {
             @Parameter(description = "Required ensemble selector. Seeded values are vra_constrained or race_blind.")
             @RequestParam @NotBlank String ensembleType,
             @Parameter(description = "Metric selector. Default is minority_share.")
-            @RequestParam(required = false, defaultValue = "minority_share") String metric
+            @RequestParam(required = false, defaultValue = "minority_share") String metric,
+            WebRequest webRequest
     ) {
-        return dataService.getBoxWhisker(stateId, group, ensembleType, metric);
+        return cachedJsonResponse(dataService.getBoxWhisker(stateId, group, ensembleType, metric), webRequest);
     }
 
     @Operation(
@@ -361,13 +379,14 @@ public class StateController {
             )
     })
     @GetMapping("/states/{stateId}/districts/interesting")
-    public Map<String, Object> getInterestingPlan(
+    public ResponseEntity<Map<String, Object>> getInterestingPlan(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
             @PathVariable @NotBlank String stateId,
             @Parameter(description = "Required interesting-plan selector. Current seeded example uses plan-42.")
-            @RequestParam @NotBlank String planId
+            @RequestParam @NotBlank String planId,
+            WebRequest webRequest
     ) {
-        return dataService.getInterestingPlan(stateId, planId);
+        return cachedJsonResponse(dataService.getInterestingPlan(stateId, planId), webRequest);
     }
 
     @Operation(
@@ -381,15 +400,16 @@ public class StateController {
             )
     })
     @GetMapping("/states/{stateId}/analysis/vra-impact-thresholds")
-    public Map<String, Object> getVraImpactThresholds(
+    public ResponseEntity<Map<String, Object>> getVraImpactThresholds(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
             @PathVariable @NotBlank String stateId,
             @Parameter(description = "Required normalized demographic group key. Seeded examples use latino for OR and black for SC.")
             @RequestParam @NotBlank String group,
             @Parameter(description = "Election selector. Default is 2024_pres, which matches the current seeded examples.")
-            @RequestParam(required = false, defaultValue = "2024_pres") String election
+            @RequestParam(required = false, defaultValue = "2024_pres") String election,
+            WebRequest webRequest
     ) {
-        return dataService.getVraImpactThresholds(stateId, group, election);
+        return cachedJsonResponse(dataService.getVraImpactThresholds(stateId, group, election), webRequest);
     }
 
     @Operation(
@@ -403,13 +423,14 @@ public class StateController {
             )
     })
     @GetMapping("/states/{stateId}/analysis/minority-effectiveness/box-whisker")
-    public Map<String, Object> getMinorityEffectivenessBoxWhisker(
+    public ResponseEntity<Map<String, Object>> getMinorityEffectivenessBoxWhisker(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
             @PathVariable @NotBlank String stateId,
             @Parameter(description = "Election selector. Default is 2024_pres, which matches the current seeded examples.")
-            @RequestParam(required = false, defaultValue = "2024_pres") String election
+            @RequestParam(required = false, defaultValue = "2024_pres") String election,
+            WebRequest webRequest
     ) {
-        return dataService.getMinorityEffectivenessBoxWhisker(stateId, election);
+        return cachedJsonResponse(dataService.getMinorityEffectivenessBoxWhisker(stateId, election), webRequest);
     }
 
     @Operation(
@@ -423,15 +444,16 @@ public class StateController {
             )
     })
     @GetMapping("/states/{stateId}/analysis/minority-effectiveness/histogram")
-    public Map<String, Object> getMinorityEffectivenessHistogram(
+    public ResponseEntity<Map<String, Object>> getMinorityEffectivenessHistogram(
             @Parameter(description = "Required state code. Current supported values: OR or SC.")
             @PathVariable @NotBlank String stateId,
             @Parameter(description = "Required normalized demographic group key. Seeded examples use latino for OR and black for SC.")
             @RequestParam @NotBlank String group,
             @Parameter(description = "Election selector. Default is 2024_pres, which matches the current seeded examples.")
-            @RequestParam(required = false, defaultValue = "2024_pres") String election
+            @RequestParam(required = false, defaultValue = "2024_pres") String election,
+            WebRequest webRequest
     ) {
-        return dataService.getMinorityEffectivenessHistogram(stateId, group, election);
+        return cachedJsonResponse(dataService.getMinorityEffectivenessHistogram(stateId, group, election), webRequest);
     }
 
     private ResponseEntity<Map<String, Object>> cachedGeometryResponse(GeometryAssetService.GeometryAsset asset, WebRequest webRequest) {
@@ -446,5 +468,40 @@ public class StateController {
                 .cacheControl(STATIC_GEOMETRY_CACHE)
                 .eTag(asset.etag())
                 .body(asset.body());
+    }
+
+    private ResponseEntity<Map<String, Object>> cachedJsonResponse(Map<String, Object> payload, WebRequest webRequest) {
+        return cachedJsonBodyResponse(payload, webRequest);
+    }
+
+    private <T> ResponseEntity<T> cachedJsonBodyResponse(T payload, WebRequest webRequest) {
+        String etag = computeEtag(payload);
+        if (webRequest.checkNotModified(etag)) {
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+                    .cacheControl(STABLE_JSON_CACHE)
+                    .eTag(etag)
+                    .build();
+        }
+
+        return ResponseEntity.ok()
+                .cacheControl(STABLE_JSON_CACHE)
+                .eTag(etag)
+                .body(payload);
+    }
+
+    private String computeEtag(Object payload) {
+        try {
+            byte[] bytes = objectMapper.writeValueAsBytes(payload);
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(bytes);
+            StringBuilder builder = new StringBuilder("\"");
+            for (byte value : digest) {
+                builder.append(String.format("%02x", value));
+            }
+            return builder.append('"').toString();
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to serialize JSON payload for ETag generation", exception);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 algorithm unavailable for ETag generation", exception);
+        }
     }
 }

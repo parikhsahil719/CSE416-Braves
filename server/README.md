@@ -129,6 +129,13 @@ Static geometry responses are optimized for repeat loads:
 - strong `ETag` support for `304 Not Modified`
 - sanitized map-only properties before serialization
 
+Stable seeded JSON responses are also browser-cacheable:
+- `Cache-Control: public, max-age=300, must-revalidate`
+- strong `ETag` support for `304 Not Modified`
+- backed by Spring+Caffeine after the first server-side load
+
+The frontend now uses a shared TanStack Query cache on top of these HTTP semantics. Shared query hooks live in `src/queries/stateQueries.js`. See [docs/caching-architecture.md](/Users/sahilparikh/Documents/CSE 416 Braves/docs/caching-architecture.md) for the full request lifecycle.
+
 Delivered geometry property sets:
 - district topology: `RESULT`, `NAMELSAD`, `district_number`, `GEOID`
 - precinct topology: `GEOID`
@@ -183,6 +190,8 @@ Expected responses:
   - return enacted district GeoJSON for `OR` and `SC`
 - summary and analysis endpoints
   - return seeded professor-facing JSON payloads for the implemented GUI use cases
+  - include `Cache-Control` and `ETag`
+  - may return `304 Not Modified` when the browser revalidates with `If-None-Match`
 
 ## Verify MongoDB in Compass
 

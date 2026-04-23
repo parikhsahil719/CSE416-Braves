@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import "../../styles/minority-map.css";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import L from "leaflet";
-import { topologyToFeatureCollection } from "../utils/topology.js";
+import { toStateCode } from "../lib/stateMetadata.js";
+import { useHeatmapQuery, usePrecinctTopologyQuery } from "../queries/stateQueries.js";
 import { defaultGetColor, getFeaturePercentage, getHeatmapColor, normalizeMinorityGroup } from "../utils/minorityHeatMap.js";
 
 function createLegendControl(bins) {
@@ -41,30 +41,36 @@ function createLegendControl(bins) {
   return legend;
 }
 
+function shareLookup(payload) {
+  const rows = payload?.precinctGroupShares;
+  if (Array.isArray(rows)) {
+    return Object.fromEntries(
+      rows
+        .filter((row) => row?.geoid != null && Number.isFinite(row?.share))
+        .map((row) => [String(row.geoid), Number(row.share)]),
+    );
+  }
+  return payload?.precinctGroupShareByGeoid ?? {};
+}
+
 export default function MinorityHeatMap({ currMinority, switchMinority }) {
   const { stateName } = useParams();
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
+  const mapLayerRef = useRef(null);
+  const legendRef = useRef(null);
 
-  const [bins, setBins] = useState([]);
-  const [precinctGroupShareByGeoid, setPrecinctGroupShareByGeoid] = useState({});
-  const [topologyData, setTopologyData] = useState(null);
-  const [geometryLoadFailed, setGeometryLoadFailed] = useState(false);
+  const stateCode = toStateCode(stateName);
+  const group = normalizeMinorityGroup(currMinority);
 
-  const OregonGroups = ["Latino", "Asian"];
-  const SCGroups = ["Black", "Latino"];
+  const topologyQuery = usePrecinctTopologyQuery(stateCode);
+  const heatmapQuery = useHeatmapQuery(stateCode, group);
 
-  function shareLookup(payload) {
-    const rows = payload?.precinctGroupShares;
-    if (Array.isArray(rows)) {
-      return Object.fromEntries(
-        rows
-          .filter((row) => row?.geoid != null && Number.isFinite(row?.share))
-          .map((row) => [String(row.geoid), Number(row.share)])
-      );
-    }
-    return payload?.precinctGroupShareByGeoid ?? {};
-  }
+  const bins = heatmapQuery.data?.bins ?? [];
+  const precinctGroupShareByGeoid = useMemo(() => shareLookup(heatmapQuery.data), [heatmapQuery.data]);
+
+  const oregonGroups = ["Latino", "Asian"];
+  const scGroups = ["Black", "Latino"];
 
   function styleFeature(feature) {
     return {
@@ -98,135 +104,107 @@ export default function MinorityHeatMap({ currMinority, switchMinority }) {
   }
 
   const minorityOptions = stateName === "Oregon"
-    ? OregonGroups.map((minority) => (
+    ? oregonGroups.map((minority) => (
       <option key={minority} value={minority}>
         {minority}
       </option>
     ))
-    : SCGroups.map((minority) => (
+    : scGroups.map((minority) => (
       <option key={minority} value={minority}>
         {minority}
       </option>
     ));
 
   useEffect(() => {
-    let isActive = true;
-    const stateCode = stateName === "Oregon" ? "OR" : stateName === "South Carolina" ? "SC" : null;
-    const group = normalizeMinorityGroup(currMinority);
-    if (!stateCode || !group) {
-      setBins([]);
-      setPrecinctGroupShareByGeoid({});
-      setTopologyData(null);
-      setGeometryLoadFailed(true);
-      return undefined;
-    }
-
-    setGeometryLoadFailed(false);
-
-    (async () => {
-      try {
-        const response = await axios.get(`/api/states/${stateCode}/heatmap/precincts`, { params: { group } });
-        if (isActive) {
-          setBins(response.data?.bins ?? []);
-          setPrecinctGroupShareByGeoid(shareLookup(response.data));
-        }
-      } catch {
-        if (isActive) {
-          setBins([]);
-          setPrecinctGroupShareByGeoid({});
-        }
-      }
-    })();
-
-    (async () => {
-      try {
-        const response = await axios.get(`/api/states/${stateCode}/precincts/topology`);
-        if (isActive) {
-          setTopologyData(topologyToFeatureCollection(response.data));
-          setGeometryLoadFailed(false);
-        }
-      } catch {
-        if (isActive) {
-          setTopologyData(null);
-          setGeometryLoadFailed(true);
-        }
-      }
-    })();
-
-    return () => {
-      isActive = false;
-    };
-  }, [currMinority, stateName]);
-
-  useEffect(() => {
     const target = mapContainerRef.current;
-    const hasShares = Object.keys(precinctGroupShareByGeoid).length > 0;
-    if (!target || !topologyData?.features?.length || !hasShares) {
+
+    if (!target || !topologyQuery.data?.features?.length) {
       return undefined;
     }
 
-    mapRef.current?.remove();
-
-    let cancelled = false;
-    let map = null;
-    const timer = window.setTimeout(() => {
-      if (cancelled) {
-        return;
-      }
-
-      map = createMapInstance(target);
-      mapRef.current = map;
-
-      const legend = createLegendControl(bins);
-      legend.addTo(map);
-
-      const layer = L.geoJSON(topologyData, {
-        style: styleFeature,
-        onEachFeature(_feature, featureLayer) {
-          featureLayer.on({
-            mouseover(event) {
-              event.target.setStyle({
-                weight: 2,
-                color: "#666",
-                dashArray: "",
-                fillOpacity: 0.7,
-              });
-              event.target.bringToFront();
-            },
-            mouseout(event) {
-              layer.resetStyle(event.target);
-            },
-          });
-        },
-      }).addTo(map);
-
-      const bounds = layer.getBounds();
-      if (bounds.isValid()) {
-        map.fitBounds(bounds, {
-          animate: false,
-          padding: [12, 12],
-        });
-      }
-    }, 1500);
+    const map = createMapInstance(target);
+    mapRef.current = map;
 
     return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-      map?.remove();
+      mapLayerRef.current = null;
+      legendRef.current = null;
+      map.remove();
       if (mapRef.current === map) {
         mapRef.current = null;
       }
       delete target._leaflet_id;
       target.innerHTML = "";
     };
-  }, [topologyData, bins, precinctGroupShareByGeoid, stateName]);
+  }, [stateName, topologyQuery.data]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !topologyQuery.data?.features?.length || Object.keys(precinctGroupShareByGeoid).length === 0) {
+      return undefined;
+    }
+
+    if (mapLayerRef.current) {
+      map.removeLayer(mapLayerRef.current);
+      mapLayerRef.current = null;
+    }
+
+    if (legendRef.current) {
+      map.removeControl(legendRef.current);
+      legendRef.current = null;
+    }
+
+    const legend = createLegendControl(bins);
+    legend.addTo(map);
+    legendRef.current = legend;
+
+    const layer = L.geoJSON(topologyQuery.data, {
+      style: styleFeature,
+      onEachFeature(_feature, featureLayer) {
+        featureLayer.on({
+          mouseover(event) {
+            event.target.setStyle({
+              weight: 2,
+              color: "#666",
+              dashArray: "",
+              fillOpacity: 0.7,
+            });
+            event.target.bringToFront();
+          },
+          mouseout(event) {
+            layer.resetStyle(event.target);
+          },
+        });
+      },
+    }).addTo(map);
+    mapLayerRef.current = layer;
+
+    const bounds = layer.getBounds();
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, {
+        animate: false,
+        padding: [12, 12],
+      });
+    }
+
+    return () => {
+      if (mapLayerRef.current === layer) {
+        map.removeLayer(layer);
+        mapLayerRef.current = null;
+      }
+
+      if (legendRef.current === legend) {
+        map.removeControl(legend);
+        legendRef.current = null;
+      }
+    };
+  }, [bins, precinctGroupShareByGeoid, topologyQuery.data]);
 
   if (!stateName) {
     return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: State not found</div>;
   }
 
-  if (!topologyData) {
-    if (geometryLoadFailed) {
+  if (!topologyQuery.data) {
+    if (topologyQuery.isError) {
       return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Unable to load precinct topology</div>;
     }
     return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Loading precinct topology...</div>;

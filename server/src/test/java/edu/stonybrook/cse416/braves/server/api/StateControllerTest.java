@@ -73,10 +73,34 @@ class StateControllerTest {
 
         mockMvc.perform(get("/api/states/OR/ensembles-summary"))
                 .andExpect(status().isOk())
+                .andExpect(header().exists(HttpHeaders.ETAG))
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, org.hamcrest.Matchers.containsString("max-age=300")))
                 .andExpect(jsonPath("$.schemaVersion").value("v1"))
                 .andExpect(jsonPath("$.state").value("OR"))
                 .andExpect(jsonPath("$.finalPlanCount").value(5000))
                 .andExpect(jsonPath("$.populationEqualityThreshold").value("0.50%"));
+    }
+
+    @Test
+    void stableJsonEndpointsReturn304WhenIfNoneMatchMatches() throws Exception {
+        BackendDataService dataService = dataServiceForResponse(Map.of(
+                "schemaVersion", "v1",
+                "state", "OR",
+                "finalPlanCount", 5000
+        ));
+
+        MockMvc mockMvc = mockMvcFor(dataService);
+
+        String etag = mockMvc.perform(get("/api/states/OR/ensembles-summary"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getHeader(HttpHeaders.ETAG);
+
+        mockMvc.perform(get("/api/states/OR/ensembles-summary").header(HttpHeaders.IF_NONE_MATCH, etag))
+                .andExpect(status().isNotModified())
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, org.hamcrest.Matchers.containsString("max-age=300")))
+                .andExpect(header().string(HttpHeaders.ETAG, etag));
     }
 
     @Test
@@ -248,11 +272,15 @@ class StateControllerTest {
 
         mockMvc.perform(get("/api/states"))
                 .andExpect(status().isOk())
+                .andExpect(header().exists(HttpHeaders.ETAG))
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, org.hamcrest.Matchers.containsString("max-age=300")))
                 .andExpect(jsonPath("$[0].stateId").value("OR"))
                 .andExpect(jsonPath("$[1].stateId").value("SC"));
 
         mockMvc.perform(get("/api/states/OR/state-summary"))
                 .andExpect(status().isOk())
+                .andExpect(header().exists(HttpHeaders.ETAG))
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, org.hamcrest.Matchers.containsString("max-age=300")))
                 .andExpect(jsonPath("$.state").value("OR"))
                 .andExpect(jsonPath("$.feasibleGroups.length()").value(3));
 
@@ -263,17 +291,23 @@ class StateControllerTest {
 
         mockMvc.perform(get("/api/states/OR/heatmap/precincts").param("group", "latino"))
                 .andExpect(status().isOk())
+                .andExpect(header().exists(HttpHeaders.ETAG))
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, org.hamcrest.Matchers.containsString("max-age=300")))
                 .andExpect(jsonPath("$.group").value("Latino"))
                 .andExpect(jsonPath("$.bins.length()").value(1));
 
         mockMvc.perform(get("/api/states/OR/districts/enacted/table").param("election", "2024_pres"))
                 .andExpect(status().isOk())
+                .andExpect(header().exists(HttpHeaders.ETAG))
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, org.hamcrest.Matchers.containsString("max-age=300")))
                 .andExpect(jsonPath("$.rows.length()").value(1));
 
         mockMvc.perform(get("/api/states/OR/analysis/gingles")
                         .param("group", "latino")
                         .param("election", "2024_pres"))
                 .andExpect(status().isOk())
+                .andExpect(header().exists(HttpHeaders.ETAG))
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, org.hamcrest.Matchers.containsString("max-age=300")))
                 .andExpect(jsonPath("$.state").value("OR"))
                 .andExpect(jsonPath("$.points.length()").value(1682))
                 .andExpect(jsonPath("$.regressionCurves.length()").value(2))
@@ -290,6 +324,7 @@ class StateControllerTest {
                         .param("election", "2024_pres")
                         .param("party", "DEM"))
                 .andExpect(status().isOk())
+                .andExpect(header().exists(HttpHeaders.ETAG))
                 .andExpect(jsonPath("$.selectedCandidate").value("Democratic Candidate"));
 
         mockMvc.perform(get("/api/states/OR/analysis/ei-precinct-bar-ci")
@@ -321,6 +356,8 @@ class StateControllerTest {
 
         mockMvc.perform(get("/api/states/OR/districts/interesting").param("planId", "plan-42"))
                 .andExpect(status().isOk())
+                .andExpect(header().exists(HttpHeaders.ETAG))
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, org.hamcrest.Matchers.containsString("max-age=300")))
                 .andExpect(jsonPath("$.topology.type").value("Topology"));
 
         mockMvc.perform(get("/api/states/OR/analysis/vra-impact-thresholds")
@@ -342,7 +379,7 @@ class StateControllerTest {
     }
 
     private MockMvc mockMvcFor(BackendDataService dataService) {
-        StateController controller = new StateController(dataService, new GeometryAssetService(objectMapper));
+        StateController controller = new StateController(dataService, new GeometryAssetService(objectMapper), objectMapper);
         return MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new ApiExceptionHandler())
                 .build();

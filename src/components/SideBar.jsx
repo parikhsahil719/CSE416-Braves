@@ -1,13 +1,30 @@
 import React from 'react'
 import "../../styles/sidebar.css";
 import { useNavigate, useParams } from 'react-router-dom';
+import { useQueryClient } from "@tanstack/react-query";
 import menuIcon from '/menu.svg';
+import { prefetchInterestingPlanData, prefetchStateLandingData } from "../queries/stateQueries.js";
+import { toStateCode } from "../lib/stateMetadata.js";
 
 export function SideBar(props)
 {
   const {currPage, switchPage, currMap, switchMap, precinctMapSelectable, currEI, switchEI, currSimData, switchSimData } = props; // (maybe add showMaps boolean)
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { stateName } = useParams();
+  const stateCode = toStateCode(stateName);
+
+  function warmStatePage() {
+    if (stateCode) {
+      prefetchStateLandingData(queryClient, stateCode);
+    }
+  }
+
+  function warmComparePage() {
+    if (stateCode) {
+      prefetchInterestingPlanData(queryClient, stateCode);
+    }
+  }
 
   return (
     <span className="sidebar-wrapper">
@@ -24,8 +41,20 @@ export function SideBar(props)
         </span>
         <span className="sidebar-analysis-container">
           <div className="sidebar-header">Analysis</div>
-          <div className={currPage === "State" ? "sidebar-tab activeTab" : "sidebar-tab"} onClick={() => { switchPage('State'); navigate(`/state/${stateName}`)}}>State Data Summary</div>
-          <div className={currPage === "Compare" ? "sidebar-tab activeTab" : "sidebar-tab"} onClick={() => { switchMap('District Map'); switchPage('Compare'); navigate(`/state/${stateName}/Compare`)}}>Compare District Plans</div>
+          <div
+            className={currPage === "State" ? "sidebar-tab activeTab" : "sidebar-tab"}
+            onMouseEnter={warmStatePage}
+            onClick={() => { warmStatePage(); switchPage('State'); navigate(`/state/${stateName}`)}}
+          >
+            State Data Summary
+          </div>
+          <div
+            className={currPage === "Compare" ? "sidebar-tab activeTab" : "sidebar-tab"}
+            onMouseEnter={warmComparePage}
+            onClick={() => { warmComparePage(); switchMap('District Map'); switchPage('Compare'); navigate(`/state/${stateName}/Compare`)}}
+          >
+            Compare District Plans
+          </div>
           <div className={currPage === "Gingles" ? "sidebar-tab activeTab" : "sidebar-tab"} onClick={() => { switchPage('Gingles'); navigate(`/state/${stateName}/Gingles`)}}>Gingles Charts</div>
           <div className={currPage === "EI" ? "sidebar-subheader activeTab" : "sidebar-subheader"}>Minority-Preferred Candidates</div>
           <div className={currEI === "EI Analysis" ? "ei-option activeTab" : "ei-option"} onClick={() => { switchEI('EI Analysis'); switchPage('EI'); navigate(`/state/${stateName}/Ecological Inference`)}}>EI Analysis</div>

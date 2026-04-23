@@ -1,44 +1,22 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../../styles/state-page.css";
-import { useLocation, useParams } from "react-router-dom";
-import axios from "axios";
+import { useQueryClient } from "@tanstack/react-query";
+import { useParams } from "react-router-dom";
 import Oregon from "../data/oregon.js";
 import SouthCarolina from "../data/sc.js";
-import { topologyToFeatureCollection } from "../utils/topology.js";
-import DistrictMap from "./DistrictMap"
+import DistrictMap from "./DistrictMap";
 import MinorityHeatMap from "./MinorityHeatMap";
+import { toStateCode } from "../lib/stateMetadata.js";
+import {
+  prefetchStateOverviewData,
+  useDistrictTableQuery,
+  useDistrictTopologyQuery,
+  useEnsembleSummaryQuery,
+  useStateSummaryQuery,
+} from "../queries/stateQueries.js";
 
 const DEFAULT_ELECTION = "2024_pres";
 const dataMap = { Oregon, SouthCarolina };
-
-function toStateCode(stateName) {
-  if (stateName === "Oregon") {
-    return "OR";
-  }
-
-  if (stateName === "South Carolina") {
-    return "SC";
-  }
-
-  return null;
-}
-
-function isReloadNavigation() {
-  if (typeof window === "undefined" || !window.performance) {
-    return false;
-  }
-
-  const navigationEntries = typeof window.performance.getEntriesByType === "function"
-    ? window.performance.getEntriesByType("navigation")
-    : [];
-  const navigationType = navigationEntries[0]?.type;
-
-  if (navigationType) {
-    return navigationType === "reload";
-  }
-
-  return window.performance.navigation?.type === 1;
-}
 
 function mergeSummaryData(localData, summaryData) {
   if (!summaryData) {
@@ -57,34 +35,6 @@ function mergeSummaryData(localData, summaryData) {
   };
 }
 
-// function getColor(result) {
-//   return result === "DEMOCRATIC"
-//     ? "#0011ff"
-//     : result === "REPUBLICAN"
-//       ? "#ff0000"
-//       : "#666666";
-// }
-
-// function getBaseDistrictStyle(feature) {
-//   return {
-//     fillColor: getColor(feature?.properties?.RESULT),
-//     weight: 2,
-//     opacity: 1,
-//     color: "white",
-//     dashArray: "3",
-//     fillOpacity: 0.4,
-//   };
-// }
-
-// function getSelectedDistrictStyle() {
-//   return {
-//     weight: 3,
-//     color: "#666",
-//     dashArray: "",
-//     fillOpacity: 0.5,
-//   };
-// }
-
 const GROUP_POP_FIELD = {
   Latino: "LatinoPopulation",
   Asian: "AsianPopulation",
@@ -92,7 +42,7 @@ const GROUP_POP_FIELD = {
   Black: "BlackPopulation",
 };
 
-function StateData({ stateData, stateName, loading, loadFailed }) {
+function StateData({ stateData, loading, loadFailed }) {
   return (
     <>
       <div id="statePageDataContainer">
@@ -139,6 +89,10 @@ function VoteMarginBadge({ margin }) {
 }
 
 function DistrictData({ districts, selectedDistrict, onSelectDistrict, onChangeTab, loading, loadFailed, hasCachedData, hasRequestedData, currMap }) {
+  useEffect(() => {
+    onSelectDistrict(0);
+  }, [currMap, onSelectDistrict]);
+
   if (loading || (hasRequestedData && !hasCachedData && !loadFailed)) {
     return (
       <div id="statePageDataContainer">
@@ -164,10 +118,6 @@ function DistrictData({ districts, selectedDistrict, onSelectDistrict, onChangeT
     onChangeTab("District");
   }
 
-  useEffect(() => {
-    onSelectDistrict(0);
-  }, [currMap]);
-
   return (
     <div id="statePageDataContainer">
       <div className="districts-table-container">
@@ -190,13 +140,15 @@ function DistrictData({ districts, selectedDistrict, onSelectDistrict, onChangeT
                 key={district.districtNumber}
                 className={district.districtNumber === selectedDistrict ? "districts-table-row districts-table-row--selected" : "districts-table-row"}
               >
-                {currMap === "District Map" ?
-                <td className="districts-table-data districts-table-distnum" onClick={() => handleDistrictClick(district.districtNumber)}>
-                  {district.districtNumber}
-                </td> :
-                <td className="districts-table-data districts-table-distnum">
-                  {district.districtNumber}
-                </td>}
+                {currMap === "District Map" ? (
+                  <td className="districts-table-data districts-table-distnum" onClick={() => handleDistrictClick(district.districtNumber)}>
+                    {district.districtNumber}
+                  </td>
+                ) : (
+                  <td className="districts-table-data districts-table-distnum">
+                    {district.districtNumber}
+                  </td>
+                )}
                 <td className="districts-table-data">{district.representative}</td>
                 <td className="districts-table-data">{district.party}</td>
                 <td className="districts-table-data">{district.racialEthnicGroup}</td>
@@ -249,208 +201,38 @@ function EnsembleData({ ensembleSummary, loading, loadFailed, hasCachedData, has
 
 export default function StatePage(props) {
   const { stateName } = useParams();
-  const location = useLocation();
+  const queryClient = useQueryClient();
   const stateCode = toStateCode(stateName);
   const localData = dataMap[stateName?.replaceAll(" ", "")];
   const [tab, setTab] = useState("State");
-  const [tabRequestCount, setTabRequestCount] = useState(0);
+  const [selectedDistrict, setSelectedDistrict] = useState(0);
   const [requestedTabs, setRequestedTabs] = useState({
-    State: false,
+    State: true,
     District: false,
     Ensembles: false,
   });
-  const [selectedDistrict, setSelectedDistrict] = useState(0);
-  const [mapLoading, setMapLoading] = useState(false);
-  const [mapData, setMapData] = useState(null);
-  const [summaryLoading, setSummaryLoading] = useState(false);
-  const [summaryData, setSummaryData] = useState(null);
-  const [summaryLoadFailed, setSummaryLoadFailed] = useState(false);
-  const [ensembleSummaryLoading, setEnsembleSummaryLoading] = useState(false);
-  const [ensembleSummaryData, setEnsembleSummaryData] = useState(null);
-  const [ensembleSummaryLoadFailed, setEnsembleSummaryLoadFailed] = useState(false);
-  const [districtTableLoading, setDistrictTableLoading] = useState(false);
-  const [mapLoadFailed, setMapLoadFailed] = useState(false);
-  const [districtTable, setDistrictTable] = useState(null);
-  const [districtTableLoadFailed, setDistrictTableLoadFailed] = useState(false);
-  const prefetchedStateId = location.state?.prefetchedStateId ?? null;
-  const prefetchedStateSummary = prefetchedStateId === stateCode ? location.state?.prefetchedStateSummary ?? null : null;
-  const shouldForceRefreshSummary = isReloadNavigation();
+
+  const districtTopologyQuery = useDistrictTopologyQuery(stateCode);
+  const stateSummaryQuery = useStateSummaryQuery(stateCode, requestedTabs.State);
+  const ensembleSummaryQuery = useEnsembleSummaryQuery(stateCode, requestedTabs.Ensembles);
+  const districtTableQuery = useDistrictTableQuery(stateCode, DEFAULT_ELECTION, requestedTabs.District);
+
+  useEffect(() => {
+    setTab("State");
+    setSelectedDistrict(0);
+    setRequestedTabs({
+      State: true,
+      District: false,
+      Ensembles: false,
+    });
+  }, [stateCode, stateName]);
 
   if (!localData) {
     return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: State not found</div>;
   }
 
-  useEffect(() => {
-    let isActive = true;
-    const shouldFetchInitialStateSummary = Boolean(stateCode) && (shouldForceRefreshSummary || !prefetchedStateSummary);
-
-    setTab("State");
-    setTabRequestCount(shouldFetchInitialStateSummary ? 1 : 0);
-    setRequestedTabs({
-      State: shouldFetchInitialStateSummary || Boolean(prefetchedStateSummary && !shouldForceRefreshSummary),
-      District: false,
-      Ensembles: false,
-    });
-    setSelectedDistrict(0);
-    setMapLoading(Boolean(stateCode));
-    setMapData(null);
-    setMapLoadFailed(false);
-    setSummaryLoading(false);
-    setSummaryData(shouldForceRefreshSummary ? null : prefetchedStateSummary);
-    setSummaryLoadFailed(false);
-    setEnsembleSummaryLoading(false);
-    setEnsembleSummaryData(null);
-    setEnsembleSummaryLoadFailed(false);
-    setDistrictTableLoading(false);
-    setDistrictTable(null);
-    setDistrictTableLoadFailed(false);
-
-    if (!stateCode) {
-      setMapLoading(false);
-      setMapLoadFailed(true);
-      return undefined;
-    }
-
-    (async () => {
-      try {
-        const response = await axios.get(`/api/states/${stateCode}/districts/enacted/topology`);
-        if (isActive) {
-          setMapData(topologyToFeatureCollection(response.data, "districts"));
-          setMapLoadFailed(false);
-        }
-      } catch {
-        if (isActive) {
-          setMapData(null);
-          setMapLoadFailed(true);
-        }
-      } finally {
-        if (isActive) {
-          setMapLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      isActive = false;
-    };
-  }, [prefetchedStateSummary, shouldForceRefreshSummary, stateCode, stateName]);
-
-  useEffect(() => {
-    let isActive = true;
-
-    if (!stateCode || tabRequestCount === 0) {
-      return undefined;
-    }
-
-    if (tab === "State") {
-      if (summaryData || summaryLoading) {
-        return undefined;
-      }
-
-      setSummaryLoading(true);
-      setSummaryLoadFailed(false);
-
-      (async () => {
-        try {
-          const response = await axios.get(`/api/states/${stateCode}/state-summary`);
-          if (isActive) {
-            setSummaryData(response.data);
-            setSummaryLoadFailed(false);
-          }
-        } catch {
-          if (isActive) {
-            setSummaryData(null);
-            setSummaryLoadFailed(true);
-          }
-        } finally {
-          if (isActive) {
-            setSummaryLoading(false);
-          }
-        }
-      })();
-
-      return () => {
-        isActive = false;
-      };
-    }
-
-    if (tab === "Ensembles") {
-      if (ensembleSummaryData || ensembleSummaryLoading) {
-        return undefined;
-      }
-
-      setEnsembleSummaryLoading(true);
-      setEnsembleSummaryLoadFailed(false);
-
-      (async () => {
-        try {
-          const response = await axios.get(`/api/states/${stateCode}/ensembles-summary`);
-          if (isActive) {
-            setEnsembleSummaryData(response.data);
-            setEnsembleSummaryLoadFailed(false);
-          }
-        } catch {
-          if (isActive) {
-            setEnsembleSummaryData(null);
-            setEnsembleSummaryLoadFailed(true);
-          }
-        } finally {
-          if (isActive) {
-            setEnsembleSummaryLoading(false);
-          }
-        }
-      })();
-
-      return () => {
-        isActive = false;
-      };
-    }
-
-    if (tab === "District") {
-      if (districtTable || districtTableLoading) {
-        return undefined;
-      }
-
-      setDistrictTableLoading(true);
-      setDistrictTableLoadFailed(false);
-
-      (async () => {
-        try {
-          const response = await axios.get(`/api/states/${stateCode}/districts/enacted/table`, {
-            params: { election: DEFAULT_ELECTION },
-          });
-          if (isActive) {
-            setDistrictTable(response.data);
-            setDistrictTableLoadFailed(false);
-          }
-        } catch {
-          if (isActive) {
-            setDistrictTable(null);
-            setDistrictTableLoadFailed(true);
-          }
-        } finally {
-          if (isActive) {
-            setDistrictTableLoading(false);
-          }
-        }
-      })();
-    }
-
-    return () => {
-      isActive = false;
-    };
-  }, [
-    districtTable,
-    ensembleSummaryData,
-    stateCode,
-    summaryData,
-    tab,
-    tabRequestCount,
-  ]);
-
-  const data = mergeSummaryData(localData, summaryData);
-  const districtRows = districtTable?.districts ?? [];
-  const ensembleSummary = ensembleSummaryData ?? null;
+  const mergedSummaryData = mergeSummaryData(localData, stateSummaryQuery.data);
+  const districtRows = districtTableQuery.data?.districts ?? [];
 
   function handleTabSelect(nextTab) {
     setTab(nextTab);
@@ -458,17 +240,25 @@ export default function StatePage(props) {
       ...tabs,
       [nextTab]: true,
     }));
-    setTabRequestCount((count) => count + 1);
+  }
+
+  function handleTabHover(nextTab) {
+    if (!stateCode) {
+      return;
+    }
+
+    if (nextTab === "District" || nextTab === "Ensembles") {
+      prefetchStateOverviewData(queryClient, stateCode);
+    }
   }
 
   function renderActivePanel() {
     if (tab === "State") {
       return (
         <StateData
-          stateData={data}
-          stateName={stateName}
-          loading={summaryLoading}
-          loadFailed={summaryLoadFailed}
+          stateData={mergedSummaryData}
+          loading={stateSummaryQuery.isPending && !stateSummaryQuery.data}
+          loadFailed={stateSummaryQuery.isError && !stateSummaryQuery.data}
         />
       );
     }
@@ -480,9 +270,9 @@ export default function StatePage(props) {
           selectedDistrict={selectedDistrict}
           onSelectDistrict={setSelectedDistrict}
           onChangeTab={handleTabSelect}
-          loading={districtTableLoading}
-          loadFailed={districtTableLoadFailed}
-          hasCachedData={Boolean(districtTable)}
+          loading={districtTableQuery.isPending && !districtTableQuery.data}
+          loadFailed={districtTableQuery.isError && !districtTableQuery.data}
+          hasCachedData={Boolean(districtTableQuery.data)}
           hasRequestedData={requestedTabs.District}
           currMap={props.currMap}
         />
@@ -491,10 +281,10 @@ export default function StatePage(props) {
 
     return (
       <EnsembleData
-        ensembleSummary={ensembleSummary}
-        loading={ensembleSummaryLoading}
-        loadFailed={ensembleSummaryLoadFailed}
-        hasCachedData={Boolean(ensembleSummaryData)}
+        ensembleSummary={ensembleSummaryQuery.data ?? null}
+        loading={ensembleSummaryQuery.isPending && !ensembleSummaryQuery.data}
+        loadFailed={ensembleSummaryQuery.isError && !ensembleSummaryQuery.data}
+        hasCachedData={Boolean(ensembleSummaryQuery.data)}
         hasRequestedData={requestedTabs.Ensembles}
       />
     );
@@ -504,20 +294,22 @@ export default function StatePage(props) {
     <span id="statePageMain">
       <div id="statePageMapContainer">
         <div className="statePageMapLabel">{props.currMap === 'Precinct Heat Map' ? `${props.currMap} of ${props.currMinority} Population in ${stateName}` : `Map of Current Congressional Districts of ${stateName}`}</div>
-        {props.currMap === "District Map" ?
-        <DistrictMap
-          stateName={stateName}
-          data={mapData}
-          selectedDistrict={selectedDistrict}
-          onSelectDistrict={setSelectedDistrict}
-          onChangeTab={handleTabSelect}
-        /> :
-        <MinorityHeatMap
-          currMinority={props.currMinority}
-          switchMinority={props.switchMinority}
-        />}
-        {mapLoading ? <div className="statePageStatusMessage">Loading {props.currMap}...</div> : null}
-        {mapLoadFailed ? (
+        {props.currMap === "District Map" ? (
+          <DistrictMap
+            stateName={stateName}
+            data={districtTopologyQuery.data}
+            selectedDistrict={selectedDistrict}
+            onSelectDistrict={setSelectedDistrict}
+            onChangeTab={handleTabSelect}
+          />
+        ) : (
+          <MinorityHeatMap
+            currMinority={props.currMinority}
+            switchMinority={props.switchMinority}
+          />
+        )}
+        {districtTopologyQuery.isPending && !districtTopologyQuery.data ? <div className="statePageStatusMessage">Loading {props.currMap}...</div> : null}
+        {districtTopologyQuery.isError && !districtTopologyQuery.data ? (
           <div className="statePageStatusMessage">Unable to load {props.currMap}</div>
         ) : null}
       </div>
@@ -533,12 +325,14 @@ export default function StatePage(props) {
           <div
             id="statePageDistrictTab"
             className={tab === "District" ? "statePageDataTab statePageActiveTab" : "statePageDataTab"}
+            onMouseEnter={() => handleTabHover("District")}
             onClick={() => handleTabSelect("District")}
           >
             District
           </div>
           <div
             className={tab === "Ensembles" ? "statePageDataTab statePageActiveTab" : "statePageDataTab"}
+            onMouseEnter={() => handleTabHover("Ensembles")}
             onClick={() => handleTabSelect("Ensembles")}
           >
             Ensembles

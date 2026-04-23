@@ -1,12 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import "../../styles/simulation.css";
 import { useParams } from "react-router-dom";
-import axios from "axios";
-import { topologyToFeatureCollection } from "../utils/topology.js";
 import DistrictMap from "./DistrictMap";
 import MinorityHeatMap from "./MinorityHeatMap";
 import BoxWhiskerChart from "../charts/BoxWhiskerChart.jsx";
 import { pct } from "../utils/chartFormat.js";
+import { defaultGroup, toGroupKey, toStateCode } from "../lib/stateMetadata.js";
+import {
+  useBoxWhiskerQuery,
+  useDistrictTopologyQuery,
+  useEnsembleSplitsQuery,
+  useMinorityEffectivenessBoxWhiskerQuery,
+  useMinorityEffectivenessHistogramQuery,
+  useVraImpactThresholdsQuery,
+} from "../queries/stateQueries.js";
 import {
   ResponsiveContainer,
   BarChart,
@@ -18,22 +25,6 @@ import {
   Legend,
 } from "recharts";
 
-function toStateCode(stateName) {
-  if (stateName === "Oregon") return "OR";
-  if (stateName === "South Carolina") return "SC";
-  return null;
-}
-
-function toGroupKey(minority) {
-  const MAP = { Latino: "latino", Asian: "asian", Black: "black", White: "white" };
-  return MAP[minority] ?? (minority ? minority.toLowerCase() : null);
-}
-
-function defaultGroup(stateCode) {
-  return stateCode === "OR" ? "latino" : "black";
-}
-
-// GUI-16: Ensemble Splits — two bar charts on the same y-axis domain (required by spec)
 function EnsembleSplits({ payload, loading, failed }) {
   if (loading) return <div className="sim_placeholder">Loading ensemble splits...</div>;
   if (failed || !payload) return <div className="sim_placeholder">No ensemble splits data available.</div>;
@@ -88,7 +79,6 @@ function EnsembleSplits({ payload, loading, failed }) {
   );
 }
 
-// GUI-17: Box & Whisker (minority share per district, by ensemble type)
 function BoxWhisker({ payload, loading, failed, minority, subtitle }) {
   if (loading) return <div className="sim_placeholder">Loading box & whisker chart...</div>;
   if (failed || !payload) return <div className="sim_placeholder">No box & whisker data available for {minority}.</div>;
@@ -100,16 +90,15 @@ function BoxWhisker({ payload, loading, failed, minority, subtitle }) {
   );
 }
 
-// GUI-20: VRA Impact Table — renders real API data, falls back to placeholder rows
 function VRAImpact({ payload, loading, failed }) {
-  const FALLBACK_LABELS = [
+  const fallbackLabels = [
     "Meet or exceed enacted effective minority districts",
     "Achieve rough proportionality relative to minority CVAP share",
     "Satisfy both legal thresholds jointly",
   ];
   const rows =
     payload?.rows ??
-    FALLBACK_LABELS.map((label) => ({
+    fallbackLabels.map((label) => ({
       metricLabel: label,
       raceBlindShare: null,
       vraConstrainedShare: null,
@@ -150,7 +139,6 @@ function VRAImpact({ payload, loading, failed }) {
   );
 }
 
-// GUI-21: Minority Effectiveness Box & Whisker — paired boxes per feasible group, y-axis = district count
 function MinorityEffectivenessBoxWhisker({ payload, loading, failed }) {
   if (loading) return <div className="sim_placeholder">Loading minority effectiveness box & whisker...</div>;
   if (failed || !payload) return <div className="sim_placeholder">No minority effectiveness box & whisker data available.</div>;
@@ -251,7 +239,6 @@ function MinorityEffectivenessBoxWhisker({ payload, loading, failed }) {
   );
 }
 
-// GUI-22: Minority Effectiveness Ensemble Histogram — grouped bars, raceBlind vs vraConstrained
 function MinorityEffectivenessHistogram({ payload, loading, failed }) {
   if (loading) return <div className="sim_placeholder">Loading minority effectiveness ensemble histogram...</div>;
   if (failed || !payload) return <div className="sim_placeholder">No minority effectiveness ensemble histogram data available.</div>;
@@ -298,9 +285,9 @@ export default function Simulation(props) {
   const { stateName } = useParams();
   const stateCode = toStateCode(stateName);
   const { currMap, currMinority, switchMinority, currSimData, switchSimData } = props;
-  const OregonGroups = ["Latino", "Asian"];
-  const SCGroups = ["Black", "Latino"];
-  const minorityOptions = (stateName === "Oregon" ? OregonGroups : SCGroups).map((minority) => (
+  const oregonGroups = ["Latino", "Asian"];
+  const scGroups = ["Black", "Latino"];
+  const minorityOptions = (stateName === "Oregon" ? oregonGroups : scGroups).map((minority) => (
     <option key={minority} value={minority}>
       {minority}
     </option>
@@ -308,186 +295,17 @@ export default function Simulation(props) {
 
   const groupKey = toGroupKey(currMinority) ?? defaultGroup(stateCode);
 
-  // District topology for map panel
-  const [mapLoading, setMapLoading] = useState(false);
-  const [mapData, setMapData] = useState(null);
-  const [mapLoadFailed, setMapLoadFailed] = useState(false);
+  const districtTopologyQuery = useDistrictTopologyQuery(stateCode);
+  const splitsQuery = useEnsembleSplitsQuery(stateCode);
+  const raceBlindBoxWhiskerQuery = useBoxWhiskerQuery(stateCode, groupKey, "race_blind");
+  const vraConstrainedBoxWhiskerQuery = useBoxWhiskerQuery(stateCode, groupKey, "vra_constrained");
+  const vraImpactQuery = useVraImpactThresholdsQuery(stateCode, groupKey);
+  const effectBoxWhiskerQuery = useMinorityEffectivenessBoxWhiskerQuery(stateCode);
+  const effectHistogramQuery = useMinorityEffectivenessHistogramQuery(stateCode, groupKey);
 
-  // GUI-16: Ensemble Splits
-  const [splitsPayload, setSplitsPayload] = useState(null);
-  const [splitsLoading, setSplitsLoading] = useState(false);
-  const [splitsLoadFailed, setSplitsLoadFailed] = useState(false);
-
-  // GUI-17: Box & Whisker (minority share)
-  const [boxWhiskerPayloads, setBoxWhiskerPayloads] = useState(null);
-  const [boxWhiskerLoading, setBoxWhiskerLoading] = useState(false);
-  const [boxWhiskerLoadFailed, setBoxWhiskerLoadFailed] = useState(false);
-
-  // GUI-20: VRA Impact Table
-  const [vraImpactPayload, setVraImpactPayload] = useState(null);
-  const [vraImpactLoading, setVraImpactLoading] = useState(false);
-  const [vraImpactLoadFailed, setVraImpactLoadFailed] = useState(false);
-
-  // GUI-21: Minority Effectiveness Box & Whisker
-  const [effectBoxWhiskerPayload, setEffectBoxWhiskerPayload] = useState(null);
-  const [effectBoxWhiskerLoading, setEffectBoxWhiskerLoading] = useState(false);
-  const [effectBoxWhiskerLoadFailed, setEffectBoxWhiskerLoadFailed] = useState(false);
-
-  // GUI-22: Minority Effectiveness Histogram
-  const [effectHistogramPayload, setEffectHistogramPayload] = useState(null);
-  const [effectHistogramLoading, setEffectHistogramLoading] = useState(false);
-  const [effectHistogramLoadFailed, setEffectHistogramLoadFailed] = useState(false);
-
-  // Load district topology for map panel
-  useEffect(() => {
-    if (!stateCode) {
-      setMapLoadFailed(true);
-      return undefined;
-    }
-    let isActive = true;
-    setMapLoading(true);
-    setMapData(null);
-    setMapLoadFailed(false);
-    (async () => {
-      try {
-        const response = await axios.get(`/api/states/${stateCode}/districts/enacted/topology`);
-        if (isActive) setMapData(topologyToFeatureCollection(response.data, "districts"));
-      } catch {
-        if (isActive) setMapLoadFailed(true);
-      } finally {
-        if (isActive) setMapLoading(false);
-      }
-    })();
-    return () => { isActive = false; };
-  }, [stateCode]);
-
-  // GUI-16: Ensemble Splits — no group dependency
-  useEffect(() => {
-    if (!stateCode) return undefined;
-    let isActive = true;
-    setSplitsLoading(true);
-    setSplitsPayload(null);
-    setSplitsLoadFailed(false);
-    (async () => {
-      try {
-        const response = await axios.get(`/api/states/${stateCode}/ensembles/splits`);
-        if (isActive) setSplitsPayload(response.data);
-      } catch {
-        if (isActive) setSplitsLoadFailed(true);
-      } finally {
-        if (isActive) setSplitsLoading(false);
-      }
-    })();
-    return () => { isActive = false; };
-  }, [stateCode]);
-
-  // GUI-17: Box & Whisker — both ensemble types for the current minority group
-  useEffect(() => {
-    if (!stateCode || !groupKey) return undefined;
-    let isActive = true;
-    setBoxWhiskerLoading(true);
-    setBoxWhiskerPayloads(null);
-    setBoxWhiskerLoadFailed(false);
-    (async () => {
-      try {
-        const [vraConstrained, raceBlind] = await Promise.all([
-          axios.get(`/api/states/${stateCode}/ensembles/box-whisker`, {
-            params: { group: groupKey, ensembleType: "vra_constrained", metric: "minority_share" },
-          }),
-          axios.get(`/api/states/${stateCode}/ensembles/box-whisker`, {
-            params: { group: groupKey, ensembleType: "race_blind", metric: "minority_share" },
-          }),
-        ]);
-        if (isActive) {
-          setBoxWhiskerPayloads({
-            vraConstrained: vraConstrained.data,
-            raceBlind: raceBlind.data,
-          });
-        }
-      } catch {
-        if (isActive) {
-          setBoxWhiskerPayloads(null);
-          setBoxWhiskerLoadFailed(true);
-        }
-      } finally {
-        if (isActive) setBoxWhiskerLoading(false);
-      }
-    })();
-    return () => { isActive = false; };
-  }, [stateCode, groupKey]);
-
-  // GUI-20: VRA Impact Table — refetch whenever the selected minority group changes
-  useEffect(() => {
-    if (!stateCode || !groupKey) return undefined;
-    let isActive = true;
-    setVraImpactLoading(true);
-    setVraImpactPayload(null);
-    setVraImpactLoadFailed(false);
-    (async () => {
-      try {
-        const response = await axios.get(`/api/states/${stateCode}/analysis/vra-impact-thresholds`, {
-          params: { group: groupKey, election: "2024_pres" },
-        });
-        if (isActive) setVraImpactPayload(response.data);
-      } catch {
-        if (isActive) setVraImpactLoadFailed(true);
-      } finally {
-        if (isActive) setVraImpactLoading(false);
-      }
-    })();
-    return () => { isActive = false; };
-  }, [stateCode, groupKey]);
-
-  // GUI-21: Minority Effectiveness Box & Whisker — no group param, returns all feasible groups
-  useEffect(() => {
-    if (!stateCode) return undefined;
-    let isActive = true;
-    setEffectBoxWhiskerLoading(true);
-    setEffectBoxWhiskerPayload(null);
-    setEffectBoxWhiskerLoadFailed(false);
-    (async () => {
-      try {
-        const response = await axios.get(
-          `/api/states/${stateCode}/analysis/minority-effectiveness/box-whisker`,
-          { params: { election: "2024_pres" } },
-        );
-        if (isActive) setEffectBoxWhiskerPayload(response.data);
-      } catch {
-        if (isActive) setEffectBoxWhiskerLoadFailed(true);
-      } finally {
-        if (isActive) setEffectBoxWhiskerLoading(false);
-      }
-    })();
-    return () => { isActive = false; };
-  }, [stateCode]);
-
-  // GUI-22: Minority Effectiveness Histogram — refetch when the selected minority group changes
-  useEffect(() => {
-    if (!stateCode || !groupKey) return undefined;
-    let isActive = true;
-    setEffectHistogramLoading(true);
-    setEffectHistogramPayload(null);
-    setEffectHistogramLoadFailed(false);
-    (async () => {
-      try {
-        const response = await axios.get(
-          `/api/states/${stateCode}/analysis/minority-effectiveness/histogram`,
-          { params: { group: groupKey, election: "2024_pres" } },
-        );
-        if (isActive) setEffectHistogramPayload(response.data);
-      } catch {
-        if (isActive) setEffectHistogramLoadFailed(true);
-      } finally {
-        if (isActive) setEffectHistogramLoading(false);
-      }
-    })();
-    return () => { isActive = false; };
-  }, [stateCode, groupKey]);
-
-  // Cleanup on unmount
   useEffect(() => {
     return () => switchSimData('');
-  }, []);
+  }, [switchSimData]);
 
   function renderMinoritySelector() {
     return (
@@ -504,27 +322,34 @@ export default function Simulation(props) {
     if (currSimData === "Ensemble Splits") {
       return (
         <EnsembleSplits
-          payload={splitsPayload}
-          loading={splitsLoading}
-          failed={splitsLoadFailed}
+          payload={splitsQuery.data}
+          loading={splitsQuery.isPending && !splitsQuery.data}
+          failed={splitsQuery.isError && !splitsQuery.data}
         />
       );
     }
     if (currSimData === "Box Whisker") {
+      const boxLoading =
+        (raceBlindBoxWhiskerQuery.isPending && !raceBlindBoxWhiskerQuery.data)
+        || (vraConstrainedBoxWhiskerQuery.isPending && !vraConstrainedBoxWhiskerQuery.data);
+      const boxFailed =
+        (raceBlindBoxWhiskerQuery.isError && !raceBlindBoxWhiskerQuery.data)
+        || (vraConstrainedBoxWhiskerQuery.isError && !vraConstrainedBoxWhiskerQuery.data);
+
       return (
         <>
           {renderMinoritySelector()}
           <BoxWhisker
-            payload={boxWhiskerPayloads?.raceBlind ?? null}
-            loading={boxWhiskerLoading}
-            failed={boxWhiskerLoadFailed}
+            payload={raceBlindBoxWhiskerQuery.data ?? null}
+            loading={boxLoading}
+            failed={boxFailed}
             minority={currMinority}
             subtitle="Race-Blind Ensemble"
           />
           <BoxWhisker
-            payload={boxWhiskerPayloads?.vraConstrained ?? null}
-            loading={boxWhiskerLoading}
-            failed={boxWhiskerLoadFailed}
+            payload={vraConstrainedBoxWhiskerQuery.data ?? null}
+            loading={boxLoading}
+            failed={boxFailed}
             minority={currMinority}
             subtitle="VRA-Constrained Ensemble"
           />
@@ -535,14 +360,14 @@ export default function Simulation(props) {
       return (
         <>
           <MinorityEffectivenessBoxWhisker
-            payload={effectBoxWhiskerPayload}
-            loading={effectBoxWhiskerLoading}
-            failed={effectBoxWhiskerLoadFailed}
+            payload={effectBoxWhiskerQuery.data}
+            loading={effectBoxWhiskerQuery.isPending && !effectBoxWhiskerQuery.data}
+            failed={effectBoxWhiskerQuery.isError && !effectBoxWhiskerQuery.data}
           />
           <VRAImpact
-            payload={vraImpactPayload}
-            loading={vraImpactLoading}
-            failed={vraImpactLoadFailed}
+            payload={vraImpactQuery.data}
+            loading={vraImpactQuery.isPending && !vraImpactQuery.data}
+            failed={vraImpactQuery.isError && !vraImpactQuery.data}
           />
         </>
       );
@@ -552,14 +377,14 @@ export default function Simulation(props) {
         <>
           {renderMinoritySelector()}
           <MinorityEffectivenessHistogram
-            payload={effectHistogramPayload}
-            loading={effectHistogramLoading}
-            failed={effectHistogramLoadFailed}
+            payload={effectHistogramQuery.data}
+            loading={effectHistogramQuery.isPending && !effectHistogramQuery.data}
+            failed={effectHistogramQuery.isError && !effectHistogramQuery.data}
           />
           <VRAImpact
-            payload={vraImpactPayload}
-            loading={vraImpactLoading}
-            failed={vraImpactLoadFailed}
+            payload={vraImpactQuery.data}
+            loading={vraImpactQuery.isPending && !vraImpactQuery.data}
+            failed={vraImpactQuery.isError && !vraImpactQuery.data}
           />
         </>
       );
@@ -575,14 +400,14 @@ export default function Simulation(props) {
             ? `${props.currMap} of ${props.currMinority} Population in ${stateName}` : `Map of Current Congressional Districts of ${stateName}`}
         </div>
         {currMap === "District Map" ? (
-          <DistrictMap stateName={stateName} data={mapData} />
+          <DistrictMap stateName={stateName} data={districtTopologyQuery.data} />
         ) : (
           <MinorityHeatMap currMinority={currMinority} switchMinority={switchMinority} />
         )}
-        {mapLoading && (
+        {districtTopologyQuery.isPending && !districtTopologyQuery.data && (
           <div className="sim-page-status-message">Loading {stateName} {currMap}...</div>
         )}
-        {mapLoadFailed && (
+        {districtTopologyQuery.isError && !districtTopologyQuery.data && (
           <div className="sim-page-status-message">Unable to load {stateName} {currMap}</div>
         )}
       </div>

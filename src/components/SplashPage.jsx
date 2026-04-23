@@ -1,50 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import '../../styles/splash-page.css'
-import axios from "axios";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useNavigate } from 'react-router-dom';
-import { topologyToFeatureCollection } from "../utils/topology.js";
-
-function toStateCode(stateName) {
-  if (stateName === "Oregon") {
-    return "OR";
-  }
-
-  if (stateName === "South Carolina") {
-    return "SC";
-  }
-
-  return null;
-}
+import { useQueryClient } from "@tanstack/react-query";
+import { toStateCode } from "../lib/stateMetadata.js";
+import { prefetchStateLandingData, useUsStatesTopologyQuery } from "../queries/stateQueries.js";
 // ─────────────────────────────────────────────
 // SplashPage
 // ─────────────────────────────────────────────
 function Map({switchPage})
 {
   const navigate = useNavigate();
-  const [statesData, setStatesData] = useState(null);
-
-  useEffect(() => {
-    let isActive = true;
-
-    (async () => {
-      try {
-        const response = await axios.get("/api/maps/us-states/topology");
-        if (isActive) {
-          setStatesData(topologyToFeatureCollection(response.data, "states"));
-        }
-      } catch {
-        if (isActive) {
-          setStatesData(null);
-        }
-      }
-    })();
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
+  const queryClient = useQueryClient();
+  const { data: statesData } = useUsStatesTopologyQuery();
 
   useEffect(() => {
     if (!statesData) {
@@ -111,16 +80,12 @@ function Map({switchPage})
         switchPage("State");
 
         try {
-          const response = await axios.get(`/api/states/${stateCode}/state-summary`);
-          navigate(`/state/${stateName}`, {
-            state: {
-              prefetchedStateId: stateCode,
-              prefetchedStateSummary: response.data,
-            },
-          });
+          await prefetchStateLandingData(queryClient, stateCode);
         } catch {
-          navigate(`/state/${stateName}`);
+          // Navigation still proceeds on prefetch failure.
         }
+
+        navigate(`/state/${stateName}`);
       }
     }
 

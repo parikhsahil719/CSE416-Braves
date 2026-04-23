@@ -1,11 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import "../../styles/ei.css";
 import { useParams } from "react-router-dom";
-import axios from "axios";
-import { topologyToFeatureCollection } from "../utils/topology.js";
 import DistrictMap from "./DistrictMap";
 import MinorityHeatMap from "./MinorityHeatMap";
 import EiSupportChart from "../charts/EiSupportChart.jsx";
+import { defaultGroup, toGroupKey, toStateCode } from "../lib/stateMetadata.js";
+import {
+  useDistrictTopologyQuery,
+  useEiKdeQuery,
+  useEiPrecinctBarCiQuery,
+  useEiSupportQuery,
+} from "../queries/stateQueries.js";
 import {
   ResponsiveContainer,
   BarChart,
@@ -20,22 +25,6 @@ import {
   ReferenceLine,
 } from "recharts";
 
-function toStateCode(stateName) {
-  if (stateName === "Oregon") return "OR";
-  if (stateName === "South Carolina") return "SC";
-  return null;
-}
-
-function toGroupKey(minority) {
-  const MAP = { Latino: "latino", Asian: "asian", Black: "black", White: "white" };
-  return MAP[minority] ?? (minority ? minority.toLowerCase() : null);
-}
-
-function defaultGroup(stateCode) {
-  return stateCode === "OR" ? "latino" : "black";
-}
-
-// GUI-12: EI Analysis — support distribution
 function EiAnalysisPanel({ payload, loading, failed, minority }) {
   if (loading) return <div className="ei_placeholder">Loading EI support...</div>;
   if (failed || !payload) return <div className="ei_placeholder">No EI support data available for {minority}.</div>;
@@ -48,7 +37,6 @@ function EiAnalysisPanel({ payload, loading, failed, minority }) {
   );
 }
 
-// GUI-13: EI Bar Chart with confidence intervals
 function EiBarPanel({ payload, loading, failed }) {
   if (loading) return <div className="ei_placeholder">Loading EI bar chart...</div>;
   if (failed || !payload) return <div className="ei_placeholder">No EI bar data available.</div>;
@@ -87,12 +75,10 @@ function EiBarPanel({ payload, loading, failed }) {
   );
 }
 
-// GUI-15: EI KDE — single support-gap curve with threshold reference line
 function EiKdePanel({ payload, loading, failed, minority }) {
   if (loading) return <div className="ei_placeholder">Loading EI KDE...</div>;
   if (failed || !payload) return <div className="ei_placeholder">No EI KDE data available for {minority}.</div>;
 
-  // Single series: support_gap density points
   const gapSeries = payload.series?.[0];
   const data = (gapSeries?.points ?? [])
     .map((pt) => ({ x: pt.x, density: pt.density }))
@@ -127,9 +113,7 @@ function EiKdePanel({ payload, loading, failed, minority }) {
               label={{ value: "Density", angle: -90, position: "insideLeft", offset: -2, style: { fontSize: 12 } }}
             />
             <Tooltip formatter={(v) => [v.toFixed(4), "Density"]} labelFormatter={(v) => `Gap: ${Number(v).toFixed(3)}`} />
-            {/* Histogram bars */}
             <RechartsBar dataKey="density" name="Density" fill="#2a9d8f44" stroke="none" isAnimationActive={false} />
-            {/* KDE curve overlay */}
             <Area
               type="monotone"
               dataKey="density"
@@ -141,7 +125,6 @@ function EiKdePanel({ payload, loading, failed, minority }) {
               strokeWidth={2.5}
               isAnimationActive={false}
             />
-            {/* Threshold reference line */}
             {payload.thresholdX != null && (
               <ReferenceLine
                 x={payload.thresholdX}
@@ -167,159 +150,33 @@ export default function EI(props) {
   const { stateName } = useParams();
   const stateCode = toStateCode(stateName);
   const { currMap, currMinority, switchMinority, currEI, switchEI } = props;
-  const OregonGroups = ["Latino", "Asian"];
-  const SCGroups = ["Black", "Latino"];
-  const minorityOptions = stateName === "Oregon" ?
-    OregonGroups.map((minority) =>
-    <option
-      key={minority}
-      value={minority}
-    >
-      {minority}
-    </option>)
-  : SCGroups.map((minority) =>
-    <option
-      key={minority}
-      value={minority}
-    >
-      {minority}
-    </option>);
-
+  const oregonGroups = ["Latino", "Asian"];
+  const scGroups = ["Black", "Latino"];
+  const minorityOptions = stateName === "Oregon"
+    ? oregonGroups.map((minority) => (
+      <option key={minority} value={minority}>
+        {minority}
+      </option>
+    ))
+    : scGroups.map((minority) => (
+      <option key={minority} value={minority}>
+        {minority}
+      </option>
+    ));
 
   const groupKey = toGroupKey(currMinority) ?? defaultGroup(stateCode);
+  const districtTopologyQuery = useDistrictTopologyQuery(stateCode);
+  const eiSupportQuery = useEiSupportQuery(stateCode, groupKey, currEI === "EI Analysis");
+  const eiBarQuery = useEiPrecinctBarCiQuery(stateCode, groupKey, currEI === "EI Bar Chart");
+  const eiKdeQuery = useEiKdeQuery(stateCode, groupKey, currEI === "EI KDE");
 
-  // District topology for map panel
-  const [mapLoading, setMapLoading] = useState(false);
-  const [mapData, setMapData] = useState(null);
-  const [mapLoadFailed, setMapLoadFailed] = useState(false);
-
-  // GUI-12: EI support distribution
-  const [eiPayload, setEiPayload] = useState(null);
-  const [eiLoading, setEiLoading] = useState(false);
-  const [eiLoadFailed, setEiLoadFailed] = useState(false);
-
-  // GUI-13: EI precinct bar + CI
-  const [barPayload, setBarPayload] = useState(null);
-  const [barLoading, setBarLoading] = useState(false);
-  const [barLoadFailed, setBarLoadFailed] = useState(false);
-
-  // GUI-15: EI KDE
-  const [kdePayload, setKdePayload] = useState(null);
-  const [kdeLoading, setKdeLoading] = useState(false);
-  const [kdeLoadFailed, setKdeLoadFailed] = useState(false);
-
-  // Load district topology
   useEffect(() => {
-    if (!stateCode) {
-      setMapLoadFailed(true);
-      return undefined;
-    }
-    let isActive = true;
-    setMapLoading(true);
-    setMapData(null);
-    setMapLoadFailed(false);
-    (async () => {
-      try {
-        const response = await axios.get(`/api/states/${stateCode}/districts/enacted/topology`);
-        if (isActive) setMapData(topologyToFeatureCollection(response.data, "districts"));
-      } catch {
-        if (isActive) setMapLoadFailed(true);
-      } finally {
-        if (isActive) setMapLoading(false);
-      }
-    })();
-    return () => { isActive = false; };
-  }, [stateCode]);
-
-  // GUI-12: EI support
-  useEffect(() => {
-    if (!stateCode || currEI !== "EI Analysis") {
-      setEiLoading(false);
-      setEiPayload(null);
-      setEiLoadFailed(false);
-      return undefined;
-    }
-    let isActive = true;
-    setEiLoading(true);
-    setEiPayload(null);
-    setEiLoadFailed(false);
-    (async () => {
-      try {
-        const response = await axios.get(`/api/states/${stateCode}/analysis/ei-support`, {
-          params: { groups: groupKey, election: "2024_pres", party: "DEM" },
-        });
-        if (isActive) setEiPayload(response.data);
-      } catch {
-        if (isActive) setEiLoadFailed(true);
-      } finally {
-        if (isActive) setEiLoading(false);
-      }
-    })();
-    return () => { isActive = false; };
-  }, [currEI, stateCode, groupKey]);
-
-  // GUI-13: EI precinct bar + CI
-  useEffect(() => {
-    if (!stateCode || currEI !== "EI Bar Chart") {
-      setBarLoading(false);
-      setBarPayload(null);
-      setBarLoadFailed(false);
-      return undefined;
-    }
-    let isActive = true;
-    setBarLoading(true);
-    setBarPayload(null);
-    setBarLoadFailed(false);
-    (async () => {
-      try {
-        const response = await axios.get(`/api/states/${stateCode}/analysis/ei-precinct-bar-ci`, {
-          params: { group: groupKey, election: "2024_pres", party: "DEM" },
-        });
-        if (isActive) setBarPayload(response.data);
-      } catch {
-        if (isActive) setBarLoadFailed(true);
-      } finally {
-        if (isActive) setBarLoading(false);
-      }
-    })();
-    return () => { isActive = false; };
-  }, [currEI, stateCode, groupKey]);
-
-  // GUI-15: EI KDE
-  useEffect(() => {
-    if (!stateCode || currEI !== "EI KDE") {
-      setKdeLoading(false);
-      setKdePayload(null);
-      setKdeLoadFailed(false);
-      return undefined;
-    }
-    let isActive = true;
-    setKdeLoading(true);
-    setKdePayload(null);
-    setKdeLoadFailed(false);
-    (async () => {
-      try {
-        const response = await axios.get(`/api/states/${stateCode}/analysis/ei-kde`, {
-          params: { group: groupKey, election: "2024_pres", metric: "support_gap" },
-        });
-        if (isActive) setKdePayload(response.data);
-      } catch {
-        if (isActive) setKdeLoadFailed(true);
-      } finally {
-        if (isActive) setKdeLoading(false);
-      }
-    })();
-    return () => { isActive = false; };
-  }, [currEI, stateCode, groupKey]);
+    return () => switchEI('');
+  }, [switchEI]);
 
   if (!stateCode) {
     return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: State not found</div>;
   }
-
-  // cleanup
-  useEffect(() => {
-    return () => switchEI('');
-  }, [])
 
   function renderActivePanel() {
     if (currEI === "EI Analysis") {
@@ -331,15 +188,34 @@ export default function EI(props) {
               {minorityOptions}
             </select>
           </div>
-          <EiAnalysisPanel payload={eiPayload} loading={eiLoading} failed={eiLoadFailed} minority={currMinority} />
+          <EiAnalysisPanel
+            payload={eiSupportQuery.data}
+            loading={eiSupportQuery.isPending && !eiSupportQuery.data}
+            failed={eiSupportQuery.isError && !eiSupportQuery.data}
+            minority={currMinority}
+          />
         </>
       );
     }
     if (currEI === "EI Bar Chart") {
-      return <EiBarPanel payload={barPayload} loading={barLoading} failed={barLoadFailed} minority={currMinority} />;
+      return (
+        <EiBarPanel
+          payload={eiBarQuery.data}
+          loading={eiBarQuery.isPending && !eiBarQuery.data}
+          failed={eiBarQuery.isError && !eiBarQuery.data}
+          minority={currMinority}
+        />
+      );
     }
     if (currEI === "EI KDE") {
-      return <EiKdePanel payload={kdePayload} loading={kdeLoading} failed={kdeLoadFailed} minority={currMinority} />;
+      return (
+        <EiKdePanel
+          payload={eiKdeQuery.data}
+          loading={eiKdeQuery.isPending && !eiKdeQuery.data}
+          failed={eiKdeQuery.isError && !eiKdeQuery.data}
+          minority={currMinority}
+        />
+      );
     }
     return null;
   }
@@ -351,14 +227,14 @@ export default function EI(props) {
           {props.currMap === 'Precinct Heat Map' ? `${props.currMap} of ${props.currMinority} Population in ${stateName}` : `Map of Current Congressional Districts of ${stateName}`}
         </div>
         {currMap === "District Map" ? (
-          <DistrictMap stateName={stateName} data={mapData} />
+          <DistrictMap stateName={stateName} data={districtTopologyQuery.data} />
         ) : (
           <MinorityHeatMap currMinority={currMinority} switchMinority={switchMinority} />
         )}
-        {mapLoading && (
+        {districtTopologyQuery.isPending && !districtTopologyQuery.data && (
           <div className="ei-page-status-message">Loading {stateName} {currMap}...</div>
         )}
-        {mapLoadFailed && (
+        {districtTopologyQuery.isError && !districtTopologyQuery.data && (
           <div className="ei-page-status-message">Unable to load {stateName} {currMap}</div>
         )}
       </div>
