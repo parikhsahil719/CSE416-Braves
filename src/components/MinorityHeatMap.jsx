@@ -8,11 +8,10 @@ import { toStateCode, toGroupKey } from "../utils/stateUtils.js";
 import { useHeatmap, usePrecinctTopology } from "../queries/stateQueries.js";
 
 function percentageColor(pct) {
-  if (pct > 70) return "#004529"; if (pct > 60) return "#006837";
-  if (pct > 50) return "#238443"; if (pct > 40) return "#41ab5d";
-  if (pct > 30) return "#78c679"; if (pct > 20) return "#addd8e";
-  if (pct > 10) return "#d9f0a3"; if (pct > 5)  return "#f7fcb9";
-  return "#ffffe5";
+  if (pct > 50) return "#005a32"; if (pct > 40) return "#238443";
+  if (pct > 30) return "#41ab5d"; if (pct > 20) return "#78c679";
+  if (pct > 10) return "#addd8e"; if (pct > 5) return "#d9f0a3";
+  return "#ffffcc";
 }
 
 function featurePercent(feature, currMinority) {
@@ -35,7 +34,7 @@ function TopoJSON({ currMinority, data, infoRef }) {
 
   useEffect(() => { layerRef.current?.clearLayers(); layerRef.current?.addData(topologyToFeatureCollection(data)); }, [data]);
 
-  return <GeoJSON data={topologyToFeatureCollection(data)} ref={layerRef} style={style} onEachFeature={onEachFeature} />;
+  return <GeoJSON key={currMinority} data={topologyToFeatureCollection(data)} ref={layerRef} style={style} onEachFeature={onEachFeature} />;
 }
 
 function InfoControl({ infoRef }) {
@@ -58,12 +57,16 @@ function LegendControl({ bins }) {
     legend.onAdd = function () {
       const div = L.DomUtil.create("div", "info legend");
       div.innerHTML += "<h4>% Population</h4>";
-      const grades = Array.isArray(bins) && bins.length > 0 ? null : [0, 10, 20, 30, 40, 50, 60, 70, 80];
-      if (bins?.length) {
-        bins.forEach(b => { div.innerHTML += `<div style="display:flex;align-items:center;margin-bottom:4px"><i style="background:${b.color};display:inline-block"></i>${b.max >= 100 ? `${b.min}+` : `${b.min}-${b.max}`}</div>`; });
-      } else {
-        grades.forEach((g, i) => { div.innerHTML += `<div style="display:flex;align-items:center;margin-bottom:4px"><i style="background:${percentageColor(g + 0.01)};display:inline-block"></i>${g}${grades[i + 1] ? `&ndash;${grades[i + 1]}` : "+"}</div>`; });
-      }
+
+      const grades = [0, 5, 10, 20, 30, 40, 50];
+      grades.forEach((g, i) => { div.innerHTML += `<div style="display:flex;align-items:center;margin-bottom:4px"><i style="background:${percentageColor(g + 0.01)};display:inline-block"></i>${g}${grades[i + 1] ? `&ndash;${grades[i + 1]}` : "+"}</div>`; });
+
+      // const grades = Array.isArray(bins) && bins.length > 0 ? null : [0, 5, 10, 20, 30, 40, 50];
+      // if (bins?.length) {
+      //   bins.forEach(b => { div.innerHTML += `<div style="display:flex;align-items:center;margin-bottom:4px"><i style="background:${b.color};display:inline-block"></i>${b.max >= 100 ? `${b.min}+` : `${b.min}-${b.max}`}</div>`; });
+      // } else {
+      //   grades.forEach((g, i) => { div.innerHTML += `<div style="display:flex;align-items:center;margin-bottom:4px"><i style="background:${percentageColor(g + 0.01)};display:inline-block"></i>${g}${grades[i + 1] ? `&ndash;${grades[i + 1]}` : "+"}</div>`; });
+      // }
       return div;
     };
     legend.addTo(map);
