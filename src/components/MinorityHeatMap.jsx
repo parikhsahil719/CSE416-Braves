@@ -1,293 +1,115 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import "../../styles/minority-map.css";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import L from "leaflet";
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
 import { topologyToFeatureCollection } from "../utils/topology.js";
+import { toStateCode, toGroupKey } from "../utils/stateUtils.js";
+import { useHeatmap, usePrecinctTopology } from "../queries/stateQueries.js";
 
-function defaultGetColor(percentage) {
-  return percentage > 70 ? "#004529" :
-    percentage > 60 ? "#006837" :
-      percentage > 50 ? "#238443" :
-        percentage > 40 ? "#41ab5d" :
-          percentage > 30 ? "#78c679" :
-            percentage > 20 ? "#addd8e" :
-              percentage > 10 ? "#d9f0a3" :
-                percentage > 5 ? "#f7fcb9" :
-                  "#ffffe5";
+function percentageColor(pct) {
+  if (pct > 70) return "#004529"; if (pct > 60) return "#006837";
+  if (pct > 50) return "#238443"; if (pct > 40) return "#41ab5d";
+  if (pct > 30) return "#78c679"; if (pct > 20) return "#addd8e";
+  if (pct > 10) return "#d9f0a3"; if (pct > 5)  return "#f7fcb9";
+  return "#ffffe5";
 }
 
-function getColor(percentage, bins) {
-  if (Array.isArray(bins) && bins.length > 0) {
-    const match = bins.find((bin) => percentage >= bin.min && percentage < bin.max) ?? bins[bins.length - 1];
-    return defaultGetColor(percentage);
-  }
-  return defaultGetColor(percentage);
+function featurePercent(feature, currMinority) {
+  const map = { Black: feature?.properties?.black, Asian: feature?.properties?.asian, Latino: feature?.properties?.hispanic };
+  const raw = map[currMinority] / feature?.properties?.total * 100;
+  return Number.isFinite(raw) ? raw : 0;
 }
 
-function fallbackFeaturePercent(feature) {
-  const geoid = String(feature?.properties?.GEOID ?? feature?.id ?? "");
-  let hash = 0;
-  for (let index = 0; index < geoid.length; index += 1) {
-    hash = (hash * 31 + geoid.charCodeAt(index)) % 101;
-  }
-  return hash;
-}
-
-function TopoJSON(props) {
+function TopoJSON({ currMinority, data, infoRef }) {
   const layerRef = useRef(null);
-  const { currMinority, data, bins, infoRef } = props;
 
-  function toPercent(feature) {
-    const groupMappings = {"Black": feature?.properties?.black, "Asian": feature?.properties?.asian, "Latino": feature?.properties?.hispanic};
-    const population = groupMappings[currMinority];
-    const res = population / feature?.properties?.total * 100;
-    if (res)
-      return population / feature?.properties?.total * 100;
-    else
-      return 0;
-  }
-
-  function style(feature) {
-    return {
-      fillColor: getColor(toPercent(feature), bins),
-      weight: 2,
-      opacity: 1,
-      color: "white",
-      dashArray: "3",
-      fillOpacity: 0.7,
-    };
-  }
-
-  function highlightFeature(event) {
-    const layer = event.target;
-
-    layer.setStyle({
-      weight: 2,
-      color: "#666",
-      dashArray: "",
-      fillOpacity: 0.7,
-    });
-
-    layer.bringToFront();
-
-    if (infoRef.current) {
-      infoRef.current.update(toPercent(layer.feature).toFixed(2));
-    }
-  }
-
-  function resetHighlight(event) {
-    if (!layerRef.current) {
-      return;
-    }
-
-    layerRef.current.resetStyle(event.target);
-
-    if (infoRef.current) {
-      infoRef.current.update();
-    }
-  }
+  const style = f => ({ fillColor: percentageColor(featurePercent(f, currMinority)), weight: 2, opacity: 1, color: "white", dashArray: "3", fillOpacity: 0.7 });
 
   function onEachFeature(feature, layer) {
     layer.on({
-      mouseover: highlightFeature,
-      mouseout: resetHighlight,
+      mouseover: e => { e.target.setStyle({ weight: 2, color: "#666", dashArray: "", fillOpacity: 0.7 }); e.target.bringToFront(); infoRef.current?.update(featurePercent(e.target.feature, currMinority).toFixed(2)); },
+      mouseout:  e => { layerRef.current?.resetStyle(e.target); infoRef.current?.update(); },
     });
   }
 
-  useEffect(() => {
-    const layer = layerRef.current;
-    layer.clearLayers();
-    layer.addData(topologyToFeatureCollection(data));
-  }, [data]);
+  useEffect(() => { layerRef.current?.clearLayers(); layerRef.current?.addData(topologyToFeatureCollection(data)); }, [data]);
 
   return <GeoJSON data={topologyToFeatureCollection(data)} ref={layerRef} style={style} onEachFeature={onEachFeature} />;
 }
 
-function Info({ infoRef }) {
+function InfoControl({ infoRef }) {
   const map = useMap();
-
   useEffect(() => {
     const info = L.control({ position: "topright" });
-
-    info.onAdd = function onAdd() {
-      this._div = L.DomUtil.create("div", "info");
-      this.update();
-      return this._div;
-    };
-
-    info.update = function update(props) {
-      this._div.innerHTML =
-        `<h4>Population Percentage</h4>` +
-        (props ? `<b>${props}%</b><br />` : "Hover over a precinct");
-    };
-
+    info.onAdd = function () { this._div = L.DomUtil.create("div", "info"); this.update(); return this._div; };
+    info.update = function (pct) { this._div.innerHTML = `<h4>Population Percentage</h4>${pct ? `<b>${pct}%</b><br />` : "Hover over a precinct"}`; };
     info.addTo(map);
     infoRef.current = info;
-
-    return () => {
-      info.remove();
-      infoRef.current = null;
-    };
+    return () => { info.remove(); infoRef.current = null; };
   }, [map, infoRef]);
-
   return null;
 }
 
-function Legend({ bins }) {
+function LegendControl({ bins }) {
   const map = useMap();
-
   useEffect(() => {
     const legend = L.control({ position: "bottomright" });
-
-    legend.onAdd = function onAdd() {
+    legend.onAdd = function () {
       const div = L.DomUtil.create("div", "info legend");
-      const fallbackGrades = [0, 10, 20, 30, 40, 50, 60, 70, 80];
-
       div.innerHTML += "<h4>% Population</h4>";
-
-      if (Array.isArray(bins) && bins.length > 0) {
-        bins.forEach((bin) => {
-          const label = bin.max >= 100 ? `${bin.min}+` : `${bin.min}-${bin.max}`;
-          div.innerHTML += `
-            <div style="display:flex; align-items:center; margin-bottom:4px;">
-              <i style="background:${bin.color}; display:inline-block;"></i>
-              ${label}
-            </div>`;
-        });
-        return div;
+      const grades = Array.isArray(bins) && bins.length > 0 ? null : [0, 10, 20, 30, 40, 50, 60, 70, 80];
+      if (bins?.length) {
+        bins.forEach(b => { div.innerHTML += `<div style="display:flex;align-items:center;margin-bottom:4px"><i style="background:${b.color};display:inline-block"></i>${b.max >= 100 ? `${b.min}+` : `${b.min}-${b.max}`}</div>`; });
+      } else {
+        grades.forEach((g, i) => { div.innerHTML += `<div style="display:flex;align-items:center;margin-bottom:4px"><i style="background:${percentageColor(g + 0.01)};display:inline-block"></i>${g}${grades[i + 1] ? `&ndash;${grades[i + 1]}` : "+"}</div>`; });
       }
-
-      for (let index = 0; index < fallbackGrades.length; index += 1) {
-        div.innerHTML += `
-          <div style="display:flex; align-items:center; margin-bottom:4px;">
-            <i style="background:${defaultGetColor(fallbackGrades[index] + 0.01)}; display:inline-block;"></i>
-            ${fallbackGrades[index]}${fallbackGrades[index + 1] ? `&ndash;${fallbackGrades[index + 1]}` : "+"}
-          </div>`;
-      }
-
       return div;
     };
-
     legend.addTo(map);
-
-    return () => {
-      legend.remove();
-    };
+    return () => legend.remove();
   }, [bins, map]);
-
   return null;
+}
+
+function MinoritySelector({ stateName, currMinority, switchMinority }) {
+  const options = (stateName === "Oregon" ? ["Latino", "Asian"] : ["Black", "Latino"])
+    .map(m => <option key={m} value={m}>{m}</option>);
+  return (
+    <div className="minority-selector-container">
+      <label htmlFor="minoritySelector" style={{ fontWeight: "bolder" }}>Select a racial group: </label>
+      <select name="minoritySelector" value={currMinority} onChange={e => switchMinority(e.target.value)}>{options}</select>
+    </div>
+  );
 }
 
 export default function MinorityHeatMap({ currMinority, switchMinority }) {
   const { stateName } = useParams();
-  const [bins, setBins] = useState([]);
-  const [topologyData, setTopologyData] = useState(null);
-  const [geometryLoadFailed, setGeometryLoadFailed] = useState(false);
-  const infoRef = useRef(null);
+  const stateCode  = toStateCode(stateName);
+  const group      = toGroupKey(currMinority);
+  const infoRef    = useRef(null);
 
-  const OregonGroups = ["Latino", "Asian"];
-  const SCGroups = ["Black", "Latino"];
-  const minorityOptions = stateName === "Oregon" ?
-    OregonGroups.map((minority) =>
-    <option
-      key={minority}
-      value={minority}
-    >
-      {minority}
-    </option>)
-  : SCGroups.map((minority) =>
-    <option
-      key={minority}
-      value={minority}
-    >
-      {minority}
-    </option>);
+  const heatmap = useHeatmap(stateCode, group);
+  const topo    = usePrecinctTopology(stateCode);
 
-  useEffect(() => {
-    let isActive = true;
-    const stateCode = stateName === "Oregon" ? "OR" : stateName === "South Carolina" ? "SC" : null;
-    const group = currMinority?.trim().toLowerCase().replace(/\s+/g, "_");
+  if (!stateName) return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: State not found</div>;
+  if (topo.isError) return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Unable to load precinct topology</div>;
+  if (!topo.data)   return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Loading precinct topology...</div>;
 
-    if (!stateCode || !group) {
-      setBins([]);
-      setTopologyData(null);
-      setGeometryLoadFailed(true);
-      return undefined;
-    }
-
-    setGeometryLoadFailed(false);
-
-    (async () => {
-      try {
-        const response = await axios.get(`/api/states/${stateCode}/heatmap/precincts`, { params: { group } });
-        if (isActive) {
-          setBins(response.data?.bins ?? []);
-        }
-      } catch {
-        if (isActive) {
-          setBins([]);
-        }
-      }
-    })();
-
-    (async () => {
-      try {
-        const response = await axios.get(`/api/states/${stateCode}/precincts/topology`);
-        if (isActive) {
-          setTopologyData(response.data);
-          setGeometryLoadFailed(false);
-        }
-      } catch {
-        if (isActive) {
-          setTopologyData(null);
-          setGeometryLoadFailed(true);
-        }
-      }
-    })();
-
-    return () => {
-      isActive = false;
-    };
-  }, [currMinority, stateName]);
-
-  if (!stateName) {
-    return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: State not found</div>;
-  }
-
-  if (!topologyData) {
-    if (geometryLoadFailed) {
-      return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Unable to load precinct topology</div>;
-    }
-    return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Loading precinct topology...</div>;
-  }
+  const center  = stateName === "Oregon" ? [44.1, -119.6] : [33.33, -80.5];
+  const zoom    = stateName === "Oregon" ? 6.3 : 7.1;
+  const minZoom = stateName === "Oregon" ? 6.1 : 6.9;
+  const bounds  = stateName === "Oregon" ? [[47, -125], [41, -114.4]] : [[35.6, -83.3], [31.5, -77.5]];
 
   return (
     <>
-      <div className="minority-selector-container">
-        <label htmlFor="minoritySelector" style={{ fontWeight: "bolder" }}>Select a racial group: </label>
-        <select name="minoritySelector" value={currMinority} onChange={(e) => {switchMinority(e.target.value)}}>
-          {minorityOptions}
-        </select>
-      </div>
+      <MinoritySelector stateName={stateName} currMinority={currMinority} switchMinority={switchMinority} />
       <div id="minoritymap">
-        <MapContainer center={stateName === "Oregon" ? [44.1, -119.6] : [33.33, -80.5]}
-          zoom={stateName === "Oregon" ? 6.3 : 7.1}
-          zoomSnap={0.1}
-          minZoom={stateName === "Oregon" ? 6.1 : 6.9}
-          zoomControl={false}
-          doubleClickZoom={false}
-          keyboard={false}
-          maxBounds={stateName === "Oregon" ? [[47, -125], [41, -114.4]] : [[35.6, -83.3], [31.5, -77.5]]}
-          className="minorityLeafletMap">
-          <TileLayer
-            attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
-          />
-          <TopoJSON currMinority={currMinority} data={topologyData} bins={bins} infoRef={infoRef} />
-          <Info infoRef={infoRef} />
-          <Legend bins={bins} />
+        <MapContainer center={center} zoom={zoom} zoomSnap={0.1} minZoom={minZoom} zoomControl={false} doubleClickZoom={false} keyboard={false} maxBounds={bounds} className="minorityLeafletMap">
+          <TileLayer attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.osm.org/{z}/{x}/{y}.png" />
+          <TopoJSON currMinority={currMinority} data={topo.data} infoRef={infoRef} />
+          <InfoControl infoRef={infoRef} />
+          <LegendControl bins={heatmap.data?.bins ?? []} />
         </MapContainer>
       </div>
     </>
