@@ -107,6 +107,11 @@ export default function Gingles({ currMap, currMinority, switchMinority, switchP
   const topo = useDistrictTopology(stateCode);
   const mapData = topo.data ? topologyToFeatureCollection(topo.data, "districts") : null;
 
+  useEffect(() => {
+    if (!groupOptionsForState(stateName).includes(currMinority))
+      switchMinority(defaultGroup(stateCode));
+  }, []);
+
   useEffect(() => () => switchPolarization(''), []);
 
   return (
