@@ -17,5 +17,5 @@ export function defaultGroup(stateCode) {
 }
 
 export function groupOptionsForState(stateName) {
-  return stateName === 'Oregon' ? ['Latino', 'Asian'] : ['Black', 'Latino'];
+  return stateName === 'Oregon' ? ['Latino'] : ['Black', 'Latino'];
 }

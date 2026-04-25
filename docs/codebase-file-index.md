@@ -170,7 +170,7 @@ Each repository provides Spring Data MongoDB CRUD + custom queries for its docum
 | `StateMinorityAnalysis.jsx` | Container for minority effectiveness views — GUI-21, GUI-22 |
 | `StateCustomAnalysis.jsx` | Container for custom analysis workflows |
 | `StateSimulationMinorityData.jsx` | Simulation and ensemble comparison view container |
-| `CrossStateAnalysis.jsx` | Multi-state comparative analysis container |
+| `Gingles.jsx` | Multi-state comparative analysis container |
 | `VRAAnalysis.jsx` | VRA impact analysis view container — GUI-20 |
 | `Compare.jsx` | Side-by-side district plan comparison — GUI-8 |
 

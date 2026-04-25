@@ -7,6 +7,7 @@ import { useDistrictTopology, useEiSupport, useEiPrecinctBarCi, useEiKde } from 
 import DistrictMap from "./DistrictMap";
 import MinorityHeatMap from "./MinorityHeatMap";
 import EiSupportChart from "../charts/EiSupportChart.jsx";
+import MinoritySelector from "./MinoritySelector.jsx";
 import { ResponsiveContainer, BarChart, ComposedChart, Bar as RechartsBar, XAxis, YAxis, CartesianGrid, Tooltip, ErrorBar, Area, ReferenceLine } from "recharts";
 
 // GUI-12: EI Analysis — support distribution
@@ -31,7 +32,7 @@ function EiBarPanel({ payload, loading, failed }) {
     <div className="ei-chartStack">
       <div className="ei-chartTitle">Support for {payload.selectedCandidate}</div>
       <div className="ei-chartSubtitle">Peak support with 95% CI by group &mdash; {payload.election}</div>
-      <div style={{ width: "100%", height: "320px" }}>
+      <div style={{ width: "100%", height: "55vh" }}>
         <ResponsiveContainer>
           <BarChart data={data} margin={{ top: 12, right: 18, left: 12, bottom: 30 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#d4d4d8" />
@@ -59,7 +60,7 @@ function EiKdePanel({ payload, loading, failed, minority }) {
     <div className="ei-chartStack">
       <div className="ei-chartTitle">{payload.metricLabel}</div>
       {thresholdPct && <div className="ei-chartSubtitle">{payload.thresholdLabel}: <strong>{thresholdPct}</strong></div>}
-      <div style={{ width: "100%", height: "320px" }}>
+      <div style={{ width: "100%", height: "55vh" }}>
         <ResponsiveContainer>
           <ComposedChart data={data} margin={{ top: 12, right: 18, left: 12, bottom: 40 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#d4d4d8" />
@@ -76,36 +77,26 @@ function EiKdePanel({ payload, loading, failed, minority }) {
   );
 }
 
-function MinoritySelector({ stateName, currMinority, switchMinority }) {
-  const options = groupOptionsForState(stateName).map(m => <option key={m} value={m}>{m}</option>);
-  return (
-    <div className="minority-selector-container">
-      <label htmlFor="minoritySelector" style={{ fontWeight: "bolder" }}>Select a racial group: </label>
-      <select name="minoritySelector" value={currMinority} onChange={e => switchMinority(e.target.value)}>{options}</select>
-    </div>
-  );
-}
-
-export default function EI({ currMap, currMinority, switchMinority, currEI, switchEI }) {
+export default function EI({ currMap, currMinority, switchMinority, currPolarization, switchPolarization }) {
   const { stateName } = useParams();
   const stateCode = toStateCode(stateName);
-  const groupKey  = toGroupKey(currMinority) ?? defaultGroup(stateCode);
+  const groupKey = toGroupKey(currMinority) ?? defaultGroup(stateCode);
 
-  const topo   = useDistrictTopology(stateCode);
+  const topo = useDistrictTopology(stateCode);
   const eiSupp = useEiSupport(stateCode, groupKey);
-  const eiBar  = useEiPrecinctBarCi(stateCode, groupKey);
-  const eiKde  = useEiKde(stateCode, groupKey);
+  const eiBar = useEiPrecinctBarCi(stateCode, groupKey);
+  const eiKde = useEiKde(stateCode, groupKey);
 
-  useEffect(() => () => switchEI(''), []);
+  useEffect(() => () => switchPolarization(''), []);
 
   if (!stateCode) return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: State not found</div>;
 
   const mapData = topo.data ? topologyToFeatureCollection(topo.data, "districts") : null;
 
   function renderPanel() {
-    if (currEI === "EI Analysis") return (<><MinoritySelector stateName={stateName} currMinority={currMinority} switchMinority={switchMinority} /><EiAnalysisPanel payload={eiSupp.data} loading={eiSupp.isLoading} failed={eiSupp.isError} minority={currMinority} /></>);
-    if (currEI === "EI Bar Chart") return <EiBarPanel payload={eiBar.data} loading={eiBar.isLoading} failed={eiBar.isError} />;
-    if (currEI === "EI KDE")       return <EiKdePanel payload={eiKde.data} loading={eiKde.isLoading} failed={eiKde.isError} minority={currMinority} />;
+    if (currPolarization === "EI Analysis") return (<><MinoritySelector stateName={stateName} currMinority={currMinority} switchMinority={switchMinority} /><EiAnalysisPanel payload={eiSupp.data} loading={eiSupp.isLoading} failed={eiSupp.isError} minority={currMinority} /></>);
+    if (currPolarization === "EI Bar Chart") return <EiBarPanel payload={eiBar.data} loading={eiBar.isLoading} failed={eiBar.isError} />;
+    if (currPolarization === "EI KDE") return <EiKdePanel payload={eiKde.data} loading={eiKde.isLoading} failed={eiKde.isError} minority={currMinority} />;
     return null;
   }
 
@@ -113,14 +104,14 @@ export default function EI({ currMap, currMinority, switchMinority, currEI, swit
     <span id="ei-page-main">
       <div id="ei-page-map-container">
         <div className="ei-page-map-label">
-          {currMap === 'Precinct Heat Map' ? `${currMap} of ${currMinority} Population in ${stateName}` : `Map of Current Congressional Districts of ${stateName}`}
+          {currMap === 'Precinct Heat Map' ? `${currMap} of ${currMinority} Population in ${stateName}` : `Current Congressional Districts of ${stateName}`}
         </div>
         {currMap === "District Map" ? <DistrictMap stateName={stateName} data={mapData} /> : <MinorityHeatMap currMinority={currMinority} switchMinority={switchMinority} />}
         {topo.isLoading && <div className="ei-page-status-message">Loading {stateName} {currMap}...</div>}
-        {topo.isError   && <div className="ei-page-status-message">Unable to load {stateName} {currMap}</div>}
+        {topo.isError && <div className="ei-page-status-message">Unable to load {stateName} {currMap}</div>}
       </div>
       <div id="ei-page-chart-main-container">
-        <div className="ei-page-chart-label">{currEI}</div>
+        <div className="ei-page-chart-label">{currPolarization}</div>
         {renderPanel()}
       </div>
     </span>

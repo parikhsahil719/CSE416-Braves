@@ -37,14 +37,6 @@
   margin-right: 5%;
 }
 
-#statePagemap {
-  flex: 1 1 auto;
-  width: min(100%, 52rem);
-  height: min(75vh, 50rem);
-  min-height: 0;
-  border: 1px solid var(--color-line);
-}
-
 .districtMapPlaceholder {
   background: #f5f5f5;
 }
@@ -62,18 +54,16 @@
 
 .statePageLabelsContainer {
   display: flex;
-}
-
-.statePageLeftDataTab {
-  border-top-left-radius: 1rem;
+  border-bottom: solid 1.5px rgb(117, 117, 117);
+  padding-left: 0.5rem;
 }
 
 .statePageDataTab {
   font-weight: bold;
   font-size: 1.25rem;
-  padding: 0.5rem 2rem;
-  border: solid 1px black;
+  padding: 0.25rem 2rem 0.5rem;
   margin-left: -1px;
+  color: rgb(161, 161, 161);
 }
 
 .statePageDataTab:hover {
@@ -87,8 +77,8 @@
   flex-direction: column;
   gap: 1rem;
   background-color: #e8eaec;
-  border-radius: 0rem 0rem 1rem 1rem;
-  padding: clamp(0.5rem, 0.7vw, 2rem) clamp(1rem, 0.7vw, 2rem);
+  border-radius: 2rem;
+  padding: clamp(0.5rem, 0.65vw, 1rem) 0px;
 }
 
 .statePagePopulationDataContainer {
@@ -101,6 +91,7 @@
   min-width: 30%;
   max-width: fit-content;
   background-color: #fafeff;
+  margin-left: clamp(1rem, 1.2vw, 1.5rem);
   padding: clamp(0.8rem, 1.5vh, 1rem) 1.5rem;
   border-radius: 1rem;
   display: flex;
@@ -128,8 +119,8 @@
 }
 
 .statePageActiveTab {
-  background-color: #e8eaec;
-  border: solid 3px black;
+  color: #22c55e;
+  border-bottom: solid 3px #22c55e;
 }
 
 #statePageDataFooter {
@@ -147,7 +138,8 @@
 }
 
 .districts-table-container {
-  width: 100%;
+  width: 95%;
+  padding: clamp(0.5rem, 0.65vw, 1rem) 2.5%;
 }
 
 .districts-table {

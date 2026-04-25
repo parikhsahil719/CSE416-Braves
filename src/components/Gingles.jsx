@@ -25,12 +25,12 @@ function PrecinctTable({ rows }) {
 
   useEffect(() => {
     const wrapper = tableWrapperRef.current;
-    const table   = tableRef.current;
+    const table = tableRef.current;
     if (!wrapper || !table || rows.length === 0) return undefined;
 
     function updatePageSize() {
       const headerRow = table.querySelector("tr");
-      const bodyRow   = table.querySelector("tbody tr:nth-child(2)");
+      const bodyRow = table.querySelector("tbody tr:nth-child(2)");
       if (!headerRow || !bodyRow) return;
       const available = Math.max(0, wrapper.clientHeight - headerRow.getBoundingClientRect().height);
       setPageSize(Math.max(1, Math.min(rows.length, Math.floor(available / bodyRow.getBoundingClientRect().height))));
@@ -77,9 +77,9 @@ function PrecinctTable({ rows }) {
 
 function StateSection({ title, stateKey, stateData }) {
   const [currentGroup, changeGroup] = useState(stateData?.minorityData?.minorityList?.[0] ?? "");
-  const group   = currentGroup?.trim().toLowerCase().replace(/\s+/g, "_");
+  const group = currentGroup?.trim().toLowerCase().replace(/\s+/g, "_");
 
-  const gingles      = useGingles(stateKey, group);
+  const gingles = useGingles(stateKey, group);
   const ginglesTable = useGinglesTable(stateKey, group);
 
   const options = useMemo(() => {
@@ -103,7 +103,7 @@ function StateSection({ title, stateKey, stateData }) {
   );
 }
 
-export default function CrossStateAnalysis({ minorityData }) {
+export default function Gingles({ minorityData }) {
   const SCData = minorityData.find(e => e.stateName === "South Carolina") ?? null;
   const ORData = minorityData.find(e => e.stateName === "Oregon") ?? null;
 

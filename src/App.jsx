@@ -29,7 +29,7 @@ function CacheBuster() {
 const StateMinorityAnalysis = lazy(() => import('./components/StateMinorityAnalysis'))
 const StateCustomAnalysis = lazy(() => import('./components/StateCustomAnalysis'))
 const StateSimulationMinorityData = lazy(() => import('./components/StateSimulationMinorityData'))
-const CrossStateAnalysis = lazy(() => import('./components/Gingles'))
+const Gingles = lazy(() => import('./components/Gingles'))
 const VRAAnalysis = lazy(() => import('./components/VRAAnalysis'))
 const Compare = lazy(() => import('./components/Compare'))
 const EI = lazy(() => import('./components/EI'))
@@ -44,7 +44,7 @@ export default function App() {
   // State variable for switching minority group
   const [currMinority, switchMinority] = useState('Latino');
   // State variable for switching EI chart
-  const [currEI, switchEI] = useState('');
+  const [currPolarization, switchPolarization] = useState('');
   // State variable for switching simulation data
   const [currSimData, switchSimData] = useState('');
   // Store relevant data that will ALMOST ALWAYS be used here, others can be pulled on demand
@@ -52,7 +52,7 @@ export default function App() {
   const minorityData = [
     {
       stateName: 'Oregon',
-      minorityData: { minorityList: ['Latino', 'Asian', 'Black'] }
+      minorityData: { minorityList: ['Latino'] }
     },
     {
       stateName: 'South Carolina',
@@ -75,10 +75,10 @@ export default function App() {
         <Route path='/state/:stateName/Gingles' element={
           <>
             <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' />
-            <SideBar currPage={currPage} switchPage={switchPage} currMap={currMap} switchMap={switchMap} precinctMapSelectable={true} currEI={currEI} switchEI={switchEI} currSimData={currSimData} switchSimData={switchSimData} />
+            <SideBar currPage={currPage} switchPage={switchPage} currMap={currMap} switchMap={switchMap} precinctMapSelectable={true} currPolarization={currPolarization} switchPolarization={switchPolarization} currSimData={currSimData} switchSimData={switchSimData} />
             <span className="main-container">
               <Suspense fallback={lazyFallback}>
-                <CrossStateAnalysis currPage={currPage} switchPage={switchPage} minorityData={minorityData} />
+                <Gingles currPage={currPage} switchPage={switchPage} minorityData={minorityData} />
               </Suspense>
             </span>
           </>
@@ -86,7 +86,7 @@ export default function App() {
         <Route path={`/state/:stateName`} element={
           <>
             <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' />
-            <SideBar currPage={currPage} switchPage={switchPage} currMap={currMap} switchMap={switchMap} precinctMapSelectable={true} currEI={currEI} switchEI={switchEI} currSimData={currSimData} switchSimData={switchSimData} />
+            <SideBar currPage={currPage} switchPage={switchPage} currMap={currMap} switchMap={switchMap} precinctMapSelectable={true} currPolarization={currPolarization} switchPolarization={switchPolarization} currSimData={currSimData} switchSimData={switchSimData} />
             <span className="main-container">
               <StatePage currMap={currMap} currMinority={currMinority} switchMinority={switchMinority} />
             </span>
@@ -135,7 +135,7 @@ export default function App() {
         <Route path={`/state/:stateName/Compare`} element={
           <>
             <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' />
-            <SideBar currPage={currPage} switchPage={switchPage} currMap={currMap} switchMap={switchMap} precinctMapSelectable={false} currEI={currEI} switchEI={switchEI} currSimData={currSimData} switchSimData={switchSimData} />
+            <SideBar currPage={currPage} switchPage={switchPage} currMap={currMap} switchMap={switchMap} precinctMapSelectable={false} currPolarization={currPolarization} switchPolarization={switchPolarization} currSimData={currSimData} switchSimData={switchSimData} />
             <span className="main-container">
               <Compare />
             </span>
@@ -144,16 +144,16 @@ export default function App() {
         <Route path={`/state/:stateName/Ecological Inference`} element={
           <>
             <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' />
-            <SideBar currPage={currPage} switchPage={switchPage} currMap={currMap} switchMap={switchMap} precinctMapSelectable={true} currMinority={currMinority} switchMinority={switchMinority} currEI={currEI} switchEI={switchEI} currSimData={currSimData} switchSimData={switchSimData} />
+            <SideBar currPage={currPage} switchPage={switchPage} currMap={currMap} switchMap={switchMap} precinctMapSelectable={true} currMinority={currMinority} switchMinority={switchMinority} currPolarization={currPolarization} switchPolarization={switchPolarization} currSimData={currSimData} switchSimData={switchSimData} />
             <span className="main-container">
-              <EI currMap={currMap} currMinority={currMinority} switchMinority={switchMinority} currEI={currEI} switchEI={switchEI} />
+              <EI currMap={currMap} currMinority={currMinority} switchMinority={switchMinority} currPolarization={currPolarization} switchPolarization={switchPolarization} />
             </span>
           </>
         } />
         <Route path={`/state/:stateName/Simulation Data`} element={
           <>
             <CountryHeaderBar currPage={currPage} switchPage={switchPage} siteName='VRA Repeal Analysis' />
-            <SideBar currPage={currPage} switchPage={switchPage} currMap={currMap} switchMap={switchMap} precinctMapSelectable={true} currMinority={currMinority} switchMinority={switchMinority} currEI={currEI} switchEI={switchEI} currSimData={currSimData} switchSimData={switchSimData} />
+            <SideBar currPage={currPage} switchPage={switchPage} currMap={currMap} switchMap={switchMap} precinctMapSelectable={true} currMinority={currMinority} switchMinority={switchMinority} currPolarization={currPolarization} switchPolarization={switchPolarization} currSimData={currSimData} switchSimData={switchSimData} />
             <span className="main-container">
               <Simulation currMap={currMap} currMinority={currMinority} switchMinority={switchMinority} currSimData={currSimData} switchSimData={switchSimData} />
             </span>
