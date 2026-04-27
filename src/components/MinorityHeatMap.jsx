@@ -4,8 +4,9 @@ import { useParams } from "react-router-dom";
 import L from "leaflet";
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
 import { topologyToFeatureCollection } from "../utils/topology.js";
-import { toStateCode, toGroupKey } from "../utils/stateUtils.js";
+import { toStateCode, toGroupKey, defaultGroup, groupOptionsForState } from "../utils/stateUtils.js";
 import { useHeatmap, usePrecinctTopology } from "../queries/stateQueries.js";
+import MinoritySelector from "./MinoritySelector.jsx";
 
 function percentageColor(pct) {
   if (pct > 50) return "#005a32"; if (pct > 40) return "#238443";
@@ -28,7 +29,7 @@ function TopoJSON({ currMinority, data, infoRef }) {
   function onEachFeature(feature, layer) {
     layer.on({
       mouseover: e => { e.target.setStyle({ weight: 2, color: "#666", dashArray: "", fillOpacity: 0.7 }); e.target.bringToFront(); infoRef.current?.update(featurePercent(e.target.feature, currMinority).toFixed(2)); },
-      mouseout:  e => { layerRef.current?.resetStyle(e.target); infoRef.current?.update(); },
+      mouseout: e => { layerRef.current?.resetStyle(e.target); infoRef.current?.update(); },
     });
   }
 
@@ -75,34 +76,29 @@ function LegendControl({ bins }) {
   return null;
 }
 
-function MinoritySelector({ stateName, currMinority, switchMinority }) {
-  const options = (stateName === "Oregon" ? ["Latino", "Asian"] : ["Black", "Latino"])
-    .map(m => <option key={m} value={m}>{m}</option>);
-  return (
-    <div className="minority-selector-container">
-      <label htmlFor="minoritySelector" style={{ fontWeight: "bolder" }}>Select a racial group: </label>
-      <select name="minoritySelector" value={currMinority} onChange={e => switchMinority(e.target.value)}>{options}</select>
-    </div>
-  );
-}
-
 export default function MinorityHeatMap({ currMinority, switchMinority }) {
   const { stateName } = useParams();
-  const stateCode  = toStateCode(stateName);
-  const group      = toGroupKey(currMinority);
-  const infoRef    = useRef(null);
+  const stateCode = toStateCode(stateName);
+
+  useEffect(() => {
+    if (!groupOptionsForState(stateName).includes(currMinority))
+      switchMinority(defaultGroup(stateCode));
+  }, []);
+
+  const group = toGroupKey(currMinority);
+  const infoRef = useRef(null);
 
   const heatmap = useHeatmap(stateCode, group);
-  const topo    = usePrecinctTopology(stateCode);
+  const topo = usePrecinctTopology(stateCode);
 
   if (!stateName) return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: State not found</div>;
   if (topo.isError) return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Unable to load precinct topology</div>;
-  if (!topo.data)   return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Loading precinct topology...</div>;
+  if (!topo.data) return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Loading precinct topology...</div>;
 
-  const center  = stateName === "Oregon" ? [44.1, -119.6] : [33.33, -80.5];
-  const zoom    = stateName === "Oregon" ? 6.3 : 7.1;
+  const center = stateName === "Oregon" ? [44.1, -119.6] : [33.33, -80.5];
+  const zoom = stateName === "Oregon" ? 6.3 : 7.1;
   const minZoom = stateName === "Oregon" ? 6.1 : 6.9;
-  const bounds  = stateName === "Oregon" ? [[47, -125], [41, -114.4]] : [[35.6, -83.3], [31.5, -77.5]];
+  const bounds = stateName === "Oregon" ? [[47, -125], [41, -114.4]] : [[35.6, -83.3], [31.5, -77.5]];
 
   return (
     <>

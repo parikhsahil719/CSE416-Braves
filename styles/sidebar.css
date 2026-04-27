@@ -31,6 +31,7 @@
 .sidebar .activeTab {
   background-color: #e2e8f0;
   border-left: 4px solid #22c55e;
+  color: #22c55e;
 }
 
 .sidebar-header {
@@ -58,12 +59,12 @@
 }
 
 .sidebar-tab:hover,
-.ei-option:hover,
+.polarization-option:hover,
 .sim-option:hover {
   background-color: #e2e8f0;
 }
 
-.ei-option,
+.polarization-option,
 .sim-option {
   width: 70%;
   color: #60656f;

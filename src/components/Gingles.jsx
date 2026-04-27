@@ -1,14 +1,19 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import "../../styles/cross-state-analysis.css";
+import "../../styles/gingles.css";
 import GinglesScatterChart from "../charts/GinglesScatterChart.jsx";
+import DistrictMap from "./DistrictMap.jsx";
+import MinorityHeatMap from "./MinorityHeatMap.jsx";
 import { num, pct } from "../utils/chartFormat.js";
-import { useGingles, useGinglesTable } from "../queries/stateQueries.js";
+import { useGingles, useGinglesTable, useDistrictTopology } from "../queries/stateQueries.js";
+import { defaultGroup, groupOptionsForState, toStateCode } from "../utils/stateUtils.js";
+import { topologyToFeatureCollection } from "../utils/topology.js";
+import { useParams } from "react-router-dom";
 
-function GroupSelector({ stateKey, currentGroup, options, onChange }) {
+function GroupSelector({ stateKey, currMinority, options, switchMinority }) {
   return (
     <div className="crossStateHeaderControls">
       <label htmlFor={`${stateKey}-racialGroupSelector`} className="crossStateControlLabel">Group:</label>
-      <select id={`${stateKey}-racialGroupSelector`} className="racialGroupSelector" value={currentGroup} onChange={e => onChange(e.target.value)}>
+      <select id={`${stateKey}-racialGroupSelector`} className="racialGroupSelector" value={currMinority} onChange={e => switchMinority(e.target.value)}>
         {options.map(g => <option key={g} value={g}>{g}</option>)}
       </select>
     </div>
@@ -25,12 +30,12 @@ function PrecinctTable({ rows }) {
 
   useEffect(() => {
     const wrapper = tableWrapperRef.current;
-    const table   = tableRef.current;
+    const table = tableRef.current;
     if (!wrapper || !table || rows.length === 0) return undefined;
 
     function updatePageSize() {
       const headerRow = table.querySelector("tr");
-      const bodyRow   = table.querySelector("tbody tr:nth-child(2)");
+      const bodyRow = table.querySelector("tbody tr:nth-child(2)");
       if (!headerRow || !bodyRow) return;
       const available = Math.max(0, wrapper.clientHeight - headerRow.getBoundingClientRect().height);
       setPageSize(Math.max(1, Math.min(rows.length, Math.floor(available / bodyRow.getBoundingClientRect().height))));
@@ -75,25 +80,18 @@ function PrecinctTable({ rows }) {
   );
 }
 
-function StateSection({ title, stateKey, stateData }) {
-  const [currentGroup, changeGroup] = useState(stateData?.minorityData?.minorityList?.[0] ?? "");
-  const group   = currentGroup?.trim().toLowerCase().replace(/\s+/g, "_");
-
-  const gingles      = useGingles(stateKey, group);
-  const ginglesTable = useGinglesTable(stateKey, group);
-
-  const options = useMemo(() => {
-    const fromPayload = gingles.data?.selectedGroup;
-    return fromPayload ? [fromPayload] : (currentGroup ? [currentGroup] : []);
-  }, [currentGroup, gingles.data?.selectedGroup]);
-
+function StateSection({ stateName, stateCode, currMinority, switchMinority }) {
+  const group = currMinority.trim().toLowerCase().replace(/\s+/g, "_");
+  const options = groupOptionsForState(stateName)
+  const gingles = useGingles(stateCode, group);
+  const ginglesTable = useGinglesTable(stateCode, group);
   const rows = ginglesTable.data?.rows ?? gingles.data?.points ?? [];
 
   return (
     <section className="crossStateCard">
       <div className="crossStateHeader">
-        <h2 className="crossStateHeaderTitle">{title}</h2>
-        <GroupSelector stateKey={stateKey} currentGroup={currentGroup} options={options} onChange={changeGroup} />
+        <h2 className="crossStateHeaderTitle">Gingles</h2>
+        <GroupSelector stateKey={stateCode} currMinority={currMinority} options={options} switchMinority={switchMinority} />
       </div>
       <div className="crossStateChartContainer">
         {gingles.data ? <GinglesScatterChart payload={gingles.data} compact /> : null}
@@ -103,14 +101,30 @@ function StateSection({ title, stateKey, stateData }) {
   );
 }
 
-export default function CrossStateAnalysis({ minorityData }) {
-  const SCData = minorityData.find(e => e.stateName === "South Carolina") ?? null;
-  const ORData = minorityData.find(e => e.stateName === "Oregon") ?? null;
+export default function Gingles({ currMap, currMinority, switchMinority, switchPolarization }) {
+  const { stateName } = useParams();
+  const stateCode = toStateCode(stateName);
+  const topo = useDistrictTopology(stateCode);
+  const mapData = topo.data ? topologyToFeatureCollection(topo.data, "districts") : null;
+
+  useEffect(() => {
+    if (!groupOptionsForState(stateName).includes(currMinority))
+      switchMinority(defaultGroup(stateCode));
+  }, []);
+
+  useEffect(() => () => switchPolarization(''), []);
 
   return (
-    <span id="crossStateMain">
-      <StateSection title="Oregon" stateKey="OR" stateData={ORData} />
-      <StateSection title="South Carolina" stateKey="SC" stateData={SCData} />
+    <span id="ginglesMain">
+      <div id="gingles-page-map-container">
+        <div className="gingles-page-map-label">
+          {currMap === 'Precinct Heat Map' ? `${currMap} of ${currMinority} Population in ${stateName}` : `Current Congressional Districts of ${stateName}`}
+        </div>
+        {currMap === "District Map" ? <DistrictMap stateName={stateName} data={mapData} /> : <MinorityHeatMap currMinority={currMinority} switchMinority={switchMinority} />}
+        {topo.isLoading && <div className="gingles-page-status-message">Loading {stateName} {currMap}...</div>}
+        {topo.isError && <div className="gingles-page-status-message">Unable to load {stateName} {currMap}</div>}
+      </div>
+      <StateSection stateName={stateName} stateCode={stateCode} currMinority={currMinority} switchMinority={switchMinority} />
     </span>
   );
 }

@@ -81,8 +81,8 @@ function Map({ switchPage }) {
     function onEachFeature(feature, layer) {
       layer.on({
         mouseover: e => { e.target.setStyle({ weight: 5, color: "#fff", dashArray: "", fillOpacity: 0.7 }); e.target.bringToFront(); info.update(e.target.feature.properties); },
-        mouseout:  e => { geojson.resetStyle(e.target); info.update(); },
-        click:     openStatePage,
+        mouseout: e => { geojson.resetStyle(e.target); info.update(); },
+        click: openStatePage,
       });
     }
 
@@ -102,7 +102,7 @@ export default function SplashPage({ switchPage }) {
   return (
     <div className="splashPage">
       <div className="splashPage_body">
-        <div className="splashPage_mapHeader">Country Map</div>
+        <div className="splashPage_mapHeader">Map of the United States</div>
         <Map switchPage={switchPage} />
       </div>
     </div>

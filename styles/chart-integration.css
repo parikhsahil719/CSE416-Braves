@@ -1,8 +1,6 @@
 .chartFrame {
   width: 100%;
   min-width: 0;
-  min-height: 19rem;
-  height: 19rem;
   background: #ffffff;
 }
 
@@ -12,8 +10,10 @@
 }
 
 .chartFrameBox {
+  min-width: 0;
+  width: 100%;
   min-height: 12rem;
-  height: 12rem;
+  height: clamp(12rem, 27vh, 18rem);
 }
 
 .chartPanel {
@@ -94,7 +94,7 @@
 
 .chartFrameEi {
   min-height: 24rem;
-  height: 24rem;
+  height: clamp(24rem, 55vh, 35rem);
 }
 
 .chartTooltipWide {

@@ -13,9 +13,9 @@ export function toGroupKey(minority) {
 }
 
 export function defaultGroup(stateCode) {
-  return stateCode === 'OR' ? 'latino' : 'black';
+  return stateCode === 'OR' ? 'Latino' : 'Black';
 }
 
 export function groupOptionsForState(stateName) {
-  return stateName === 'Oregon' ? ['Latino', 'Asian'] : ['Black', 'Latino'];
+  return stateName === 'Oregon' ? ['Latino'] : ['Black', 'Latino'];
 }

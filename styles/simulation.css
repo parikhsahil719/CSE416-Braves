@@ -74,6 +74,9 @@
 
 .sim-chartStack {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 3.5vh, 3rem);
 }
 
 .sim-chartTitle {
@@ -99,6 +102,12 @@
   height: 27rem;
 }
 
+.box-whisker-container {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
 .vra-impact-table-container {
   width: 100%;
 }
@@ -121,11 +130,11 @@
 }
 
 .vra-impact-table-header {
-  font-size: clamp(1rem, 1.2vw, 1.15rem);
+  font-size: clamp(1.2rem, 2.25vh, 1.5rem);
 }
 
 .vra-impact-table-data {
-  font-size: clamp(0.7rem, 1vw, 0.8rem);
+  font-size: clamp(0.75rem, 1vw, 0.9rem);
 }
 
 @media (max-width: 1400px) {

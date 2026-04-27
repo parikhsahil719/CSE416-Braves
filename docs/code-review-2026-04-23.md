@@ -168,7 +168,7 @@ Show OR Latino first, then switch to SC Black to demonstrate both states.
 
 ### D. Comments — Only When Needed
 
-- **SMELL** — `src/App.jsx:41–49`: Four consecutive state variable comments (`// State variable for switching between views`, etc.) just restate the variable names. The names `currPage`, `currMap`, `currMinority`, `currEI` are self-explanatory. Remove all four.
+- **SMELL** — `src/App.jsx:41–49`: Four consecutive state variable comments (`// State variable for switching between views`, etc.) just restate the variable names. The names `currPage`, `currMap`, `currMinority`, `currPolarization` are self-explanatory. Remove all four.
 - **SMELL** — `src/App.jsx:52–56`: Comment `// Store relevant data that will ALMOST ALWAYS be used here` is stale — data is now API-driven. Remove.
 - **SMELL** — `src/App.jsx` lines 62, 98, 107, 112, 118, 123, 127: Commented-out dead code (`// const stateTabs`, `// Probably not ensemble data`, five `// <StateHeaderBar>` lines). Remove entirely.
 - **SMELL** — `src/components/InterestingMap.jsx:8–12`: `getColor` function has its real logic commented out and replaced by a gray hardcode. This masks a bug and confuses any reader. Restore the logic.
