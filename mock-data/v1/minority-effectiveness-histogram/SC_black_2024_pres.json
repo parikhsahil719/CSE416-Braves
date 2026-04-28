@@ -5,22 +5,23 @@
   "election": "2024 Presidential",
   "totalDistricts": 7,
   "selectedGroup": "Black",
-  "ensembleSize": 250,
+  "ensembleSize": 5000,
   "units": {
     "count": "plans"
   },
   "series": {
     "raceBlind": [
-      { "effectiveDistricts": 0, "frequency": 40, "shareOfEnsemble": 0.16 },
-      { "effectiveDistricts": 1, "frequency": 110, "shareOfEnsemble": 0.44 },
-      { "effectiveDistricts": 2, "frequency": 79, "shareOfEnsemble": 0.316 },
-      { "effectiveDistricts": 3, "frequency": 21, "shareOfEnsemble": 0.084 }
+      { "effectiveDistricts": 0, "frequency": 700 },
+      { "effectiveDistricts": 1, "frequency": 2900 },
+      { "effectiveDistricts": 2, "frequency": 1200 },
+      { "effectiveDistricts": 3, "frequency": 200 }
     ],
     "vraConstrained": [
-      { "effectiveDistricts": 0, "frequency": 8, "shareOfEnsemble": 0.032 },
-      { "effectiveDistricts": 1, "frequency": 56, "shareOfEnsemble": 0.224 },
-      { "effectiveDistricts": 2, "frequency": 123, "shareOfEnsemble": 0.492 },
-      { "effectiveDistricts": 3, "frequency": 63, "shareOfEnsemble": 0.252 }
+      { "effectiveDistricts": 0, "frequency": 100 },
+      { "effectiveDistricts": 1, "frequency": 1100 },
+      { "effectiveDistricts": 2, "frequency": 2800 },
+      { "effectiveDistricts": 3, "frequency": 900 },
+      { "effectiveDistricts": 4, "frequency": 100 }
     ]
   }
 }

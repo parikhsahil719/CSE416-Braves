@@ -9,7 +9,7 @@ import MinorityHeatMap from "./MinorityHeatMap";
 import BoxWhiskerChart from "../charts/BoxWhiskerChart.jsx";
 import MinoritySelector from "./MinoritySelector.jsx";
 import { pct } from "../utils/chartFormat.js";
-import { ResponsiveContainer, BarChart, Bar as RechartsBar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { ResponsiveContainer, BarChart, Bar as RechartsBar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 
 // GUI-16: Ensemble Splits — paired bar charts on the same y-axis domain
 function EnsembleSplits({ payload, loading, failed }) {
@@ -139,24 +139,67 @@ function MinorityEffectivenessBoxWhisker({ payload, loading, failed }) {
   );
 }
 
+// Single bar shape that draws both series per x-position with dynamic z-ordering.
+// height/y come from Recharts for the maxVal key; proportional heights are derived from the data.
+function OverlappingBar({ x, y, width, height, raceBlind, vraConstrained, maxVal }) {
+  if (!maxVal) return null;
+  const bottom = y + height;
+  const gH = height * (raceBlind / maxVal);
+  const bH = height * (vraConstrained / maxVal);
+  const gTop = bottom - gH;
+  const bTop = bottom - bH;
+  if (gH >= bH) {
+    return (
+      <g>
+        <rect x={x} y={gTop} width={width} height={gH} fill="#5aa75b" fillOpacity={0.75} />
+        <rect x={x} y={bTop} width={width} height={bH} fill="#5c6bc0" fillOpacity={0.85} />
+      </g>
+    );
+  }
+  return (
+    <g>
+      <rect x={x} y={bTop} width={width} height={bH} fill="#5c6bc0" fillOpacity={0.85} />
+      <rect x={x} y={gTop} width={width} height={gH} fill="#5aa75b" fillOpacity={0.75} />
+    </g>
+  );
+}
+
+function HistogramTooltip({ active, payload, label }) {
+  if (!active || !payload?.[0]) return null;
+  const { raceBlind, vraConstrained } = payload[0].payload;
+  return (
+    <div style={{ background: "white", border: "1px solid #ccc", padding: "8px 10px", fontSize: 12 }}>
+      <p style={{ margin: "0 0 4px 0", fontWeight: 600 }}>{label} effective districts</p>
+      <p style={{ color: "#5aa75b", margin: 0 }}>Non-VRA: {raceBlind} plans</p>
+      <p style={{ color: "#5c6bc0", margin: 0 }}>Constrained: statewide score: {vraConstrained} plans</p>
+    </div>
+  );
+}
+
 // GUI-22: Minority Effectiveness Ensemble Histogram
-function MinorityEffectivenessHistogram({ payload, loading, failed }) {
+function MinorityEffectivenessHistogram({ payload, loading, failed, group }) {
   if (loading) return <div className="sim_placeholder">Loading minority effectiveness ensemble histogram...</div>;
   if (failed || !payload) return <div className="sim_placeholder">No minority effectiveness ensemble histogram data available.</div>;
-  const { series } = payload;
+  const { series, totalDistricts } = payload;
   const allDistricts = [...new Set([...series.raceBlind.map(d => d.effectiveDistricts), ...series.vraConstrained.map(d => d.effectiveDistricts)])].sort((a, b) => a - b);
-  const chartData = allDistricts.map(n => ({ effectiveDistricts: n, raceBlind: series.raceBlind.find(d => d.effectiveDistricts === n)?.frequency ?? 0, vraConstrained: series.vraConstrained.find(d => d.effectiveDistricts === n)?.frequency ?? 0 }));
+  const chartData = allDistricts.map(n => {
+    const rb = series.raceBlind.find(d => d.effectiveDistricts === n)?.frequency ?? 0;
+    const vc = series.vraConstrained.find(d => d.effectiveDistricts === n)?.frequency ?? 0;
+    return { effectiveDistricts: n, raceBlind: rb, vraConstrained: vc, maxVal: Math.max(rb, vc) };
+  });
   return (
     <div className="sim-chartStack">
+      <div style={{ display: "flex", gap: "1.25rem", marginBottom: 4, paddingLeft: "3rem", fontSize: 13 }}>
+        <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#5c6bc0", opacity: 0.85, marginRight: 5, verticalAlign: "middle" }} />Constrained: statewide score</span>
+        <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#5aa75b", opacity: 0.75, marginRight: 5, verticalAlign: "middle" }} />Non-VRA</span>
+      </div>
       <ResponsiveContainer width="100%" height={280}>
-        <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 30 }}>
+        <BarChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 40 }} barCategoryGap={0}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="effectiveDistricts" label={{ value: "Effective Districts", position: "insideBottom", offset: -15, fontSize: 13 }} tick={{ fontSize: 12 }} />
+          <XAxis dataKey="effectiveDistricts" ticks={Array.from({ length: totalDistricts + 1 }, (_, i) => i)} label={{ value: `Number of Districts with ${group} effectiveness > 60%`, position: "insideBottom", offset: -20, fontSize: 12 }} tick={{ fontSize: 12 }} />
           <YAxis label={{ value: "Plans", angle: -90, position: "insideLeft", fontSize: 13 }} tick={{ fontSize: 12 }} />
-          <Tooltip formatter={(v, name) => [`${v} plans`, name]} />
-          <Legend verticalAlign="top" />
-          <RechartsBar dataKey="raceBlind" name="Race-Blind" fill="#60a5fa" opacity={0.85} />
-          <RechartsBar dataKey="vraConstrained" name="VRA-Constrained" fill="#f97316" opacity={0.85} />
+          <Tooltip content={<HistogramTooltip />} />
+          <RechartsBar dataKey="maxVal" shape={OverlappingBar} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -205,7 +248,7 @@ export default function Simulation({ currMap, currMinority, switchMinority, curr
       return (<>
         <MinoritySelector stateName={stateName} currMinority={currMinority} switchMinority={switchMinority} />
         <div>
-          <MinorityEffectivenessHistogram payload={meHist.data} loading={meHist.isLoading} failed={meHist.isError} />
+          <MinorityEffectivenessHistogram payload={meHist.data} loading={meHist.isLoading} failed={meHist.isError} group={currMinority} />
           <VRAImpact payload={vraImpact.data} loading={vraImpact.isLoading} failed={vraImpact.isError} />
         </div>
       </>);

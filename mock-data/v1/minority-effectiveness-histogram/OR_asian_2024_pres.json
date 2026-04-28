@@ -5,44 +5,20 @@
   "election": "2024 Presidential",
   "totalDistricts": 6,
   "selectedGroup": "Asian",
-  "ensembleSize": 250,
+  "ensembleSize": 5000,
   "units": {
     "count": "plans"
   },
   "series": {
     "raceBlind": [
-      {
-        "effectiveDistricts": 0,
-        "frequency": 191,
-        "shareOfEnsemble": 0.764
-      },
-      {
-        "effectiveDistricts": 1,
-        "frequency": 52,
-        "shareOfEnsemble": 0.208
-      },
-      {
-        "effectiveDistricts": 2,
-        "frequency": 7,
-        "shareOfEnsemble": 0.028
-      }
+      { "effectiveDistricts": 0, "frequency": 3100 },
+      { "effectiveDistricts": 1, "frequency": 1600 },
+      { "effectiveDistricts": 2, "frequency": 300 }
     ],
     "vraConstrained": [
-      {
-        "effectiveDistricts": 0,
-        "frequency": 37,
-        "shareOfEnsemble": 0.148
-      },
-      {
-        "effectiveDistricts": 1,
-        "frequency": 149,
-        "shareOfEnsemble": 0.596
-      },
-      {
-        "effectiveDistricts": 2,
-        "frequency": 64,
-        "shareOfEnsemble": 0.256
-      }
+      { "effectiveDistricts": 0, "frequency": 900 },
+      { "effectiveDistricts": 1, "frequency": 2900 },
+      { "effectiveDistricts": 2, "frequency": 1200 }
     ]
   }
 }

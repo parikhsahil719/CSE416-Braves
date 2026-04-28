@@ -9,20 +9,20 @@
     {
       "metricKey": "meet_or_exceed_enacted",
       "metricLabel": "Meet or exceed enacted effective minority districts",
-      "raceBlindShare": 0.07,
-      "vraConstrainedShare": 0.48
+      "raceBlindShare": 0.08,
+      "vraConstrainedShare": 0.73
     },
     {
       "metricKey": "rough_proportionality",
       "metricLabel": "Achieve rough proportionality relative to Latino CVAP share",
       "raceBlindShare": 0.11,
-      "vraConstrainedShare": 0.55
+      "vraConstrainedShare": 0.68
     },
     {
       "metricKey": "joint_satisfaction",
       "metricLabel": "Satisfy both legal thresholds jointly",
       "raceBlindShare": 0.05,
-      "vraConstrainedShare": 0.41
+      "vraConstrainedShare": 0.61
     }
   ]
 }

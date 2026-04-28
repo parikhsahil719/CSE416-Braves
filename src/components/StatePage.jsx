@@ -6,6 +6,7 @@ import SouthCarolina from "../data/sc.js";
 import { topologyToFeatureCollection } from "../utils/topology.js";
 import { toStateCode } from "../utils/stateUtils.js";
 import { useStateSummary, useEnsemblesSummary, useDistrictTable, useDistrictTopology } from "../queries/stateQueries.js";
+import { pct } from "../utils/chartFormat.js";
 import DistrictMap from "./DistrictMap";
 import MinorityHeatMap from "./MinorityHeatMap";
 
@@ -86,6 +87,8 @@ function DistrictData({ districts, selectedDistrict, onSelectDistrict, onChangeT
             <th className="districts-table-header">Party</th>
             <th className="districts-table-header">Race / Ethnicity</th>
             <th className="districts-table-header">Vote Margin<span className="election-tag">2024 Presidential</span></th>
+            <th className="districts-table-header">Effectiveness Score</th>
+            <th className="districts-table-header">Calibrated Effectiveness Score</th>
           </tr>
         </thead>
         <tbody>
@@ -96,6 +99,8 @@ function DistrictData({ districts, selectedDistrict, onSelectDistrict, onChangeT
               <td className="districts-table-data">{d.party}</td>
               <td className="districts-table-data">{d.racialEthnicGroup}</td>
               <td className="districts-table-data"><VoteMarginBadge margin={d.voteMargin2024} /></td>
+              <td className="districts-table-data">{d.effectivenessScore != null ? pct(d.effectivenessScore) : "—"}</td>
+              <td className="districts-table-data">{d.calibratedEffectivenessScore != null ? pct(d.calibratedEffectivenessScore) : "—"}</td>
             </tr>
           ))}
         </tbody>

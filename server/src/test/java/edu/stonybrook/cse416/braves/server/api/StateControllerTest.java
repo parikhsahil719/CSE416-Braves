@@ -112,7 +112,9 @@ class StateControllerTest {
         Map<String, Object> districtTable = Map.of(
                 "schemaVersion", "v1",
                 "state", "OR",
-                "rows", List.of(Map.of("district", "1", "winner", "DEMOCRATIC"))
+                "rows", List.of(Map.of("district", "1", "winner", "DEMOCRATIC")),
+                "effectivenessScore", 0.41,
+                "calibratedEffectivenessScore", 0.38
         );
         Map<String, Object> gingles = readFixture("gingles-scatter/OR_2024_latino.json");
         Map<String, Object> ginglesTable = readFixture("gingles-table/OR_2024_latino.json");
@@ -268,7 +270,9 @@ class StateControllerTest {
 
         mockMvc.perform(get("/api/states/OR/districts/enacted/table").param("election", "2024_pres"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.rows.length()").value(1));
+                .andExpect(jsonPath("$.rows.length()").value(1))
+                .andExpect(jsonPath("$.districts[0].effectivenessScore").value(0.41))
+                .andExpect(jsonPath("$.districts[0].calibratedEffectivenessScore").value(0.38));
 
         mockMvc.perform(get("/api/states/OR/analysis/gingles")
                         .param("group", "latino")

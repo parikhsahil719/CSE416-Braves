@@ -277,12 +277,12 @@ public class SeedDataLoader implements ApplicationRunner {
                 "state", "OR",
                 "election", "2024_pres",
                 "districts", List.of(
-                        districtRow(1, "Suzanne Bonamici", "Democratic", "White", 24.1),
-                        districtRow(2, "Cliff Bentz", "Republican", "White", -33.7),
-                        districtRow(3, "Maxine Dexter", "Democratic", "White", 46.2),
-                        districtRow(4, "Val Hoyle", "Democratic", "White", 8.9),
-                        districtRow(5, "Janelle Bynum", "Democratic", "Black", 3.2),
-                        districtRow(6, "Andrea Salinas", "Democratic", "Latino", 5.4)
+                        districtRow(1, "Suzanne Bonamici", "Democratic", "White", 24.1, 0.41, 0.38),
+                        districtRow(2, "Cliff Bentz", "Republican", "White", -33.7, 0.29, 0.27),
+                        districtRow(3, "Maxine Dexter", "Democratic", "White", 46.2, 0.44, 0.42),
+                        districtRow(4, "Val Hoyle", "Democratic", "White", 8.9, 0.38, 0.35),
+                        districtRow(5, "Janelle Bynum", "Democratic", "Black", 3.2, 0.62, 0.61),
+                        districtRow(6, "Andrea Salinas", "Democratic", "Latino", 5.4, 0.67, 0.65)
                 )
         )));
 
@@ -291,13 +291,13 @@ public class SeedDataLoader implements ApplicationRunner {
                 "state", "SC",
                 "election", "2024_pres",
                 "districts", List.of(
-                        districtRow(1, "Nancy Mace", "Republican", "White", -13.8),
-                        districtRow(2, "Joe Wilson", "Republican", "White", -22.4),
-                        districtRow(3, "Sheri Biggs", "Republican", "White", -31.5),
-                        districtRow(4, "William Timmons", "Republican", "White", -28.6),
-                        districtRow(5, "Ralph Norman", "Republican", "White", -26.1),
-                        districtRow(6, "James Clyburn", "Democratic", "Black", 15.3),
-                        districtRow(7, "Russell Fry", "Republican", "White", -24.9)
+                        districtRow(1, "Nancy Mace", "Republican", "White", -13.8, 0.31, 0.29),
+                        districtRow(2, "Joe Wilson", "Republican", "White", -22.4, 0.28, 0.26),
+                        districtRow(3, "Sheri Biggs", "Republican", "White", -31.5, 0.24, 0.22),
+                        districtRow(4, "William Timmons", "Republican", "White", -28.6, 0.26, 0.24),
+                        districtRow(5, "Ralph Norman", "Republican", "White", -26.1, 0.27, 0.25),
+                        districtRow(6, "James Clyburn", "Democratic", "Black", 15.3, 0.71, 0.69),
+                        districtRow(7, "Russell Fry", "Republican", "White", -24.9, 0.25, 0.23)
                 )
         )));
     }
@@ -545,13 +545,15 @@ public class SeedDataLoader implements ApplicationRunner {
         )));
     }
 
-    private Map<String, Object> districtRow(int districtNumber, String representative, String party, String racialEthnicGroup, double voteMargin2024) {
+    private Map<String, Object> districtRow(int districtNumber, String representative, String party, String racialEthnicGroup, double voteMargin2024, double effectivenessScore, double calibratedEffectivenessScore) {
         return Map.of(
                 "districtNumber", districtNumber,
                 "representative", representative,
                 "party", party,
                 "racialEthnicGroup", racialEthnicGroup,
-                "voteMargin2024", voteMargin2024
+                "voteMargin2024", voteMargin2024,
+                "effectivenessScore", effectivenessScore,
+                "calibratedEffectivenessScore", calibratedEffectivenessScore
         );
     }
 
