@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "../../styles/ei.css";
 import { useParams } from "react-router-dom";
 import { topologyToFeatureCollection } from "../utils/topology.js";
@@ -8,7 +8,7 @@ import DistrictMap from "./DistrictMap";
 import MinorityHeatMap from "./MinorityHeatMap";
 import EiSupportChart from "../charts/EiSupportChart.jsx";
 import MinoritySelector from "./MinoritySelector.jsx";
-import { ResponsiveContainer, BarChart, ComposedChart, Bar as RechartsBar, XAxis, YAxis, CartesianGrid, Tooltip, ErrorBar, Area, ReferenceLine } from "recharts";
+import { ResponsiveContainer, BarChart, ComposedChart, Bar as RechartsBar, XAxis, YAxis, CartesianGrid, Tooltip, ErrorBar, Area, ReferenceLine, ReferenceArea } from "recharts";
 
 // GUI-12: EI Analysis — support distribution
 function EiAnalysisPanel({ payload, loading, failed, minority }) {
@@ -49,27 +49,46 @@ function EiBarPanel({ payload, loading, failed }) {
   );
 }
 
-// GUI-15: EI KDE — support-gap density curve
+// GUI-15: EI KDE — gapless histogram bars with smooth curve overlay and threshold probability region
 function EiKdePanel({ payload, loading, failed, minority }) {
+  const containerRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const ro = new ResizeObserver(([entry]) => setContainerWidth(entry.contentRect.width));
+    ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
   if (loading) return <div className="ei_placeholder">Loading EI KDE...</div>;
   if (failed || !payload) return <div className="ei_placeholder">No EI KDE data available for {minority}.</div>;
   const gapSeries = payload.series?.[0];
   const data = (gapSeries?.points ?? []).map(pt => ({ x: pt.x, density: pt.density })).sort((a, b) => a.x - b.x);
-  const thresholdPct = payload.thresholdProbability != null ? `${(payload.thresholdProbability * 100).toFixed(0)}%` : null;
+  const thresholdPct = payload.thresholdProbability != null ? `${(payload.thresholdProbability * 100).toFixed(1)}%` : null;
+  const domainMax = payload.domain?.[1] ?? "auto";
+  const thresholdLabel = thresholdPct && payload.thresholdLabel ? `${payload.thresholdLabel} = ${thresholdPct}` : null;
+  const barSize = data.length > 0 && containerWidth > 0
+    ? Math.max(1, Math.ceil(containerWidth / data.length))
+    : undefined;
   return (
     <div className="ei-chartStack">
       <div className="ei-chartTitle">{payload.metricLabel}</div>
-      {thresholdPct && <div className="ei-chartSubtitle">{payload.thresholdLabel}: <strong>{thresholdPct}</strong></div>}
-      <div style={{ width: "100%", height: "55vh" }}>
+      <div ref={containerRef} style={{ width: "100%", height: "55vh" }}>
         <ResponsiveContainer>
-          <ComposedChart data={data} margin={{ top: 12, right: 18, left: 12, bottom: 40 }}>
+          <ComposedChart data={data} margin={{ top: 12, right: 24, left: 12, bottom: 40 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#d4d4d8" />
             <XAxis dataKey="x" type="number" domain={payload.domain ?? ["auto", "auto"]} tickFormatter={v => v.toFixed(2)} tick={{ fontSize: 12 }} label={{ value: `Support gap (${minority} − non-${minority})`, position: "insideBottom", offset: -20, fontSize: 11 }} />
             <YAxis tick={{ fontSize: 12 }} label={{ value: "Density", angle: -90, position: "insideLeft", offset: -2, style: { fontSize: 12 } }} />
             <Tooltip formatter={(v) => [v.toFixed(4), "Density"]} labelFormatter={v => `Gap: ${Number(v).toFixed(3)}`} />
-            <RechartsBar dataKey="density" name="Density" fill="#2a9d8f44" stroke="none" isAnimationActive={false} />
-            <Area type="monotone" dataKey="density" name={gapSeries?.label ?? "Support gap"} stroke="#2a9d8f" fill="none" dot={false} activeDot={false} strokeWidth={2.5} isAnimationActive={false} />
-            {payload.thresholdX != null && <ReferenceLine x={payload.thresholdX} stroke="#e63946" strokeWidth={2} strokeDasharray="6 3" label={{ value: `threshold: ${payload.thresholdX}`, position: "insideTopRight", fill: "#e63946", fontSize: 11 }} />}
+            {payload.thresholdX != null && (
+              <ReferenceArea x1={payload.thresholdX} x2={domainMax} fill="#9ca3af" fillOpacity={0.25} label={{ value: thresholdLabel ?? "", position: "insideTopRight", fontSize: 11, fill: "#374151" }} />
+            )}
+            <RechartsBar dataKey="density" name="Density" fill="#2a9d8f" fillOpacity={0.65} stroke="none" barSize={barSize} isAnimationActive={false} />
+            <Area type="monotone" dataKey="density" stroke="#2a9d8f" fill="none" dot={false} activeDot={false} strokeWidth={2} isAnimationActive={false} />
+            {payload.thresholdX != null && (
+              <ReferenceLine x={payload.thresholdX} stroke="#555" strokeWidth={1.5} />
+            )}
           </ComposedChart>
         </ResponsiveContainer>
       </div>
