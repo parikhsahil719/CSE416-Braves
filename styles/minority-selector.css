@@ -1,23 +1,23 @@
 .minority-selector-container {
   display: flex;
-	align-items: center;
-	gap: 0.5rem;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .minority-selector-bubble {
-	padding: 0.25rem 0.75rem;
-	border: solid 1px black;
-	border-radius: 0.75rem;
-	font-size: 0.9rem;
+  padding: 0.25rem 0.75rem;
+  border: solid 1px black;
+  border-radius: 0.75rem;
+  font-size: 0.9rem;
 }
 
 .minority-selector-bubble:hover {
-	cursor: pointer;
+  cursor: pointer;
 }
 
 .minority-selector-active {
-	background-color: #dde8ef;
-	font-weight: bold;
-	color: #22c55e;
-	border: solid 1px #22c55e;
+  background-color: #dde8ef;
+  font-weight: bold;
+  color: var(--active);
+  border: solid 1px var(--active);
 }

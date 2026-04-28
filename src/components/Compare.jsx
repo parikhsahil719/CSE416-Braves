@@ -10,6 +10,7 @@ import {
 } from "../queries/stateQueries.js";
 import DistrictMap from "./DistrictMap.jsx";
 import InterestingMap from "./InterestingMap.jsx";
+import arrowDropdown from "/white_arrow_drop_down.svg"
 
 export default function Compare() {
   const { stateName } = useParams();
@@ -29,6 +30,8 @@ export default function Compare() {
     isError: listError,
   } = useInterestingPlanList(stateCode);
 
+  const [showList, setShowList] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState("Select a plan");
   const [selectedPlanId, setSelectedPlanId] = useState(null);
 
   useEffect(() => {
@@ -52,11 +55,26 @@ export default function Compare() {
       ? topologyToFeatureCollection(planData.topology, "districts")
       : null;
 
+  function toggleList() {
+    setShowList(!showList);
+  }
+
+  function changePlan(planName, planId) {
+    setCurrentPlan(planName);
+    setSelectedPlanId(planId);
+    toggleList();
+  }
+
   return (
     <span id="compare-page-main">
       <div id="compare-page-left-map-container" className="compare-page-map-container">
         <div className="compare-page-left-map-label">
           Current Congressional District Plan of {stateName}
+        </div>
+        <div className="compare-page-plan-list-container">
+          <span className="compare-page-selected" style={{opacity: "0%", cursor: "default"}}>
+            {currentPlan}
+          </span>
         </div>
         <DistrictMap stateName={stateName} data={leftMapData} />
         {leftLoading && (
@@ -72,20 +90,26 @@ export default function Compare() {
       </div>
 
       <div id="compare-page-right-map-container" className="compare-page-map-container">
-        <div className="compare-page-right-map-label">Interesting Plan</div>
+        <div className="compare-page-right-map-label">
+          Interesting Generated Plan
+        </div>
 
         {!listLoading && !listError && planList && planList.length > 0 && (
-          <select
-            value={selectedPlanId ?? ""}
-            onChange={(e) => setSelectedPlanId(e.target.value)}
-            className="compare-page-plan-select"
-          >
-            {planList.map((plan) => (
-              <option key={plan.planId} value={plan.planId}>
-                {plan.planName}
-              </option>
-            ))}
-          </select>
+          <div className="compare-page-plan-list-container">
+            <span className="compare-page-selected" onClick={() => toggleList()}>
+              {currentPlan}
+              <img id="dropdown-icon" src={arrowDropdown} width="20px"/>
+            </span>
+            {showList && (
+            <div className="compare-page-dropdown-container">
+              {planList.map((plan) => (
+                <span key={plan.planId} className={currentPlan === plan.planName ? "compare-page-selected" : "compare-page-plan-option"} onClick={() => changePlan(plan.planName, plan.planId)}>
+                  {plan.planName}
+                </span>
+              ))}
+            </div>
+            )}
+          </div>
         )}
 
         <InterestingMap stateName={stateName} data={rightMapData} />

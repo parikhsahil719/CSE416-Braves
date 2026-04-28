@@ -30,8 +30,8 @@
 
 .sidebar .activeTab {
   background-color: #e2e8f0;
-  border-left: 4px solid #22c55e;
-  color: #22c55e;
+  border-left: 4px solid var(--active);
+  color: var(--active);
 }
 
 .sidebar-header {
