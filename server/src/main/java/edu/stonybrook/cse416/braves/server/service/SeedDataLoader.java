@@ -111,7 +111,7 @@ public class SeedDataLoader implements ApplicationRunner {
         validatePopulationRealism(root);
         if (stateRepository.count() == 0) seedStates();
         seedStateSummaries();
-        if (ensembleSummaryRepository.count() == 0) seedEnsembleSummaries();
+        seedEnsembleSummaries();
         seedDistrictTables();
         seedHeatmapBins();
         seedGingles(root);
@@ -254,6 +254,7 @@ public class SeedDataLoader implements ApplicationRunner {
     }
 
     private void seedEnsembleSummaries() {
+        ensembleSummaryRepository.deleteAll();
         ensembleSummaryRepository.save(buildDoc(new EnsembleSummaryDocument(), "OR", null, null, null, null, "TOTAL", Map.of(
                 "schemaVersion", "v1",
                 "state", "OR",
