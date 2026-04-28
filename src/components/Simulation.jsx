@@ -151,15 +151,15 @@ function OverlappingBar({ x, y, width, height, raceBlind, vraConstrained, maxVal
   if (gH >= bH) {
     return (
       <g>
-        <rect x={x} y={gTop} width={width} height={gH} fill="#5aa75b" fillOpacity={0.75} />
-        <rect x={x} y={bTop} width={width} height={bH} fill="#5c6bc0" fillOpacity={0.85} />
+        <rect x={x} y={gTop} width={width} height={gH} fill="#5aa75b" fillOpacity={0.55} />
+        <rect x={x} y={bTop} width={width} height={bH} fill="#5c6bc0" fillOpacity={0.55} />
       </g>
     );
   }
   return (
     <g>
-      <rect x={x} y={bTop} width={width} height={bH} fill="#5c6bc0" fillOpacity={0.85} />
-      <rect x={x} y={gTop} width={width} height={gH} fill="#5aa75b" fillOpacity={0.75} />
+      <rect x={x} y={bTop} width={width} height={bH} fill="#5c6bc0" fillOpacity={0.55} />
+      <rect x={x} y={gTop} width={width} height={gH} fill="#5aa75b" fillOpacity={0.55} />
     </g>
   );
 }
@@ -190,8 +190,8 @@ function MinorityEffectivenessHistogram({ payload, loading, failed, group }) {
   return (
     <div className="sim-chartStack">
       <div style={{ display: "flex", gap: "1.25rem", marginBottom: 4, paddingLeft: "3rem", fontSize: 13 }}>
-        <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#5c6bc0", opacity: 0.85, marginRight: 5, verticalAlign: "middle" }} />Constrained: statewide score</span>
-        <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#5aa75b", opacity: 0.75, marginRight: 5, verticalAlign: "middle" }} />Non-VRA</span>
+        <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#5c6bc0", opacity: 0.55, marginRight: 5, verticalAlign: "middle" }} />Constrained: statewide score</span>
+        <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#5aa75b", opacity: 0.55, marginRight: 5, verticalAlign: "middle" }} />Non-VRA</span>
       </div>
       <ResponsiveContainer width="100%" height={280}>
         <BarChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 40 }} barCategoryGap={0}>
