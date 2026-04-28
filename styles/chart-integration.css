@@ -12,8 +12,8 @@
 .chartFrameBox {
   min-width: 0;
   width: 100%;
-  min-height: 12rem;
-  height: clamp(12rem, 27vh, 18rem);
+  min-height: 10rem;
+  height: clamp(10rem, 23vh, 16rem);
 }
 
 .chartPanel {

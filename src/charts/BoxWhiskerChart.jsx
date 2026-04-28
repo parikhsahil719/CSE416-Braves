@@ -3,8 +3,8 @@ import '../../styles/chart-integration.css';
 import { pct } from '../utils/chartFormat.js';
 
 function BoxWhiskerSvg({ payload }) {
-  const width = 760;
-  const height = 400;
+  const width = 700;
+  const height = 300;
   const margin = { top: 14, right: 18, bottom: 54, left: 108 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;

@@ -24,7 +24,7 @@ function EnsembleSplits({ payload, loading, failed }) {
   return (
     <div className="sim-chartStack">
       <div className="sim-chartSubtitle">Race-Blind</div>
-      <ResponsiveContainer width="100%" height={250}>
+      <ResponsiveContainer width="100%" height={230}>
         <BarChart data={toChartData(series.raceBlind)} margin={margin}>
           <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="splitLabel" tick={{ fontSize: 12 }} />
           <YAxis domain={domain} tick={{ fontSize: 12 }} /><Tooltip formatter={v => [`${v} plans`, "Frequency"]} />
@@ -32,7 +32,7 @@ function EnsembleSplits({ payload, loading, failed }) {
         </BarChart>
       </ResponsiveContainer>
       <div className="sim-chartSubtitle" style={{ marginTop: "0.75rem" }}>VRA-Constrained</div>
-      <ResponsiveContainer width="100%" height={250}>
+      <ResponsiveContainer width="100%" height={230}>
         <BarChart data={toChartData(series.vraConstrained)} margin={margin}>
           <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="splitLabel" tick={{ fontSize: 12 }} />
           <YAxis domain={domain} tick={{ fontSize: 12 }} /><Tooltip formatter={v => [`${v} plans`, "Frequency"]} />
@@ -148,7 +148,7 @@ function MinorityEffectivenessHistogram({ payload, loading, failed }) {
   const chartData = allDistricts.map(n => ({ effectiveDistricts: n, raceBlind: series.raceBlind.find(d => d.effectiveDistricts === n)?.frequency ?? 0, vraConstrained: series.vraConstrained.find(d => d.effectiveDistricts === n)?.frequency ?? 0 }));
   return (
     <div className="sim-chartStack">
-      <ResponsiveContainer width="100%" height={320}>
+      <ResponsiveContainer width="100%" height={280}>
         <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 30 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="effectiveDistricts" label={{ value: "Effective Districts", position: "insideBottom", offset: -15, fontSize: 13 }} tick={{ fontSize: 12 }} />
