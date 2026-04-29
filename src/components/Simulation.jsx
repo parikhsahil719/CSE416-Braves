@@ -61,7 +61,7 @@ function BoxWhisker({ payload, loading, failed, minority, subtitle }) {
     return (<Dot cx={cx} cy={cy} fill={color} r={3} />)
   }
 
-  function MedianLine({ cx, cy, width = 20 }) {
+  function MedianLine({ cx, cy, width }) {
     return (<line x1={cx - width / 2} x2={cx + width / 2} y1={cy} y2={cy} stroke={"black"} strokeWidth={1} />);
   }
 
@@ -110,7 +110,7 @@ function VRAImpact({ payload, loading, failed }) {
   const cell = v => loading ? "Loading…" : (failed || v == null) ? "—" : pct(v);
   return (
     <>
-      <div className="sim-page-data-label">VRA Impact Table</div>
+      <div className="sim-page-data-label" style={{ fontSize: "1.6rem" }}>VRA Impact Table</div>
       <div id="sim-page-data-container">
         <div className="vra-impact-table-container">
           <table className="vra-impact-table">
@@ -140,28 +140,95 @@ function MinorityEffectivenessBoxWhisker({ payload, loading, failed }) {
   if (loading) return <div className="sim_placeholder">Loading minority effectiveness box & whisker...</div>;
   if (failed || !payload) return <div className="sim_placeholder">No minority effectiveness box & whisker data available.</div>;
   const { groupSummaries, totalDistricts } = payload;
-  const W = 700, H = 320, M = { top: 36, right: 20, bottom: 54, left: 50 };
-  const IW = W - M.left - M.right, IH = H - M.top - M.bottom;
-  const slotW = IW / groupSummaries.length;
-  const boxW = Math.min(28, slotW * 0.28);
-  const ys = v => M.top + IH - (v / totalDistricts) * IH;
   const ticks = Array.from({ length: totalDistricts + 1 }, (_, i) => i);
 
-  function drawBox(s, cx, fill) {
+  function rbBoxDataKey(entry) {
+    const data = entry.raceBlindSummary;
+    return [data.q1, data.q3];
+  }
+
+  function rbWhiskerDataKey(entry) {
+    const data = entry.raceBlindSummary;
+    return [data.q3 - data.min, data.max - data.q3];
+  }
+
+  function rbMedianKey(entry) {
+    return entry.raceBlindSummary.median;
+  }
+
+  function RbMedianLine({ cx, cy, width }) {
+    const gap = 2;
+    return (<line x1={cx - width - gap} x2={cx - gap} y1={cy} y2={cy} stroke={"black"} strokeWidth={1} />);
+  }
+
+  function vraBoxDataKey(entry) {
+    const data = entry.vraConstrainedSummary;
+    return [data.q1, data.q3];
+  }
+
+  function vraWhiskerDataKey(entry) {
+    const data = entry.vraConstrainedSummary;
+    return [data.q3 - data.min, data.max - data.q3];
+  }
+
+  function vraMedianKey(entry) {
+    return entry.vraConstrainedSummary.median;
+  }
+
+  function VraMedianLine({ cx, cy, width }) {
+    const gap = 2;
+    return (<line x1={cx + gap} x2={cx + width + gap} y1={cy} y2={cy} stroke={"black"} strokeWidth={1} />);
+  }
+
+  function TooltipContent({ active, activeIndex, data }) {
+    if (!active) return null;
+
+    const rbData = data[activeIndex].raceBlindSummary;
+    const vraData = data[activeIndex].vraConstrainedSummary;
+
     return (
-      <g key={`${cx}-${fill}`}>
-        <line x1={cx} x2={cx} y1={ys(s.min)} y2={ys(s.max)} stroke="#475569" strokeWidth={1.35} />
-        <line x1={cx - 5} x2={cx + 5} y1={ys(s.min)} y2={ys(s.min)} stroke="#475569" />
-        <line x1={cx - 5} x2={cx + 5} y1={ys(s.max)} y2={ys(s.max)} stroke="#475569" />
-        <rect x={cx - boxW / 2} y={ys(s.q3)} width={boxW} height={Math.max(1, ys(s.q1) - ys(s.q3))} fill={fill} stroke="#1e3a8a" strokeWidth={1.5} opacity={0.85} />
-        <line x1={cx - boxW / 2} x2={cx + boxW / 2} y1={ys(s.median)} y2={ys(s.median)} stroke="#1f2937" strokeWidth={2} />
-      </g>
+      <div style={{ background: '#fafeff', border: 'solid 1px #ccc', padding: '0.5rem' }}>
+        <div>Min: {rbData.min} | {vraData.min}</div>
+        <div>Q1: {rbData.q1} | {vraData.q1}</div>
+        <div>Median: {rbData.median} | {vraData.median}</div>
+        <div>Q3: {rbData.q3} | {vraData.q3}</div>
+        <div>Max: {rbData.max} | {vraData.max}</div>
+      </div>
     );
   }
 
+  // function drawBox(s, cx, fill) {
+  //   return (
+  //     <g key={`${cx}-${fill}`}>
+  //       <line x1={cx} x2={cx} y1={ys(s.min)} y2={ys(s.max)} stroke="#475569" strokeWidth={1.35} />
+  //       <line x1={cx - 5} x2={cx + 5} y1={ys(s.min)} y2={ys(s.min)} stroke="#475569" />
+  //       <line x1={cx - 5} x2={cx + 5} y1={ys(s.max)} y2={ys(s.max)} stroke="#475569" />
+  //       <rect x={cx - boxW / 2} y={ys(s.q3)} width={boxW} height={Math.max(1, ys(s.q1) - ys(s.q3))} fill={fill} stroke="#1e3a8a" strokeWidth={1.5} opacity={0.85} />
+  //       <line x1={cx - boxW / 2} x2={cx + boxW / 2} y1={ys(s.median)} y2={ys(s.median)} stroke="#1f2937" strokeWidth={2} />
+  //     </g>
+  //   );
+  // }
+
   return (
     <div className="sim-chartStack">
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" preserveAspectRatio="xMidYMin meet" role="img" aria-label="Minority effectiveness box and whisker chart">
+      <ResponsiveContainer style={{ width: "100%", height: "100%" }}>
+        <ComposedChart data={groupSummaries} width="100%" height="100%" margin={{bottom: 20}}>
+          <XAxis dataKey="label" label={{ value: 'Racial Group', position: "bottom", fontSize : "0.75rem"}} tick={{ fontSize: "0.75rem" }} allowDuplicatedCategory={false}/>
+          <YAxis width={30} tick={{ fontSize: "0.75rem" }} ticks={ticks}/>
+          <CartesianGrid vertical={false} />
+          <RechartsBar name="Race-Blind Ensemble" dataKey={rbBoxDataKey} barSize={20} fill="#93c5fd" stroke="black" strokeWidth={1} >
+            <ErrorBar dataKey={rbWhiskerDataKey} legendType="none" zIndex="-1"/>
+          </RechartsBar>
+          <Scatter dataKey={rbMedianKey} shape={<RbMedianLine width={20} />} legendType="none" />
+          <RechartsBar name="Vra-Constrained Ensemble" dataKey={vraBoxDataKey} barSize={20} fill="#fb923c" stroke="black" strokeWidth={1} >
+            <ErrorBar dataKey={vraWhiskerDataKey} legendType="none" zIndex="-1"/>
+          </RechartsBar>
+          <Scatter dataKey={vraMedianKey} shape={<VraMedianLine width={20} />} legendType="none" />
+          <Tooltip content={<TooltipContent data={groupSummaries}/>} />
+          <Legend align="right" verticalAlign="top" wrapperStyle={{paddingBottom: "16px", fontSize: "0.75rem"}} iconSize={8} />
+        </ComposedChart>
+      </ResponsiveContainer>
+      {/* <svg viewBox={`0 0 ${W} ${H}`} width="100%" preserveAspectRatio="xMidYMin meet" role="img" aria-label="Minority effectiveness box and whisker chart">
         <rect width={W} height={H} fill="white" />
         {ticks.map(t => (
           <g key={t}>
@@ -182,7 +249,7 @@ function MinorityEffectivenessBoxWhisker({ payload, loading, failed }) {
         <text x={M.left + 28} y={19} fontSize={12} fill="#0f172a">Race-Blind</text>
         <rect x={M.left + 110} y={8} width={14} height={14} fill="#fb923c" stroke="#1e3a8a" strokeWidth={1.5} />
         <text x={M.left + 128} y={19} fontSize={12} fill="#0f172a">VRA-Constrained</text>
-      </svg>
+      </svg> */}
     </div>
   );
 }
