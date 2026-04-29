@@ -1,7 +1,7 @@
 #statePageMain {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: clamp(1rem, 2vw, 2rem);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+  gap: clamp(1rem, 1.5vw, 2rem);
   height: calc(100vh - 4rem);
   min-height: calc(100vh - 4rem);
   padding: 0.75rem 2rem 1rem 3rem;
@@ -34,8 +34,7 @@
 }
 
 #statePageDataMainContainer {
-  width: min(100%, 45rem);
-  margin-right: 5%;
+  width: 100%;
 }
 
 .districtMapPlaceholder {
@@ -72,7 +71,7 @@
 }
 
 #statePageDataContainer {
-  width: min(100%, 45rem);
+  width: 100%;
   height: fit-content;
   display: flex;
   flex-direction: column;
@@ -139,8 +138,8 @@
 }
 
 .districts-table-container {
-  width: 95%;
-  padding: clamp(0.5rem, 0.65vw, 1rem) 2.5%;
+  width: 96%;
+  padding: clamp(0.5rem, 0.65vw, 1rem) 2%;
 }
 
 .districts-table {
@@ -151,12 +150,10 @@
 
 .districts-table-header,
 .districts-table-data {
-  padding: clamp(0.35rem, 0.65vw, 0.75rem);
+  padding: clamp(0.35rem, 0.45vw, 0.6rem);
   text-align: center;
   line-height: 1.1;
   border: 1px solid;
-  word-break: break-word;
-  overflow-wrap: anywhere;
   vertical-align: middle;
 }
 
@@ -186,7 +183,7 @@
 
 @media (max-width: 1400px) {
   #statePageMain {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 0.96fr);
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
     gap: 1rem;
     padding-inline: 0.75rem;
   }

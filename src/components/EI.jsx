@@ -118,9 +118,22 @@ export default function EI({ currMap, currMinority, switchMinority, currPolariza
   const mapData = topo.data ? topologyToFeatureCollection(topo.data, "districts") : null;
 
   function renderPanel() {
-    if (currPolarization === "EI Analysis") return (<><MinoritySelector stateName={stateName} currMinority={currMinority} switchMinority={switchMinority} /><EiAnalysisPanel payload={eiSupp.data} loading={eiSupp.isLoading} failed={eiSupp.isError} minority={currMinority} /></>);
-    if (currPolarization === "EI Bar Chart") return <EiBarPanel payload={eiBar.data} loading={eiBar.isLoading} failed={eiBar.isError} />;
-    if (currPolarization === "Polarization KDE") return <EiKdePanel payload={eiKde.data} loading={eiKde.isLoading} failed={eiKde.isError} minority={currMinority} />;
+    if (currPolarization === "EI Analysis")
+      return (
+        <>
+          <MinoritySelector stateName={stateName} currMinority={currMinority} switchMinority={switchMinority} />
+          <EiAnalysisPanel payload={eiSupp.data} loading={eiSupp.isLoading} failed={eiSupp.isError} minority={currMinority} />
+        </>
+      );
+    if (currPolarization === "EI Bar Chart")
+      return <EiBarPanel payload={eiBar.data} loading={eiBar.isLoading} failed={eiBar.isError} />;
+    if (currPolarization === "Polarization KDE")
+      return (
+        <>
+          <MinoritySelector stateName={stateName} currMinority={currMinority} switchMinority={switchMinority} />
+          <EiKdePanel payload={eiKde.data} loading={eiKde.isLoading} failed={eiKde.isError} minority={currMinority} />
+        </>
+      );
     return null;
   }
 

@@ -9,7 +9,7 @@ import MinorityHeatMap from "./MinorityHeatMap";
 import BoxWhiskerChart from "../charts/BoxWhiskerChart.jsx";
 import MinoritySelector from "./MinoritySelector.jsx";
 import { pct } from "../utils/chartFormat.js";
-import { ResponsiveContainer, BarChart, Bar as RechartsBar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { ResponsiveContainer, BarChart, Bar as RechartsBar, XAxis, YAxis, CartesianGrid, Tooltip, ErrorBar, ComposedChart, Scatter, Legend, Dot } from "recharts";
 
 // GUI-16: Ensemble Splits — paired bar charts on the same y-axis domain
 function EnsembleSplits({ payload, loading, failed }) {
@@ -47,10 +47,58 @@ function EnsembleSplits({ payload, loading, failed }) {
 function BoxWhisker({ payload, loading, failed, minority, subtitle }) {
   if (loading) return <div className="sim_placeholder">Loading box & whisker chart...</div>;
   if (failed || !payload) return <div className="sim_placeholder">No box & whisker data available for {minority}.</div>;
+  const data = payload.rankSummaries;
+
+  function boxDataKey(entry) {
+    return [entry.q1, entry.q3];
+  }
+
+  function whiskerDataKey(entry) {
+    return [entry.q3 - entry.min, entry.max - entry.q3];
+  }
+
+  function ScatterDot({cx, cy, color}) {
+    return (<Dot cx={cx} cy={cy} fill={color} r={3} />)
+  }
+
+  function MedianLine({ cx, cy, width = 20 }) {
+    return (<line x1={cx - width / 2} x2={cx + width / 2} y1={cy} y2={cy} stroke={"black"} strokeWidth={1} />);
+  }
+
+  function TooltipContent({ active, activeIndex, data }) {
+    if (!active) return null;
+
+    return (
+      <div style={{ background: '#fafeff', border: 'solid 1px #ccc', padding: '0.5rem' }}>
+        <div>Min: {data[activeIndex].min}</div>
+        <div>Q1: {data[activeIndex].q1}</div>
+        <div>Median: {data[activeIndex].median}</div>
+        <div>Q3: {data[activeIndex].q3}</div>
+        <div>Max: {data[activeIndex].max}</div>
+        <div>Enacted Value: {data[activeIndex].enactedValue}</div>
+        <div>Proposed Value: {data[activeIndex].proposedValue}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="sim-chartStack">
       <div className="sim-chartSubtitle">{subtitle}</div>
-      <BoxWhiskerChart payload={payload} showHeader={false} />
+      <ResponsiveContainer style={{ width: "100%", height: "100%" }}>
+        <ComposedChart data={data} width="100%" height="100%" margin={{bottom: 20}}>
+          <XAxis dataKey="districtRank" label={{ value: 'Indexed district', position: "bottom", fontSize : "0.75rem"}} tick={{ fontSize: "0.75rem" }} allowDuplicatedCategory={false}/>
+          <YAxis width={30} tick={{ fontSize: "0.75rem" }} ticks={[0, 0.2, 0.4, 0.6, 0.8]}/>
+          <CartesianGrid vertical={false} />
+          <RechartsBar dataKey={boxDataKey} legendType="none" barSize={20} fill="white" stroke="black" strokeWidth={1} >
+            <ErrorBar dataKey={whiskerDataKey} legendType="none" zIndex="-1"/>
+          </RechartsBar>
+          <Scatter dataKey="median" shape={<MedianLine width={20} />} legendType="none" />
+          <Scatter name="Enacted" dataKey="enactedValue" fill="#e11d48" shape={<ScatterDot color="#e11d48" />}/>  {/* fill is for legend, color prop actually colors dot*/}
+          <Scatter name="Proposed" dataKey="proposedValue" fill="#ffd000" shape={<ScatterDot color="#ffd000" />} />
+          <Tooltip content={<TooltipContent data={data}/>} />
+          <Legend align="right" verticalAlign="top" wrapperStyle={{paddingBottom: "16px", fontSize: "0.75rem"}} iconSize={8} />
+        </ComposedChart>
+      </ResponsiveContainer>
     </div>
   );
 }
@@ -193,7 +241,7 @@ function MinorityEffectivenessHistogram({ payload, loading, failed, group }) {
         <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#5c6bc0", opacity: 0.55, marginRight: 5, verticalAlign: "middle" }} />Constrained: statewide score</span>
         <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#5aa75b", opacity: 0.55, marginRight: 5, verticalAlign: "middle" }} />Non-VRA</span>
       </div>
-      <ResponsiveContainer width="100%" height={280}>
+      <ResponsiveContainer width="100%" height={250}>
         <BarChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 40 }} barCategoryGap={0}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="effectiveDistricts" ticks={Array.from({ length: totalDistricts + 1 }, (_, i) => i)} label={{ value: `Number of Districts with ${group} effectiveness > 60%`, position: "insideBottom", offset: -20, fontSize: 12 }} tick={{ fontSize: 12 }} />
