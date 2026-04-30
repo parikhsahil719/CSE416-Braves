@@ -148,7 +148,7 @@ function Legend() {
   return null;
 }
 
-export default function DistrictMap({ stateName, data, selectedDistrict, onSelectDistrict, onChangeTab }) {
+export default function DistrictMap({ stateName, data, selectedDistrict, onSelectDistrict, onChangeTab, zoom }) {
   const infoRef = useRef(null);
 
     if (!data) {
@@ -160,9 +160,9 @@ export default function DistrictMap({ stateName, data, selectedDistrict, onSelec
         <MapContainer
           center={stateName === "Oregon" ? [44.1, -120.6] : [33.6, -80.9]}
           zoomControl={false}
-          zoom={stateName === "Oregon" ? 6.6 : 7.3}
+          zoom={zoom ? zoom : stateName === "Oregon" ? 6.6 : 7.3}
           zoomSnap={0.1}
-          minZoom={6.5}
+          minZoom={6}
           maxZoom={10}
           maxBounds={stateName === "Oregon" ? [[47, -125], [41, -116.4]] : [[35.6, -84], [31.5, -77.5]]}
           className="districtLeafletMap"

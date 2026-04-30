@@ -1,6 +1,6 @@
 #compare-page-main {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: clamp(1rem, 2vw, 2rem);
   height: calc(100vh - 4rem);
   min-height: calc(100vh - 4rem);
@@ -12,10 +12,21 @@
 .compare-page-map-container {
   min-width: 0;
   min-height: 0;
+  height: 55vh;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   align-items: center;
+}
+
+.compare-page-map-subcontainer {
+  width: 100%;
+  min-height: 0;
+  height: 55vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .compare-page-left-map-label,
@@ -28,8 +39,8 @@
   margin: 0.75rem 0rem;
 }
 
-#compare-page-right-map-container {
-  margin-right: 5%;
+#compare-page-right-container {
+  margin-right: 3%;
 }
 
 .compare-page-status-message {
@@ -38,10 +49,11 @@
 }
 
 .compare-page-plan-list-container {
-  width: 40%;
+  width: 55%;
   display: flex;
   flex-direction: column;
   position: relative;
+  z-index: 1000;
 }
 
 .compare-page-selected {
@@ -68,6 +80,7 @@
 .compare-page-selected {
   background-color: #444947;
   padding: 0.25rem 0.75rem;
+  z-index: 1000;
 }
 
 .compare-page-plan-option {
@@ -82,6 +95,53 @@
 
   display: flex;
   flex-direction: column;
+}
+
+.leaflet-top {
+  z-index: 800;
+}
+
+.congTable_unavailable {
+  padding: 1.25rem;
+  color: #6b7280;
+  font-style: italic;
+  font-size: clamp(0.8rem, 0.9vw, 1rem);
+}
+
+.compare-table-container {
+  width: 96%;
+  padding: clamp(0.5rem, 0.65vw, 1rem) clamp(1%, 0.5vw, 2%);
+}
+
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fafeff;
+}
+
+.compare-table-header,
+.compare-table-data {
+  padding: clamp(0.35rem, 0.45vw, 0.6rem);
+  text-align: center;
+  line-height: 1.1;
+  border: 1px solid;
+  vertical-align: middle;
+}
+
+.compare-table-header {
+  font-size: clamp(1rem, 1.2vw, 1.15rem);
+}
+
+.compare-table-data {
+  font-size: clamp(0.7rem, 1vw, 0.8rem);
+}
+
+.compare-table-distnum:hover {
+  cursor: pointer;
+}
+
+.compare-table-row--selected .compare-table-data {
+  background-color: #dde8ef;
 }
 
 @media (max-width: 1400px) {

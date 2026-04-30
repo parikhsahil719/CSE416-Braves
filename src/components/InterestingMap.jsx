@@ -138,9 +138,9 @@ export default function InterestingMap({ stateName, data }) {
         <MapContainer
           center={stateName === "Oregon" ? [44.1, -120.6] : [33.6, -80.9]}
           zoomControl={false}
-          zoom={stateName === "Oregon" ? 6.5 : 7.3}
+          zoom={stateName === "Oregon" ? 6.1 : 6.7}
           zoomSnap={0.1}
-          minZoom={6.5}
+          minZoom={6}
           maxZoom={10}
           maxBounds={stateName === "Oregon" ? [[47, -125], [41, -116.4]] : [[35.6, -84], [31.5, -77.5]]}
           className="districtLeafletMap"

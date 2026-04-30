@@ -12,6 +12,37 @@ import DistrictMap from "./DistrictMap.jsx";
 import InterestingMap from "./InterestingMap.jsx";
 import arrowDropdown from "/white_arrow_drop_down.svg"
 
+function InformationTable({ stateName, data, selectedDistrict, onSelectDistrict }) {
+
+	const { districts } = data;
+
+  return (
+    <div className="compare-table-container">
+      <table className="compare-table">
+        <thead>
+          <tr>
+            <th className="compare-table-header">District</th>
+            {data.feasibleGroups.map((group) => (
+              <th key={group} className="compare-table-header">{group} Population</th>
+            ))}
+            <th className="compare-table-header">Effective District?</th>
+          </tr>
+        </thead>
+        <tbody>
+          {districts.map((d) => (
+            <tr key={d.districtNumber} className={d.districtNumber === selectedDistrict ? "districts-table-row districts-table-row--selected" : "districts-table-row"}>
+              <td className="compare-table-data compare-table-distnum" onClick={() => { onSelectDistrict(d.districtNumber); onChangeTab("District"); }}>{d.districtNumber}</td>
+              {d.blackPopulation && <td className="compare-table-data">{d.blackPopulation}</td>}
+              <td className="compare-table-data">{d.latinoPopulation}</td>
+              <td className="compare-table-data">{d.isEffective}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function Compare() {
   const { stateName } = useParams();
   const stateCode = toStateCode(stateName);
@@ -33,12 +64,13 @@ export default function Compare() {
   const [showList, setShowList] = useState(false);
   const [currentPlan, setCurrentPlan] = useState("Select a plan");
   const [selectedPlanId, setSelectedPlanId] = useState(null);
+  const [selectedDistrict, setSelectedDistrict] = useState(0);
 
-  useEffect(() => {
-    if (planList && planList.length > 0 && !selectedPlanId) {
-      setSelectedPlanId(planList[0].planId);
-    }
-  }, [planList, selectedPlanId]);
+  // useEffect(() => {
+  //   if (planList && planList.length > 0 && !selectedPlanId) {
+  //     setSelectedPlanId(planList[0].planId);
+  //   }
+  // }, [planList, selectedPlanId]);
 
   const {
     data: planData,
@@ -55,6 +87,42 @@ export default function Compare() {
       ? topologyToFeatureCollection(planData.topology, "districts")
       : null;
 
+  const CONGRESSIONAL_DATA = {
+		Oregon: {
+			districts: [
+				{ districtNumber: 1, latinoPopulation: "100,000", isEffective: "Yes"},
+				{ districtNumber: 2, latinoPopulation: "100,000", isEffective: "Yes"},
+				{ districtNumber: 3, latinoPopulation: "100,000", isEffective: "Yes"},
+				{ districtNumber: 4, latinoPopulation: "100,000", isEffective: "Yes"},
+				{ districtNumber: 5, latinoPopulation: "100,000", isEffective: "Yes"},
+				{ districtNumber: 6, latinoPopulation: "100,000", isEffective: "Yes"},
+			],
+      feasibleGroups: ["Latino"]
+		},
+		SouthCarolina: {
+			districts: [
+				{ districtNumber: 1, blackPopulation: "100,000", latinoPopulation: "100,000", isEffective: "Yes"},
+				{ districtNumber: 2, blackPopulation: "100,000", latinoPopulation: "100,000", isEffective: "Yes"},
+				{ districtNumber: 3, blackPopulation: "100,000", latinoPopulation: "100,000", isEffective: "Yes"},
+				{ districtNumber: 4, blackPopulation: "100,000", latinoPopulation: "100,000", isEffective: "Yes"},
+				{ districtNumber: 5, blackPopulation: "100,000", latinoPopulation: "100,000", isEffective: "Yes"},
+				{ districtNumber: 6, blackPopulation: "100,000", latinoPopulation: "100,000", isEffective: "Yes"},
+				{ districtNumber: 7, blackPopulation: "100,000", latinoPopulation: "100,000", isEffective: "Yes"},
+			],
+      feasibleGroups: ["Black", "Latino"]
+		},
+	};
+
+	const stateData = CONGRESSIONAL_DATA[stateName?.replaceAll(' ', '')];
+
+	if (!stateData) {
+		return (
+			<div className="compareTable_unavailable">
+				Congressional representation data is not available for {stateName}.
+			</div>
+		);
+	}
+
   function toggleList() {
     setShowList(!showList);
   }
@@ -67,63 +135,66 @@ export default function Compare() {
 
   return (
     <span id="compare-page-main">
-      <div id="compare-page-left-map-container" className="compare-page-map-container">
-        <div className="compare-page-left-map-label">
-          Current Congressional District Plan of {stateName}
-        </div>
-        <div className="compare-page-plan-list-container">
-          <span className="compare-page-selected" style={{opacity: "0%", cursor: "default"}}>
-            {currentPlan}
-          </span>
-        </div>
-        <DistrictMap stateName={stateName} data={leftMapData} />
-        {leftLoading && (
-          <div className="compare-page-status-message">
-            Loading {stateName}&apos;s current district plan...
+      <div id="compare-page-left-container">
+        <div id="compare-page-left-map-container" className="compare-page-map-container">
+          <div className="compare-page-left-map-label">
+            Current Congressional District Plan of {stateName}
           </div>
-        )}
-        {leftError && (
-          <div className="compare-page-status-message">
-            Unable to load {stateName}&apos;s current district plan
-          </div>
-        )}
+          <DistrictMap stateName={stateName} data={leftMapData} selectedDistrict={selectedDistrict} onSelectDistrict={setSelectedDistrict} zoom={stateName === "Oregon" ? 6.1 : 6.7} />
+          {leftLoading && (
+            <div className="compare-page-status-message">
+              Loading {stateName}&apos;s current district plan...
+            </div>
+          )}
+          {leftError && (
+            <div className="compare-page-status-message">
+              Unable to load {stateName}&apos;s current district plan
+            </div>
+          )}
+        </div>
+        <InformationTable stateName={stateName} data={stateData} selectedDistrict={selectedDistrict} onSelectDistrict={setSelectedDistrict} />
       </div>
 
-      <div id="compare-page-right-map-container" className="compare-page-map-container">
-        <div className="compare-page-right-map-label">
-          Interesting Generated Plan
-        </div>
+      <div id="compare-page-right-container">
+        <div id="compare-page-right-map-container" className="compare-page-map-container">
+          <div className="compare-page-right-map-label">
+            Interesting Generated Plan
+          </div>
 
-        {!listLoading && !listError && planList && planList.length > 0 && (
-          <div className="compare-page-plan-list-container">
-            <span className="compare-page-selected" onClick={() => toggleList()}>
-              {currentPlan}
-              <img id="dropdown-icon" src={arrowDropdown} width="20px"/>
-            </span>
-            {showList && (
-            <div className="compare-page-dropdown-container">
-              {planList.map((plan) => (
-                <span key={plan.planId} className={currentPlan === plan.planName ? "compare-page-selected" : "compare-page-plan-option"} onClick={() => changePlan(plan.planName, plan.planId)}>
-                  {plan.planName}
+          <div id="compare-page-right-map-subcontainer" className="compare-page-map-subcontainer">
+            {!listLoading && !listError && planList && planList.length > 0 && (
+              <div className="compare-page-plan-list-container">
+                <span className="compare-page-selected" onClick={() => toggleList()}>
+                  {currentPlan}
+                  <img id="dropdown-icon" src={arrowDropdown} width="20px"/>
                 </span>
-              ))}
-            </div>
+                {showList && (
+                <div className="compare-page-dropdown-container">
+                  {planList.map((plan) => (
+                    <span key={plan.planId} className={currentPlan === plan.planName ? "compare-page-selected" : "compare-page-plan-option"} onClick={() => changePlan(plan.planName, plan.planId)}>
+                      {plan.planName}
+                    </span>
+                  ))}
+                </div>
+                )}
+              </div>
+            )}
+
+            {selectedPlanId && <InterestingMap stateName={stateName} data={rightMapData} />}
+
+            {(listLoading || rightLoading) && (
+              <div className="compare-page-status-message">
+                Loading {stateName}&apos;s interesting plan...
+              </div>
+            )}
+            {(listError || rightError) && (
+              <div className="compare-page-status-message">
+                Unable to load {stateName}&apos;s interesting plan
+              </div>
             )}
           </div>
-        )}
-
-        <InterestingMap stateName={stateName} data={rightMapData} />
-
-        {(listLoading || rightLoading) && (
-          <div className="compare-page-status-message">
-            Loading {stateName}&apos;s interesting plan...
-          </div>
-        )}
-        {(listError || rightError) && (
-          <div className="compare-page-status-message">
-            Unable to load {stateName}&apos;s interesting plan
-          </div>
-        )}
+        </div>
+        <InformationTable stateName={stateName} data={stateData} selectedDistrict={selectedDistrict} onSelectDistrict={setSelectedDistrict} />
       </div>
     </span>
   );
