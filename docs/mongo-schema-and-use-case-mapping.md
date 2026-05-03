@@ -18,8 +18,8 @@ This document explains how each implemented GUI use case maps to MongoDB, file-b
 | `state_summaries` | statewide summary payloads | `GUI-3` |
 | `heatmap_bins` | precomputed precinct heatmap legend/bin payloads | `GUI-4` |
 | `district_tables` | enacted district representation tables | `GUI-6` |
-| `gingles_results` | scatter plot and regression payloads | `GUI-9` |
-| `gingles_tables` | precinct-level Gingles table payloads | `GUI-10` |
+| `gingles_results` | sampled chart payloads plus hidden regression/provenance metadata | `GUI-9` |
+| `gingles_tables` | full precinct-row table payloads plus provenance metadata | `GUI-10` |
 | `ei_support_results` | ecological inference support distributions | `GUI-12` |
 | `ei_precinct_bar_ci_results` | EI category peak + confidence interval payloads | `GUI-13` |
 | `ei_kde_results` | EI KDE comparison payloads | `GUI-15` |
@@ -61,3 +61,10 @@ Use this explanation when presenting the server model:
 2. Route parameters select the analytical slice or plan slice that answers that question.
 3. The backend either performs one lookup against the mapped collection or reads a static TopoJSON asset for geometry-only routes.
 4. The route returns client-ready JSON or TopoJSON.
+
+## Locked Gingles Model
+- `gingles_results` now stores one frontend-ready chart document per `stateId + groupKey + electionId`.
+- The chart payload is sampled for display: target `500` precinct points, sorted by `minorityShare` ascending, with sampling metadata exposed in the API response.
+- The chart document also stores hidden `internal.regressionModels` metadata and structured provenance outside the API payload.
+- `gingles_tables` now stores one frontend-ready table document per `stateId + groupKey + electionId`.
+- The table payload contains the full available precinct row set, sorted by `precinctId` ascending, plus `rowCount` and ordering metadata in the API response.

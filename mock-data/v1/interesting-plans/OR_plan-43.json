@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "v1",
+  "state": "OR",
+  "planId": "plan-43",
+  "planName": "Oregon Race-Blind Baseline",
+  "ensembleType": "race_blind",
+  "reasonInteresting": "Representative race-blind plan showing Latino representation without VRA constraints",
+  "summary": {
+    "repWins": 3,
+    "demWins": 3,
+    "effectiveMinorityDistricts": 1
+  }
+}

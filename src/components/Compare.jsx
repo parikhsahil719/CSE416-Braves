@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "../../styles/compare.css";
 import { useParams } from "react-router-dom";
 import { topologyToFeatureCollection } from "../utils/topology.js";
@@ -61,16 +61,40 @@ export default function Compare() {
     isError: listError,
   } = useInterestingPlanList(stateCode);
 
+  const sortedPlanList = useMemo(
+    () =>
+      planList
+        ? [...planList].sort((a, b) =>
+            String(a.planId ?? "").localeCompare(String(b.planId ?? ""), undefined, { numeric: true })
+          )
+        : [],
+    [planList]
+  );
+
   const [showList, setShowList] = useState(false);
   const [currentPlan, setCurrentPlan] = useState("Select a plan");
   const [selectedPlanId, setSelectedPlanId] = useState(null);
   const [selectedDistrict, setSelectedDistrict] = useState(0);
 
-  // useEffect(() => {
-  //   if (planList && planList.length > 0 && !selectedPlanId) {
-  //     setSelectedPlanId(planList[0].planId);
-  //   }
-  // }, [planList, selectedPlanId]);
+  useEffect(() => {
+    if (sortedPlanList.length === 0) {
+      setSelectedPlanId(null);
+      setCurrentPlan("Select a plan");
+      return;
+    }
+
+    const matchingPlan = sortedPlanList.find((plan) => plan.planId === selectedPlanId);
+
+    if (matchingPlan) {
+      if (currentPlan !== matchingPlan.planName) {
+        setCurrentPlan(matchingPlan.planName);
+      }
+      return;
+    }
+
+    setSelectedPlanId(sortedPlanList[0].planId);
+    setCurrentPlan(sortedPlanList[0].planName);
+  }, [sortedPlanList, selectedPlanId, currentPlan]);
 
   const {
     data: planData,
@@ -162,7 +186,7 @@ export default function Compare() {
           </div>
 
           <div id="compare-page-right-map-subcontainer" className="compare-page-map-subcontainer">
-            {!listLoading && !listError && planList && planList.length > 0 && (
+            {!listLoading && !listError && sortedPlanList.length > 0 && (
               <div className="compare-page-plan-list-container">
                 <span className="compare-page-selected" onClick={() => toggleList()}>
                   {currentPlan}
@@ -170,7 +194,7 @@ export default function Compare() {
                 </span>
                 {showList && (
                 <div className="compare-page-dropdown-container">
-                  {planList.map((plan) => (
+                  {sortedPlanList.map((plan) => (
                     <span key={plan.planId} className={currentPlan === plan.planName ? "compare-page-selected" : "compare-page-plan-option"} onClick={() => changePlan(plan.planName, plan.planId)}>
                       {plan.planName}
                     </span>

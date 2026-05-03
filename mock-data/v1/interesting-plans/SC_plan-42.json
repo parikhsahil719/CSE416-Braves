@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "v1",
+  "state": "SC",
+  "planId": "plan-42",
+  "planName": "South Carolina Coastal Rebalance",
+  "ensembleType": "vra_constrained",
+  "reasonInteresting": "Expands Black-effective district probability while keeping core coastal continuity",
+  "summary": {
+    "repWins": 5,
+    "demWins": 2,
+    "effectiveMinorityDistricts": 3
+  }
+}

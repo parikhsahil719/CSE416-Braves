@@ -3,7 +3,8 @@
 ## Shared fields
 - `schemaVersion` (string): contract version, currently `v1`
 - `state` (string): `OR` or `SC`
-- `election` (string): election context, seeded as `2024 Presidential` or `2024_pres`
+- `electionKey` (string): machine-readable election identifier, currently `2024_pres`
+- `electionLabel` (string): human-readable election label, currently `2024 Presidential`
 - `totalDistricts` (integer): state district count (`6` for OR, `7` for SC)
 - `populationMeasureUsed` (string, optional): propagated from stored document metadata when available
 
@@ -48,6 +49,10 @@
 - `chartType` (string): `gingles-scatter`
 - `selectedGroup` (string): selected group label
 - `units.share` (string): seeded as `decimal_0_to_1`
+- `sampling` (object): chart-display sampling metadata
+- `sampling.displayedPointCount` (integer): displayed sampled precinct count
+- `sampling.fullPrecinctCount` (integer): total available precinct count before sampling
+- `sampling.targetPointCount` (integer): seeded target, currently `500`
 - `points[].minorityShare` (number `[0,1]`): selected-group share in precinct
 - `points[].demVoteShare` (number `[0,1]`)
 - `points[].repVoteShare` (number `[0,1]`)
@@ -58,7 +63,9 @@
 ## GUI-10 Gingles Table
 - `tableType` (string): `gingles-precinct-table`
 - `selectedGroup` (string)
-- `rows[]`: one row per precinct in the sampled table response
+- `rowCount` (integer): full row count returned by the table endpoint
+- `sorting.rowOrder` (string): currently `precinctId_asc`
+- `rows[]`: one row per precinct in the full table response
 - `rows[].precinctId` / `rows[].precinctName`
 - `rows[].totalPopulation` / `rows[].minorityPopulation`
 - `rows[].republicanVotes` / `rows[].democraticVotes`

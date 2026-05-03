@@ -208,7 +208,17 @@ Same TopoJSON structure as §2.2 but for the `precincts` object key. The only pr
 
 ```json
 {
+  "electionKey": "2024_pres",
+  "electionLabel": "2024 Presidential",
   "selectedGroup": "Latino",
+  "sampling": {
+    "isSampled": true,
+    "samplingAuthority": "preprocessing",
+    "samplingMethod": "minority_share_binned_random_seed_42_40_bins",
+    "displayedPointCount": 500,
+    "fullPrecinctCount": 1298,
+    "targetPointCount": 500
+  },
   "points": [
     {
       "precinctId": "41051001",
@@ -248,6 +258,7 @@ Same TopoJSON structure as §2.2 but for the `precincts` object key. The only pr
 - `points[].minorityShare` → x-axis for both scatter series
 - `points[].demVoteShare` / `repVoteShare` → y-axis per scatter series
 - `points[].precinctId`, `totalPopulation`, `minorityPopulation` → tooltip
+- `sampling.displayedPointCount` / `sampling.fullPrecinctCount` → optional chart copy about sampled vs full precinct count
 - `regressionCurves[].key` → `dataKey` for each `<Line>`
 - `regressionCurves[].label` → legend name
 - `regressionCurves[].party` → stroke color (`DEM` = `#2563eb`, else `#dc2626`)
@@ -262,6 +273,10 @@ Same TopoJSON structure as §2.2 but for the `precincts` object key. The only pr
 
 ```json
 {
+  "electionKey": "2024_pres",
+  "electionLabel": "2024 Presidential",
+  "rowCount": 1298,
+  "sorting": { "rowOrder": "precinctId_asc" },
   "rows": [
     {
       "precinctId": "41051001",
@@ -763,8 +778,15 @@ Lookup: `stateId + groupKey + electionId`
   "stateId": "OR",
   "groupKey": "latino",
   "electionId": "2024_pres",
-  "selectedGroup": "Latino",
-  "points": [
+  "documentType": "gingles_chart",
+  "provenance": { "sourceType": "preprocessing_export" },
+  "internal": { "regressionModels": [] },
+  "payload": {
+    "selectedGroup": "Latino",
+    "electionKey": "2024_pres",
+    "electionLabel": "2024 Presidential",
+    "sampling": { "displayedPointCount": 500, "targetPointCount": 500 },
+    "points": [
     {
       "precinctId": "41051001",
       "minorityShare": 0.12,
@@ -773,8 +795,8 @@ Lookup: `stateId + groupKey + electionId`
       "totalPopulation": 1820,
       "minorityPopulation": 218
     }
-  ],
-  "regressionCurves": [
+    ],
+    "regressionCurves": [
     {
       "key": "dem_curve",
       "label": "Democratic trend",
@@ -787,7 +809,8 @@ Lookup: `stateId + groupKey + electionId`
       "party": "REP",
       "points": [{ "x": 0.0, "y": 0.59 }, { "x": 1.0, "y": 0.12 }]
     }
-  ]
+    ]
+  }
 }
 ```
 
@@ -800,7 +823,14 @@ Lookup: `stateId + groupKey + electionId`
   "stateId": "OR",
   "groupKey": "latino",
   "electionId": "2024_pres",
-  "rows": [
+  "documentType": "gingles_table",
+  "provenance": { "sourceType": "preprocessing_export" },
+  "payload": {
+    "electionKey": "2024_pres",
+    "electionLabel": "2024 Presidential",
+    "rowCount": 1298,
+    "sorting": { "rowOrder": "precinctId_asc" },
+    "rows": [
     {
       "precinctId": "41051001",
       "precinctName": "Portland 1",
@@ -809,7 +839,8 @@ Lookup: `stateId + groupKey + electionId`
       "repVoteShare": 0.50,
       "demVoteShare": 0.46
     }
-  ]
+    ]
+  }
 }
 ```
 

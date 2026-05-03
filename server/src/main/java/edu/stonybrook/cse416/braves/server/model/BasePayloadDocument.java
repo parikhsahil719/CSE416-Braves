@@ -11,12 +11,16 @@ public abstract class BasePayloadDocument {
     private String stateId;
     private String electionId;
     private String groupKey;
+    private String documentType;
     private String ensembleType;
     private String metricKey;
     private String populationMeasure;
     private String schemaVersion;
     private String sourceManifestId;
     private Instant createdAt;
+    private Instant updatedAt;
+    private Map<String, Object> provenance;
+    private Map<String, Object> internal;
     private Map<String, Object> payload;
 
     public String getId() {
@@ -49,6 +53,14 @@ public abstract class BasePayloadDocument {
 
     public void setGroupKey(String groupKey) {
         this.groupKey = groupKey;
+    }
+
+    public String getDocumentType() {
+        return documentType;
+    }
+
+    public void setDocumentType(String documentType) {
+        this.documentType = documentType;
     }
 
     public String getEnsembleType() {
@@ -97,6 +109,30 @@ public abstract class BasePayloadDocument {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Map<String, Object> getProvenance() {
+        return provenance;
+    }
+
+    public void setProvenance(Map<String, Object> provenance) {
+        this.provenance = provenance;
+    }
+
+    public Map<String, Object> getInternal() {
+        return internal;
+    }
+
+    public void setInternal(Map<String, Object> internal) {
+        this.internal = internal;
     }
 
     public Map<String, Object> getPayload() {

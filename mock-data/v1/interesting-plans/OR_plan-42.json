@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "v1",
+  "state": "OR",
+  "planId": "plan-42",
+  "planName": "Oregon Opportunity Corridor",
+  "ensembleType": "race_blind",
+  "reasonInteresting": "High Latino opportunity with competitive statewide split",
+  "summary": {
+    "repWins": 2,
+    "demWins": 4,
+    "effectiveMinorityDistricts": 2
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "v1",
+  "state": "SC",
+  "planId": "plan-43",
+  "planName": "South Carolina Race-Blind Baseline",
+  "ensembleType": "race_blind",
+  "reasonInteresting": "Representative race-blind plan showing Black representation under unconstrained redistricting",
+  "summary": {
+    "repWins": 5,
+    "demWins": 2,
+    "effectiveMinorityDistricts": 2
+  }
+}

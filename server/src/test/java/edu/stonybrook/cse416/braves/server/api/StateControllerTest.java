@@ -10,7 +10,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -113,11 +112,101 @@ class StateControllerTest {
                 "schemaVersion", "v1",
                 "state", "OR",
                 "rows", List.of(Map.of("district", "1", "winner", "DEMOCRATIC")),
-                "effectivenessScore", 0.41,
-                "calibratedEffectivenessScore", 0.38
+                "districts", List.of(Map.of(
+                        "districtNumber", 1,
+                        "effectivenessScore", 0.41,
+                        "calibratedEffectivenessScore", 0.38
+                ))
         );
-        Map<String, Object> gingles = readFixture("gingles-scatter/OR_2024_latino.json");
-        Map<String, Object> ginglesTable = readFixture("gingles-table/OR_2024_latino.json");
+        Map<String, Object> gingles = Map.ofEntries(
+                Map.entry("schemaVersion", "v1"),
+                Map.entry("chartType", "gingles-scatter"),
+                Map.entry("state", "OR"),
+                Map.entry("totalDistricts", 6),
+                Map.entry("electionKey", "2024_pres"),
+                Map.entry("electionLabel", "2024 Presidential"),
+                Map.entry("selectedGroup", "Latino"),
+                Map.entry("units", Map.of("share", "decimal_0_to_1")),
+                Map.entry("sampling", Map.of(
+                        "isSampled", true,
+                        "samplingAuthority", "preprocessing",
+                        "samplingMethod", "minority_share_binned_random_seed_42_40_bins",
+                        "displayedPointCount", 2,
+                        "fullPrecinctCount", 1298,
+                        "targetPointCount", 500
+                )),
+                Map.entry("points", List.of(
+                        Map.of(
+                                "precinctId", "1",
+                                "minorityShare", 0.10,
+                                "demVoteShare", 0.40,
+                                "repVoteShare", 0.55,
+                                "totalPopulation", 1000,
+                                "minorityPopulation", 100
+                        ),
+                        Map.of(
+                                "precinctId", "2",
+                                "minorityShare", 0.20,
+                                "demVoteShare", 0.50,
+                                "repVoteShare", 0.45,
+                                "totalPopulation", 900,
+                                "minorityPopulation", 180
+                        )
+                )),
+                Map.entry("regressionCurves", List.of(
+                        Map.of(
+                                "key", "dem_nlr",
+                                "label", "Democratic best-fit regression",
+                                "party", "DEM",
+                                "curveType", "nonlinear_regression",
+                                "points", List.of(Map.of("x", 0.0, "y", 0.30), Map.of("x", 1.0, "y", 0.60))
+                        ),
+                        Map.of(
+                                "key", "rep_nlr",
+                                "label", "Republican best-fit regression",
+                                "party", "REP",
+                                "curveType", "nonlinear_regression",
+                                "points", List.of(Map.of("x", 0.0, "y", 0.65), Map.of("x", 1.0, "y", 0.35))
+                        )
+                ))
+        );
+        Map<String, Object> ginglesTable = Map.of(
+                "schemaVersion", "v1",
+                "tableType", "gingles-precinct-table",
+                "state", "OR",
+                "totalDistricts", 6,
+                "electionKey", "2024_pres",
+                "electionLabel", "2024 Presidential",
+                "selectedGroup", "Latino",
+                "rowCount", 2,
+                "sorting", Map.of("rowOrder", "precinctId_asc"),
+                "rows", List.of(
+                        Map.of(
+                                "precinctId", "1",
+                                "precinctName", "1",
+                                "totalPopulation", 1000,
+                                "minorityPopulation", 100,
+                                "republicanVotes", 550,
+                                "democraticVotes", 400,
+                                "minorityShare", 0.10,
+                                "repVoteShare", 0.55,
+                                "demVoteShare", 0.40,
+                                "winningParty", "REP"
+                        ),
+                        Map.of(
+                                "precinctId", "2",
+                                "precinctName", "2",
+                                "totalPopulation", 900,
+                                "minorityPopulation", 180,
+                                "republicanVotes", 405,
+                                "democraticVotes", 450,
+                                "minorityShare", 0.20,
+                                "repVoteShare", 0.45,
+                                "demVoteShare", 0.50,
+                                "winningParty", "DEM"
+                        )
+                )
+        );
         Map<String, Object> eiSupport = Map.of(
                 "schemaVersion", "v1",
                 "selectedCandidate", "Democratic Candidate",
@@ -279,15 +368,21 @@ class StateControllerTest {
                         .param("election", "2024_pres"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.state").value("OR"))
-                .andExpect(jsonPath("$.points.length()").value(1682))
+                .andExpect(jsonPath("$.electionKey").value("2024_pres"))
+                .andExpect(jsonPath("$.electionLabel").value("2024 Presidential"))
+                .andExpect(jsonPath("$.sampling.isSampled").value(true))
+                .andExpect(jsonPath("$.sampling.fullPrecinctCount").value(1298))
+                .andExpect(jsonPath("$.points.length()").value(2))
                 .andExpect(jsonPath("$.regressionCurves.length()").value(2))
-                .andExpect(jsonPath("$.regressionCurves[0].points.length()").value(21));
+                .andExpect(jsonPath("$.regressionCurves[0].points.length()").value(2));
 
         mockMvc.perform(get("/api/states/OR/analysis/gingles/table")
                         .param("group", "latino")
                         .param("election", "2024_pres"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.rows.length()").value(100));
+                .andExpect(jsonPath("$.rowCount").value(2))
+                .andExpect(jsonPath("$.sorting.rowOrder").value("precinctId_asc"))
+                .andExpect(jsonPath("$.rows.length()").value(2));
 
         mockMvc.perform(get("/api/states/OR/analysis/ei-support")
                         .param("groups", "latino")
@@ -350,13 +445,6 @@ class StateControllerTest {
         return MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new ApiExceptionHandler())
                 .build();
-    }
-
-    private Map<String, Object> readFixture(String relativePath) throws Exception {
-        return objectMapper.readValue(
-                Path.of("..", "mock-data", "v1", relativePath).normalize().toFile(),
-                objectMapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class)
-        );
     }
 
     private BackendDataService dataServiceForResponse(Map<String, Object> response) {
