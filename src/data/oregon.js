@@ -1,7 +1,7 @@
 let Oregon = {
     "population": "3,370,625",
-    "voterDistributionDem": "1,228,410 (55.6%)",
-    "voterDistributionRep": "910,702 (41.3%)",
+    "voterDistributionDem": "1,240,600 (55.27%)",
+    "voterDistributionRep": "919,480 (40.97%)",
     "WhitePopulation": "2,526,251",
     "BlackPopulation": "60,012",
     "AsianPopulation": "194,538",
