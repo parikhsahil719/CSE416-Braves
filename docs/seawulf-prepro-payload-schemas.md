@@ -78,18 +78,22 @@ Each subsection names the endpoint, the component(s) that call it, and the exact
 
 ### 2.3 `GET /api/states/{stateId}/state-summary` — GUI-3 (State tab)
 
-**Component:** `StatePage` → `mergeSummaryData` → `StateData`
+**Component:** `StatePage` → `StateData`
 
-Note: `StatePage` calls `/state-summary`, **not** `/summary`. These are the only fields `mergeSummaryData` overwrites from local data.
+Note: `StatePage` calls `/state-summary`, **not** `/summary`, and renders the State tab directly from the backend response.
 
 ```json
 {
-  "population": "4,272,371",
-  "voterDistributionDem": "1,228,410 (55.6%)",
-  "voterDistributionRep": "910,702 (41.3%)",
-  "partyControl": "Democrat",
-  "democratReps": 5,
-  "republicanReps": 1,
+  "population": "3,370,625",
+  "WhitePopulation": "2,526,251",
+  "BlackPopulation": "60,012",
+  "AsianPopulation": "194,538",
+  "HispanicPopulation": "389,384",
+  "voterDistributionDem": "1,240,600 (55.27%)",
+  "voterDistributionRep": "919,480 (40.97%)",
+  "partyControl": "Democratic",
+  "democratReps": "Suzanne Bonamici, Maxine Dexter, Val Hoyle, Janelle Bynum, Andrea Salinas",
+  "republicanReps": "Cliff Bentz",
   "groupRoughProportionality": [
     {
       "groupKey": "latino",

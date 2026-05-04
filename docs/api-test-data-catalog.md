@@ -8,7 +8,7 @@ This catalog maps each implemented server-backed GUI use case to the concrete se
 | GUI-2 | `/api/states/{stateId}/districts/enacted/topology` | OR | `stateId=OR` | file-backed TopoJSON, sanitized + cacheable | `src/data/oregon_congressional_districts.json` | `Live` |
 | GUI-2 | `/api/states/{stateId}/districts/enacted/topology` | SC | `stateId=SC` | file-backed TopoJSON, sanitized + cacheable | `src/data/south_carolina_congressional_districts.json` | `Live` |
 | GUI-2 compatibility | `/api/states/{stateId}/districts/enacted/geojson` | OR, SC | `stateId` | file-backed GeoJSON | `src/data/*_congressional_districts.geojson` | `Compatibility` |
-| GUI-3 | `/api/states/{stateId}/summary` | OR, SC | `stateId` | `state_summaries` | seeded inline in `SeedDataLoader.seedStateSummaries()` | `Live` |
+| GUI-3 | `/api/states/{stateId}/state-summary` | OR, SC | `stateId` | `state_summaries` | seeded inline in `SeedDataLoader.seedStateSummaries()` | `Live` |
 | GUI-4 geometry | `/api/states/{stateId}/precincts/topology` | OR, SC | `stateId` | file-backed TopoJSON, sanitized + cacheable | `server/src/main/resources/geometry/precincts_or.json`, `server/src/main/resources/geometry/precincts_sc.json` | `Live` |
 | GUI-4 | `/api/states/{stateId}/heatmap/precincts?group=...` | OR, SC | `stateId + group` | `heatmap_bins` | seeded inline in `SeedDataLoader.heatmapPayload()` | `Live` |
 | GUI-6 | `/api/states/{stateId}/districts/enacted/table?election=...` | OR, SC | `stateId + election` | `district_tables` | seeded inline in `SeedDataLoader.seedDistrictTables()` | `Live` |

@@ -91,11 +91,57 @@ class StateControllerTest {
     }
 
     @Test
+    void getStateSummaryReturnsExpectedFieldsForSouthCarolina() throws Exception {
+        BackendDataService dataService = dataServiceForResponse(Map.ofEntries(
+                Map.entry("schemaVersion", "v1"),
+                Map.entry("state", "SC"),
+                Map.entry("population", "4,014,460"),
+                Map.entry("WhitePopulation", "2,603,975"),
+                Map.entry("BlackPopulation", "964,667"),
+                Map.entry("AsianPopulation", "90,466"),
+                Map.entry("HispanicPopulation", "231,124"),
+                Map.entry("voterDistributionDem", "1,028,452 (40.36%)"),
+                Map.entry("voterDistributionRep", "1,483,747 (58.23%)"),
+                Map.entry("partyControl", "Republican"),
+                Map.entry("democratReps", "James Clyburn"),
+                Map.entry("republicanReps", "Nancy Mace, Joe Wilson, Sheri Biggs, William Timmons, Ralph Norman, Russell Fry"),
+                Map.entry("feasibleGroups", List.of("Black", "Latino", "White"))
+        ));
+
+        MockMvc mockMvc = mockMvcFor(dataService);
+
+        mockMvc.perform(get("/api/states/SC/state-summary"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.state").value("SC"))
+                .andExpect(jsonPath("$.population").value("4,014,460"))
+                .andExpect(jsonPath("$.WhitePopulation").value("2,603,975"))
+                .andExpect(jsonPath("$.BlackPopulation").value("964,667"))
+                .andExpect(jsonPath("$.AsianPopulation").value("90,466"))
+                .andExpect(jsonPath("$.HispanicPopulation").value("231,124"))
+                .andExpect(jsonPath("$.voterDistributionDem").value("1,028,452 (40.36%)"))
+                .andExpect(jsonPath("$.voterDistributionRep").value("1,483,747 (58.23%)"))
+                .andExpect(jsonPath("$.partyControl").value("Republican"))
+                .andExpect(jsonPath("$.democratReps").value("James Clyburn"))
+                .andExpect(jsonPath("$.republicanReps").value("Nancy Mace, Joe Wilson, Sheri Biggs, William Timmons, Ralph Norman, Russell Fry"))
+                .andExpect(jsonPath("$.feasibleGroups.length()").value(3));
+    }
+
+    @Test
     void implementedEndpointsReturnHealthyPayloadsIncludingFullGinglesScatter() throws Exception {
-        Map<String, Object> stateSummary = Map.of(
-                "schemaVersion", "v1",
-                "state", "OR",
-                "feasibleGroups", List.of("Latino", "Asian", "White")
+        Map<String, Object> stateSummary = Map.ofEntries(
+                Map.entry("schemaVersion", "v1"),
+                Map.entry("state", "OR"),
+                Map.entry("population", "3,370,625"),
+                Map.entry("WhitePopulation", "2,526,251"),
+                Map.entry("BlackPopulation", "60,012"),
+                Map.entry("AsianPopulation", "194,538"),
+                Map.entry("HispanicPopulation", "389,384"),
+                Map.entry("voterDistributionDem", "1,240,600 (55.27%)"),
+                Map.entry("voterDistributionRep", "919,480 (40.97%)"),
+                Map.entry("partyControl", "Democratic"),
+                Map.entry("democratReps", "Suzanne Bonamici, Maxine Dexter, Val Hoyle, Janelle Bynum, Andrea Salinas"),
+                Map.entry("republicanReps", "Cliff Bentz"),
+                Map.entry("feasibleGroups", List.of("Latino", "Asian", "White"))
         );
         Map<String, Object> ensembleSummary = Map.of(
                 "schemaVersion", "v1",
@@ -345,6 +391,16 @@ class StateControllerTest {
         mockMvc.perform(get("/api/states/OR/state-summary"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.state").value("OR"))
+                .andExpect(jsonPath("$.population").value("3,370,625"))
+                .andExpect(jsonPath("$.WhitePopulation").value("2,526,251"))
+                .andExpect(jsonPath("$.BlackPopulation").value("60,012"))
+                .andExpect(jsonPath("$.AsianPopulation").value("194,538"))
+                .andExpect(jsonPath("$.HispanicPopulation").value("389,384"))
+                .andExpect(jsonPath("$.voterDistributionDem").value("1,240,600 (55.27%)"))
+                .andExpect(jsonPath("$.voterDistributionRep").value("919,480 (40.97%)"))
+                .andExpect(jsonPath("$.partyControl").value("Democratic"))
+                .andExpect(jsonPath("$.democratReps").value("Suzanne Bonamici, Maxine Dexter, Val Hoyle, Janelle Bynum, Andrea Salinas"))
+                .andExpect(jsonPath("$.republicanReps").value("Cliff Bentz"))
                 .andExpect(jsonPath("$.feasibleGroups.length()").value(3));
 
         mockMvc.perform(get("/api/states/OR/ensembles-summary"))
@@ -452,6 +508,11 @@ class StateControllerTest {
                 null, null, null, null, null, null, null, null,
                 null, null, null, null, null, null, null, null
         ) {
+            @Override
+            public Map<String, Object> getStateSummary(String stateIdInput) {
+                return response;
+            }
+
             @Override
             public Map<String, Object> getEnsembleSummary(String stateIdInput) {
                 return response;

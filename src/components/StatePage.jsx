@@ -1,30 +1,12 @@
 import React, { useEffect, useState } from "react";
 import "../../styles/state-page.css";
 import { useParams } from "react-router-dom";
-import Oregon from "../data/oregon.js";
-import SouthCarolina from "../data/sc.js";
 import { topologyToFeatureCollection } from "../utils/topology.js";
 import { toStateCode } from "../utils/stateUtils.js";
 import { useStateSummary, useEnsemblesSummary, useDistrictTable, useDistrictTopology } from "../queries/stateQueries.js";
 import { pct } from "../utils/chartFormat.js";
 import DistrictMap from "./DistrictMap";
 import MinorityHeatMap from "./MinorityHeatMap";
-
-const DEFAULT_ELECTION = "2024_pres";
-const LOCAL_DATA = { Oregon, SouthCarolina };
-
-function mergeSummaryData(localData, summaryData) {
-  if (!summaryData) return localData;
-  return {
-    ...localData,
-    population: summaryData.population ?? localData.population,
-    voterDistributionDem: summaryData.voterDistributionDem ?? localData.voterDistributionDem,
-    voterDistributionRep: summaryData.voterDistributionRep ?? localData.voterDistributionRep,
-    partyControl: summaryData.partyControl ?? localData.partyControl,
-    democratReps: summaryData.democratReps ?? localData.democratReps,
-    republicanReps: summaryData.republicanReps ?? localData.republicanReps,
-  };
-}
 
 function VoteMarginBadge({ margin }) {
   const isDem = margin >= 0;
@@ -34,10 +16,12 @@ function VoteMarginBadge({ margin }) {
 function StateData({ stateData, stateName, loading, loadFailed }) {
   const SIG_THRESHOLD = (stateName === "Oregon" ? "200,000" : "400,000");
 
+  if (loading) return <div className="statePagePanelStatus">Loading state summary...</div>;
+  if (loadFailed) return <div className="statePagePanelStatus">Unable to load backend state summary.</div>;
+  if (!stateData) return <div className="statePagePanelStatus">State summary is not available for this state.</div>;
+
   return (
     <>
-      {loading && <div className="statePagePanelStatus">Loading state summary...</div>}
-      {loadFailed && <div className="statePagePanelStatus">Unable to load backend state summary. Showing local fallback data.</div>}
       <span className="statePagePopulationDataContainer">
         <span className="statePageDataBubble">
           <p className="statePageDataBubbleLabel">Population:</p>
@@ -142,7 +126,6 @@ function TabBar({ tab, onSelect }) {
 export default function StatePage({ currMap, currMinority, switchMinority }) {
   const { stateName } = useParams();
   const stateCode = toStateCode(stateName);
-  const localData = LOCAL_DATA[stateName?.replaceAll(" ", "")];
 
   const [tab, setTab] = useState("State");
   const [districtTabVisited, setDistrictTabVisited] = useState(false);
@@ -154,9 +137,8 @@ export default function StatePage({ currMap, currMinority, switchMinority }) {
   const districts = useDistrictTable(stateCode, districtTabVisited);
   const topo = useDistrictTopology(stateCode);
 
-  if (!localData) return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: State not found</div>;
+  if (!stateCode) return <div style={{ fontWeight: "bolder", margin: "1rem" }}>Error: State not found</div>;
 
-  const displayData = mergeSummaryData(localData, summary.data);
   const districtRows = districts.data?.districts ?? [];
   const mapData = topo.data ? topologyToFeatureCollection(topo.data, "districts") : null;
 
@@ -167,7 +149,7 @@ export default function StatePage({ currMap, currMinority, switchMinority }) {
   }
 
   function renderPanel() {
-    if (tab === "State") return <StateData stateData={displayData} stateName={stateName} loading={summary.isLoading} loadFailed={summary.isError} />;
+    if (tab === "State") return <StateData stateData={summary.data} stateName={stateName} loading={summary.isLoading} loadFailed={summary.isError} />;
     if (tab === "District") return <DistrictData districts={districtRows} selectedDistrict={selectedDistrict} onSelectDistrict={setSelectedDistrict} onChangeTab={handleTabSelect} loading={districts.isLoading} loadFailed={districts.isError} currMap={currMap} />;
     return <EnsembleData ensembleSummary={ensemble.data} loading={ensemble.isLoading && ensemblesTabVisited} loadFailed={ensemble.isError} />;
   }
