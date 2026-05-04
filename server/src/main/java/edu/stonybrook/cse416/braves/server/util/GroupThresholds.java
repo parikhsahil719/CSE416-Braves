@@ -3,6 +3,8 @@ package edu.stonybrook.cse416.braves.server.util;
 import java.util.Map;
 
 public final class GroupThresholds {
+    // These seeded thresholds gate which demographic analyses are treated as meaningful enough to expose in
+    // the demo dataset.
     public static final int MIN_GROUP_POPULATION = 200_000;
 
     private static final Map<String, Integer> OR = Map.of(

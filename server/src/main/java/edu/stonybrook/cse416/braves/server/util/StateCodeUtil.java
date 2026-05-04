@@ -4,6 +4,8 @@ import java.util.Locale;
 import java.util.Map;
 
 public final class StateCodeUtil {
+    // Accept both abbreviations and human-readable names so API callers and seed utilities can normalize
+    // whichever state label they already have on hand.
     private static final Map<String, String> MAP = Map.of(
             "oregon", "OR",
             "or", "OR",

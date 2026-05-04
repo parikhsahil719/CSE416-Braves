@@ -16,6 +16,7 @@ public final class ProjectPathResolver {
         }
 
         Path userDir = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
+        // The backend may start either from repo root or from server/, so probe both layouts before failing.
         if (Files.exists(userDir.resolve("mock-data"))) {
             return userDir;
         }

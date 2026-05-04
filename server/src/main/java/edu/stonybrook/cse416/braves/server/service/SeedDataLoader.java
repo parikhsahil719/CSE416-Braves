@@ -125,6 +125,8 @@ public class SeedDataLoader implements ApplicationRunner {
             return;
         }
 
+        // Resolve the repo layout first, validate that the checked-in geometry still looks realistic, then
+        // refresh canonical snapshot collections while leaving larger static seed sets alone unless absent.
         Path root = ProjectPathResolver.resolveRoot(configuredRootPath);
         validatePrecinctCounts(root);
         validatePopulationRealism(root);
@@ -142,7 +144,8 @@ public class SeedDataLoader implements ApplicationRunner {
         if (boxWhiskerResultRepository.count() == 0) seedBoxWhiskers(root);
         seedInterestingPlans(root);
         if (vraImpactThresholdTableRepository.count() == 0) seedVraImpactThresholdTables(root);
-        // Use < 16 so stale 2-document collections from before the per-ensemble split are replaced
+        // Expect 16 documents here: 2 states x 2 ensemble types x 4 ensemble indices. Any smaller count
+        // implies stale pre-split data that should be replaced wholesale.
         if (minorityEffectivenessBoxWhiskerRepository.count() < 16) seedMinorityEffectivenessBoxWhisker(root);
         if (minorityEffectivenessHistogramRepository.count() == 0) seedMinorityEffectivenessHistogram(root);
         if (runManifestRepository.count() == 0 || ingestManifestRepository.count() == 0) seedManifests();
@@ -223,6 +226,8 @@ public class SeedDataLoader implements ApplicationRunner {
         if (objects == null || objects.isEmpty()) {
             throw new IllegalStateException("Topology is missing objects collection");
         }
+        // Each checked-in topology is expected to expose one primary geometry collection, so the seeder reads
+        // the first object instead of baking collection names into this validation path.
         Map<String, Object> geometryCollection = (Map<String, Object>) objects.values().iterator().next();
         return (List<Map<String, Object>>) geometryCollection.get("geometries");
     }
@@ -421,6 +426,8 @@ public class SeedDataLoader implements ApplicationRunner {
     }
 
     private Path ginglesChartSourcePath(Path root, String stateId, String groupKey) {
+        // Prefer real notebook output when this state/group has been preprocessed, and fall back to checked-in
+        // mock fixtures for slices that still do not have a notebook export.
         if ("OR".equals(stateId) && "latino".equals(groupKey)) {
             return root.resolve("preprocessing/output/OR_2024_latino_gingles_scatter.json");
         }
@@ -431,6 +438,8 @@ public class SeedDataLoader implements ApplicationRunner {
     }
 
     private Path ginglesTableSourcePath(Path root, String stateId, String groupKey) {
+        // Prefer real notebook output when this state/group has been preprocessed, and fall back to checked-in
+        // mock fixtures for slices that still do not have a notebook export.
         if ("OR".equals(stateId) && "latino".equals(groupKey)) {
             return root.resolve("preprocessing/output/OR_2024_latino_gingles_table.json");
         }
@@ -452,6 +461,8 @@ public class SeedDataLoader implements ApplicationRunner {
     }
 
     private Map<String, Object> buildGinglesProvenance(Path root, Path sourcePath) throws IOException {
+        // Store enough provenance to explain whether a payload came from the notebook export path or a fixture,
+        // and to reproduce the exact artifact that was loaded during seeding.
         String relativePath = root.relativize(sourcePath).toString().replace('\\', '/');
         String sourceType = relativePath.startsWith("preprocessing/output/")
                 ? "preprocessing_export"
@@ -477,6 +488,8 @@ public class SeedDataLoader implements ApplicationRunner {
             String groupKey
     ) {
         List<Map<String, Object>> rawPoints = pointList(rawPayload.get("points"), "chart points");
+        // Normalize and re-sort points here so the stored API payload has one consistent ordering regardless of
+        // how the notebook happened to emit the raw export.
         List<Map<String, Object>> sampledPoints = samplePrecinctsForPlotting(rawPoints, GINGLES_TARGET_POINT_COUNT);
         sampledPoints.sort(Comparator
                 .comparingDouble(this::minorityShare)
@@ -514,6 +527,8 @@ public class SeedDataLoader implements ApplicationRunner {
         payload.put("electionLabel", Optional.ofNullable(rawPayload.get("election")).map(String::valueOf).orElse(GINGLES_ELECTION_LABEL));
         payload.put("selectedGroup", Optional.ofNullable(rawPayload.get("selectedGroup")).map(String::valueOf).orElse(displayGroupLabel(groupKey)));
         payload.put("units", Map.of("share", "decimal_0_to_1"));
+        // Sampling metadata stays public so the chart contract can explain why it returns 500 display points
+        // instead of the full precinct universe.
         payload.put("sampling", Map.of(
                 "isSampled", true,
                 "samplingAuthority", "preprocessing",
@@ -532,6 +547,8 @@ public class SeedDataLoader implements ApplicationRunner {
             String stateId,
             String groupKey
     ) {
+        // Unlike the chart payload, the table keeps full precinct coverage and sorts by precinctId so the UI
+        // can provide a stable, exhaustive tabular view of the analysis slice.
         List<Map<String, Object>> rows = pointList(rawPayload.get("rows"), "table rows")
                 .stream()
                 .map(row -> {
@@ -570,6 +587,8 @@ public class SeedDataLoader implements ApplicationRunner {
             Map<String, Object> lockedPayload,
             boolean requireExportedFitFields
     ) {
+        // Keep reproducibility details like coefficients, fit metrics, and sampling audit under internal so the
+        // backend can retain the full regression story without expanding the public chart response.
         List<Map<String, Object>> rawPoints = pointList(rawPayload.get("points"), "raw chart points");
         List<Map<String, Object>> curves = pointList(lockedPayload.get("regressionCurves"), "locked regression curves");
         List<Map<String, Object>> rawCurves = pointList(rawPayload.get("regressionCurves"), "raw regression curves");
@@ -881,6 +900,8 @@ public class SeedDataLoader implements ApplicationRunner {
             return normalized;
         }
 
+        // Bin-aware allocation keeps sparse minority-share tails visible; naive random sampling tends to
+        // overrepresent the densest middle bins and flatten the chart's most informative edges.
         Map<Integer, List<Map<String, Object>>> bins = new LinkedHashMap<>();
         for (int index = 0; index < GINGLES_SAMPLE_BIN_COUNT; index++) {
             bins.put(index, new ArrayList<>());
@@ -899,6 +920,8 @@ public class SeedDataLoader implements ApplicationRunner {
             allocations.put(binIndex, 1);
         }
 
+        // After guaranteeing representation in each non-empty bin, distribute the remaining slots
+        // proportionally and then use a deterministic remainder pass to fill leftovers.
         int remainingSlots = targetPrecincts - allocations.values().stream().mapToInt(Integer::intValue).sum();
         int totalInNonEmpty = nonEmptyBins.stream().mapToInt(bin -> bins.get(bin).size()).sum();
         Map<Integer, Double> fractions = new LinkedHashMap<>();
@@ -969,6 +992,8 @@ public class SeedDataLoader implements ApplicationRunner {
         if (existing != null && !String.valueOf(existing).isBlank()) {
             return String.valueOf(existing);
         }
+        // Some exports omit the winner field, so reconstruct it from the normalized shares rather than failing
+        // the entire table import.
         double repVoteShare = boundedShare(row, "repVoteShare");
         double demVoteShare = boundedShare(row, "demVoteShare");
         return repVoteShare >= demVoteShare ? "REP" : "DEM";
@@ -979,6 +1004,8 @@ public class SeedDataLoader implements ApplicationRunner {
             String party,
             boolean requireExportedFitFields
     ) {
+        // Notebook-produced curves are expected to carry named fit parameters so the backend can preserve
+        // reproducible regression metadata instead of relying on positional guesswork later.
         if (rawCurve == null) {
             if (requireExportedFitFields) {
                 throw new IllegalStateException("Missing raw regression curve for party " + party);
@@ -1155,6 +1182,8 @@ public class SeedDataLoader implements ApplicationRunner {
     }
 
     private void seedInterestingPlans(Path root) throws IOException {
+        // Interesting plans are treated as a curated showcase set, so reseed them from files on every startup
+        // instead of preserving potentially stale Mongo copies.
         interestingPlanRepository.deleteAll();
         List<String> planSeedFiles = List.of(
                 "OR_plan-42.json",
@@ -1172,6 +1201,8 @@ public class SeedDataLoader implements ApplicationRunner {
         String stateId = requireString(payload, "state", file);
         String planId = requireString(payload, "planId", file);
         String ensembleType = requireString(payload, "ensembleType", file);
+        // Inject topology from the canonical geometry assets so every interesting-plan document stays aligned
+        // with the backend's current map source rather than duplicating geometry in each seed file.
         payload.put("topology", geometryAssetService.getDistrictTopology(stateId));
 
         InterestingPlanDocument doc = buildDoc(new InterestingPlanDocument(), stateId, "2024_pres", null, ensembleType, null, "TOTAL", payload);
@@ -1238,6 +1269,8 @@ public class SeedDataLoader implements ApplicationRunner {
     }
 
     private void seedManifests() {
+        // These manifests are lightweight provenance markers for the seeded dataset version, not a full ingest
+        // audit trail.
         runManifestRepository.save(buildDoc(new RunManifestDocument(), null, "2024_pres", null, null, null, null, Map.of(
                 "schemaVersion", "v1",
                 "notes", "Seeded from local repository mock-data",
@@ -1273,6 +1306,8 @@ public class SeedDataLoader implements ApplicationRunner {
             String populationMeasure,
             Map<String, Object> payload
     ) {
+        // Centralize shared envelope metadata here so every seeded collection carries the same baseline
+        // schema/version/timestamp fields even when the payload bodies differ.
         Instant now = Instant.now();
         doc.setStateId(stateId);
         doc.setElectionId(electionId);

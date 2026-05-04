@@ -17,6 +17,8 @@ public class MongoIndexConfig {
 
     @PostConstruct
     public void ensureIndexes() {
+        // These indexes mirror the lookup signatures used by the service layer and API routes rather than
+        // indexing every stored field on every payload document.
         mongoTemplate.indexOps(StateDocument.class)
                 .ensureIndex(new Index().on("stateId", Sort.Direction.ASC));
 
@@ -93,6 +95,8 @@ public class MongoIndexConfig {
                         .on("groupKey", Sort.Direction.ASC));
 
         mongoTemplate.indexOps(MinorityEffectivenessBoxWhiskerDocument.class)
+                // Keep the shared state/election slice cheap here; the document class also declares the full
+                // unique compound index used by the per-ensemble lookup path.
                 .ensureIndex(new Index()
                         .on("stateId", Sort.Direction.ASC)
                         .on("electionId", Sort.Direction.ASC));

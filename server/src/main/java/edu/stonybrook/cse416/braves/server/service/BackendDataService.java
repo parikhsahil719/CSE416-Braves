@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class BackendDataService {
+    // Omitted election selectors fall back to the seeded baseline dataset instead of forcing every caller
+    // to repeat the only election currently guaranteed to exist.
     private static final String DEFAULT_ELECTION_ID = "2024_pres";
 
     private final StateRepository stateRepository;
@@ -107,6 +109,8 @@ public class BackendDataService {
     public Map<String, Object> getHeatmap(String stateIdInput, String groupInput) {
         String stateId = normalizeState(stateIdInput);
         String group = normalizeGroup(groupInput);
+        // Reject unsupported state/group combinations before Mongo lookup so callers get a clear contract
+        // error instead of an ambiguous missing-document response.
         requireFeasibleGroup(stateId, group);
         return payloadFrom(
                 heatmapBinRepository.findByStateIdAndGroupKey(stateId, group),
@@ -129,6 +133,8 @@ public class BackendDataService {
         String stateId = normalizeState(stateIdInput);
         String group = normalizeGroup(groupInput);
         String election = normalizeElection(electionInput);
+        // Reject unsupported state/group combinations before Mongo lookup so callers get a clear contract
+        // error instead of an ambiguous missing-document response.
         requireFeasibleGroup(stateId, group);
         return payloadFrom(
                 ginglesResultRepository.findByStateIdAndGroupKeyAndElectionId(stateId, group, election),
@@ -141,6 +147,8 @@ public class BackendDataService {
         String stateId = normalizeState(stateIdInput);
         String group = normalizeGroup(groupInput);
         String election = normalizeElection(electionInput);
+        // Reject unsupported state/group combinations before Mongo lookup so callers get a clear contract
+        // error instead of an ambiguous missing-document response.
         requireFeasibleGroup(stateId, group);
         return payloadFrom(
                 ginglesTableRepository.findByStateIdAndGroupKeyAndElectionId(stateId, group, election),
@@ -151,9 +159,13 @@ public class BackendDataService {
     @Cacheable("eiSupport")
     public Map<String, Object> getEiSupport(String stateIdInput, String groupsInput, String electionInput, String partyInput) {
         String stateId = normalizeState(stateIdInput);
+        // The frontend query parameter is plural, but the seeded backend stores one focal group per
+        // document, so only the first normalized selector participates in the lookup.
         String group = normalizeGroupSelector(groupsInput);
         String election = normalizeElection(electionInput);
         normalizeParty(partyInput);
+        // Reject unsupported state/group combinations before Mongo lookup so callers get a clear contract
+        // error instead of an ambiguous missing-document response.
         requireFeasibleGroup(stateId, group);
         return payloadFrom(
                 eiSupportResultRepository.findByStateIdAndElectionIdAndGroupKey(stateId, election, group),
@@ -167,6 +179,8 @@ public class BackendDataService {
         String group = normalizeGroup(groupInput);
         String election = normalizeElection(electionInput);
         String party = normalizeParty(partyInput);
+        // Reject unsupported state/group combinations before Mongo lookup so callers get a clear contract
+        // error instead of an ambiguous missing-document response.
         requireFeasibleGroup(stateId, group);
         return payloadFrom(
                 eiPrecinctBarCiRepository.findByStateIdAndGroupKeyAndElectionIdAndPartyKey(stateId, group, election, party),
@@ -180,6 +194,8 @@ public class BackendDataService {
         String group = normalizeGroup(groupInput);
         String election = normalizeElection(electionInput);
         String metric = normalizeToken(metricInput, "metric");
+        // Reject unsupported state/group combinations before Mongo lookup so callers get a clear contract
+        // error instead of an ambiguous missing-document response.
         requireFeasibleGroup(stateId, group);
         return payloadFrom(
                 eiKdeRepository.findByStateIdAndGroupKeyAndElectionIdAndMetricKey(stateId, group, election, metric),
@@ -204,6 +220,8 @@ public class BackendDataService {
         String group = normalizeGroup(groupInput);
         String ensembleType = normalizeToken(ensembleTypeInput, "ensembleType");
         String metric = normalizeToken(metricInput, "metric");
+        // Reject unsupported state/group combinations before Mongo lookup so callers get a clear contract
+        // error instead of an ambiguous missing-document response.
         requireFeasibleGroup(stateId, group);
         return payloadFrom(
                 boxWhiskerResultRepository.findByStateIdAndGroupKeyAndEnsembleTypeAndMetricKey(stateId, group, ensembleType, metric),
@@ -242,8 +260,8 @@ public class BackendDataService {
         );
     }
 
-    // Spring caches each (stateId, election, ensembleType, ensembleIndex) combination
-    // independently — switching between ensembles hits memory after the first request.
+    // Spring caches each (stateId, election, ensembleType, ensembleIndex) combination independently
+    // because the frontend flips between ensemble views repeatedly within a single session.
     @Cacheable("minorityEffectivenessBoxWhisker")
     public Map<String, Object> getMinorityEffectivenessBoxWhisker(
             String stateIdInput, String electionInput,
@@ -266,6 +284,8 @@ public class BackendDataService {
         String stateId = normalizeState(stateIdInput);
         String group = normalizeGroup(groupInput);
         String election = normalizeElection(electionInput);
+        // Reject unsupported state/group combinations before Mongo lookup so callers get a clear contract
+        // error instead of an ambiguous missing-document response.
         requireFeasibleGroup(stateId, group);
         return payloadFrom(
                 minorityEffectivenessHistogramRepository.findByStateIdAndGroupKeyAndElectionId(stateId, group, election),
@@ -278,6 +298,8 @@ public class BackendDataService {
     }
 
     private String normalizeElection(String electionInput) {
+        // Election is the only selector with a backend default because the seeded dataset currently treats
+        // 2024_pres as the baseline slice; other selectors must be explicit to avoid accidental widening.
         if (electionInput == null || electionInput.isBlank()) {
             return DEFAULT_ELECTION_ID;
         }
@@ -289,6 +311,8 @@ public class BackendDataService {
     }
 
     private String normalizeGroupSelector(String groupsInput) {
+        // EI support documents are keyed by one stored focal-group token even though the request shape allows
+        // a comma-separated selector list.
         String[] parts = normalizeToken(groupsInput, "groups").split(",");
         return parts[0].trim().toLowerCase(Locale.US);
     }
@@ -323,6 +347,8 @@ public class BackendDataService {
     }
 
     private Map<String, Object> withStoredMetadata(BasePayloadDocument doc) {
+        // Keep the public payload shape authoritative, but backfill stored metadata when the payload omitted it
+        // so callers still receive the normalized contract.
         Map<String, Object> copy = new LinkedHashMap<>(doc.getPayload());
         if (doc.getPopulationMeasure() != null && !copy.containsKey("populationMeasureUsed")) {
             copy.put("populationMeasureUsed", doc.getPopulationMeasure());

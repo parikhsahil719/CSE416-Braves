@@ -21,6 +21,8 @@ import java.util.Set;
 
 @Service
 public class GeometryAssetService {
+    // Geometry is file-backed, but the API only exposes a stable subset of properties so clients do not
+    // depend on incidental fields carried by the raw source assets.
     private static final Set<String> DISTRICT_PROPERTY_KEYS = Set.of("RESULT", "NAMELSAD", "district_number", "GEOID");
     private static final Set<String> PRECINCT_PROPERTY_KEYS = Set.of("GEOID", "total", "black", "asian", "hispanic");
     private static final Set<String> US_STATES_PROPERTY_KEYS = Set.of("name", "isActive");
@@ -72,6 +74,7 @@ public class GeometryAssetService {
     }
 
     private String relativeDistrictTopologyPath(String stateId) {
+        // Keep the state-to-asset mapping here so controllers and seeders share one supported-asset contract.
         return switch (stateId) {
             case "OR" -> "geometry/oregon_congressional_districts.json";
             case "SC" -> "geometry/south_carolina_congressional_districts.json";
@@ -80,6 +83,7 @@ public class GeometryAssetService {
     }
 
     private String relativePrecinctTopologyPath(String stateId) {
+        // Keep the state-to-asset mapping here so controllers and seeders share one supported-asset contract.
         return switch (stateId) {
             case "OR" -> "geometry/precincts_or.json";
             case "SC" -> "geometry/precincts_sc.json";
@@ -88,6 +92,8 @@ public class GeometryAssetService {
     }
 
     private GeometryAsset loadGeometryAsset(String classpathLocation, String notFoundMessage, Set<String> propertyKeysToKeep) {
+        // Sanitize before hashing so cache validation reflects the exact public payload rather than the raw
+        // source file, whose extra properties are intentionally hidden from clients.
         Map<String, Object> sanitized = sanitizeTopology(readJsonMap(classpathLocation, notFoundMessage), propertyKeysToKeep);
         return new GeometryAsset(sanitized, computeEtag(sanitized));
     }
@@ -95,6 +101,8 @@ public class GeometryAssetService {
     @SuppressWarnings("unchecked")
     private Map<String, Object> sanitizeTopology(Map<String, Object> topology, Set<String> propertyKeysToKeep) {
         Map<String, Object> sanitized = new LinkedHashMap<>();
+        // Preserve the TopoJSON structure needed to render valid geometry while dropping fields outside the
+        // API contract.
         copyIfPresent(topology, sanitized, "type");
         copyIfPresent(topology, sanitized, "bbox");
         copyIfPresent(topology, sanitized, "transform");
@@ -112,6 +120,8 @@ public class GeometryAssetService {
     @SuppressWarnings("unchecked")
     private Map<String, Object> sanitizeGeometryCollection(Map<String, Object> geometryCollection, Set<String> propertyKeysToKeep) {
         Map<String, Object> sanitized = new LinkedHashMap<>();
+        // Keep collection metadata and topology references intact, but rewrite each feature to the approved
+        // property subset.
         for (Map.Entry<String, Object> entry : geometryCollection.entrySet()) {
             if (!"geometries".equals(entry.getKey())) {
                 sanitized.put(entry.getKey(), entry.getValue());
@@ -130,6 +140,8 @@ public class GeometryAssetService {
     @SuppressWarnings("unchecked")
     private Map<String, Object> sanitizeGeometry(Map<String, Object> geometry, Set<String> propertyKeysToKeep) {
         Map<String, Object> sanitized = new LinkedHashMap<>();
+        // Retain geometry/arcs as-is and only trim feature properties, since the extra attributes are where
+        // payload bloat and unstable source-specific fields usually live.
         for (Map.Entry<String, Object> entry : geometry.entrySet()) {
             if (!"properties".equals(entry.getKey())) {
                 sanitized.put(entry.getKey(), entry.getValue());
@@ -158,6 +170,8 @@ public class GeometryAssetService {
 
     private String computeEtag(Map<String, Object> payload) {
         try {
+            // Use a content-derived ETag so browser caches invalidate only when the served geometry changes,
+            // not when the server restarts.
             byte[] bytes = objectMapper.writeValueAsBytes(payload);
             byte[] digest = MessageDigest.getInstance("SHA-256").digest(bytes);
             StringBuilder builder = new StringBuilder("\"");

@@ -16,14 +16,21 @@ public abstract class BasePayloadDocument {
     // Distinguishes ensemble run 1–4 within an ensembleType (rb or vra).
     // Null for documents that predate per-ensemble seeding.
     private Integer ensembleIndex;
+    // Metric selectors like ensemble size or support_gap participate in query identity for multi-slice payloads.
     private String metricKey;
+    // Records whether a payload was computed against TOTAL, CVAP, or another population base.
     private String populationMeasure;
     private String schemaVersion;
+    // Lightweight dataset version marker that ties the document back to the seed or ingest manifest used.
     private String sourceManifestId;
     private Instant createdAt;
     private Instant updatedAt;
+    // Reproducibility metadata about where the payload came from and when it was exported or seeded.
     private Map<String, Object> provenance;
+    // Backend-only analytical metadata, such as fit coefficients or sampling audits, that should not leak into
+    // the public API payload unless copied there deliberately.
     private Map<String, Object> internal;
+    // Persisted client-facing payload body; service reads may backfill extra metadata onto a copy later.
     private Map<String, Object> payload;
 
     public String getId() {
