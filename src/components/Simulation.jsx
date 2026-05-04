@@ -475,12 +475,14 @@ export default function Simulation({ currMap, currMinority, switchMinority, curr
       return (<>
         <MinorityEffectivenessTabBar tab={tab} onSelect={handleTabSelect} />
         {tab === "Box and Whisker" ?
-          <MinorityEffectivenessBoxWhisker payload={meBwData} loading={meBwRb.isLoading || meBwVra.isLoading} failed={meBwRb.isError || meBwVra.isError} /> :
+          <>
+            <MinorityEffectivenessBoxWhisker payload={meBwData} loading={meBwRb.isLoading || meBwVra.isLoading} failed={meBwRb.isError || meBwVra.isError} />
+            <span className="ensemble-selectors-container">
+              <EnsembleSelector stateName={stateName} ensembleType={"rb"} currEnsemble={currRbEnsemble} switchEnsemble={switchRbEnsemble} />
+              <EnsembleSelector stateName={stateName} ensembleType={"vra"} currEnsemble={currVraEnsemble} switchEnsemble={switchVraEnsemble} />
+            </span>
+          </> :
           <MinorityEffectivenessHistogram payload={meHist.data} loading={meHist.isLoading} failed={meHist.isError} group={currMinority} />}
-        <span className="ensemble-selectors-container">
-          <EnsembleSelector stateName={stateName} ensembleType={"rb"} currEnsemble={currRbEnsemble} switchEnsemble={switchRbEnsemble} />
-          <EnsembleSelector stateName={stateName} ensembleType={"vra"} currEnsemble={currVraEnsemble} switchEnsemble={switchVraEnsemble} />
-        </span>
         <VRAImpact payload={vraImpact.data} loading={vraImpact.isLoading} failed={vraImpact.isError} />
       </>);
     if (currSimData === "Minority Representation")

@@ -10,6 +10,17 @@ import EiSupportChart from "../charts/EiSupportChart.jsx";
 import MinoritySelector from "./MinoritySelector.jsx";
 import { ResponsiveContainer, BarChart, ComposedChart, Bar as RechartsBar, XAxis, YAxis, CartesianGrid, Tooltip, ErrorBar, Area, ReferenceLine, ReferenceArea } from "recharts";
 
+function EiTabBar({ tab, onSelect }) {
+  function cls(name) { return `eiDataTab${tab === name ? " eiActiveTab" : ""}`; }
+  return (
+    <span className="eiLabelsContainer">
+      {["Analysis", "Bar Chart", "Polarization KDE"].map(name => (
+        <div key={name} className={cls(name)} onClick={() => onSelect(name)}>{name}</div>
+      ))}
+    </span>
+  );
+}
+
 // GUI-12: EI Analysis — support distribution
 function EiAnalysisPanel({ payload, loading, failed, minority }) {
   if (loading) return <div className="ei_placeholder">Loading EI support...</div>;
@@ -106,6 +117,8 @@ export default function EI({ currMap, currMinority, switchMinority, currPolariza
   const eiBar = useEiPrecinctBarCi(stateCode, groupKey);
   const eiKde = useEiKde(stateCode, groupKey);
 
+  const [tab, setTab] = useState("Analysis")
+
   useEffect(() => {
     if (!groupOptionsForState(stateName).includes(currMinority))
       switchMinority(defaultGroup(stateCode));
@@ -117,21 +130,17 @@ export default function EI({ currMap, currMinority, switchMinority, currPolariza
 
   const mapData = topo.data ? topologyToFeatureCollection(topo.data, "districts") : null;
 
+  function handleTabSelect(nextTab) {
+    setTab(nextTab);
+  }
+
   function renderPanel() {
-    if (currPolarization === "EI Analysis")
-      return (
-        <>
-          <EiAnalysisPanel payload={eiSupp.data} loading={eiSupp.isLoading} failed={eiSupp.isError} minority={currMinority} />
-        </>
-      );
-    if (currPolarization === "EI Bar Chart")
+    if (tab === "Analysis")
+      return <EiAnalysisPanel payload={eiSupp.data} loading={eiSupp.isLoading} failed={eiSupp.isError} minority={currMinority} />;
+    if (tab === "Bar Chart")
       return <EiBarPanel payload={eiBar.data} loading={eiBar.isLoading} failed={eiBar.isError} />;
-    if (currPolarization === "Polarization KDE")
-      return (
-        <>
-          <EiKdePanel payload={eiKde.data} loading={eiKde.isLoading} failed={eiKde.isError} minority={currMinority} />
-        </>
-      );
+    if (tab === "Polarization KDE")
+      return <EiKdePanel payload={eiKde.data} loading={eiKde.isLoading} failed={eiKde.isError} minority={currMinority} />;
     return null;
   }
 
@@ -147,7 +156,10 @@ export default function EI({ currMap, currMinority, switchMinority, currPolariza
       </div>
       <div id="ei-page-chart-main-container">
         <div className="ei-page-chart-label">{currPolarization}</div>
-        {renderPanel()}
+        <EiTabBar tab={tab} onSelect={handleTabSelect} />
+        <div id="ei-page-chart-container">
+          {renderPanel()}
+        </div>
       </div>
     </span>
   );

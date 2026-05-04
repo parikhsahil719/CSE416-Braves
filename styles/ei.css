@@ -99,6 +99,27 @@
   height: 27rem;
 }
 
+.eiLabelsContainer {
+  display: flex;
+}
+
+.eiDataTab {
+  font-weight: bold;
+  font-size: 1.25rem;
+  padding: 0.25rem 2rem 0.5rem;
+  margin-left: -1px;
+  color: rgb(161, 161, 161);
+}
+
+.eiDataTab:hover {
+  cursor: pointer;
+}
+
+.eiActiveTab {
+  color: var(--active);
+  border-bottom: solid 3px var(--active);
+}
+
 @media (max-width: 1400px) {
   #ei-page-main {
     grid-template-columns: minmax(0, 1fr) minmax(0, 0.96fr);
