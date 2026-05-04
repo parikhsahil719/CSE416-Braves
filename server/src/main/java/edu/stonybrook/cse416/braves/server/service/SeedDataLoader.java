@@ -142,7 +142,8 @@ public class SeedDataLoader implements ApplicationRunner {
         if (boxWhiskerResultRepository.count() == 0) seedBoxWhiskers(root);
         seedInterestingPlans(root);
         if (vraImpactThresholdTableRepository.count() == 0) seedVraImpactThresholdTables(root);
-        if (minorityEffectivenessBoxWhiskerRepository.count() == 0) seedMinorityEffectivenessBoxWhisker(root);
+        // Use < 16 so stale 2-document collections from before the per-ensemble split are replaced
+        if (minorityEffectivenessBoxWhiskerRepository.count() < 16) seedMinorityEffectivenessBoxWhisker(root);
         if (minorityEffectivenessHistogramRepository.count() == 0) seedMinorityEffectivenessHistogram(root);
         if (runManifestRepository.count() == 0 || ingestManifestRepository.count() == 0) seedManifests();
         LOG.info("Mongo seed completed successfully");
@@ -1198,10 +1199,31 @@ public class SeedDataLoader implements ApplicationRunner {
     }
 
     private void seedMinorityEffectivenessBoxWhisker(Path root) throws IOException {
-        minorityEffectivenessBoxWhiskerRepository.save(buildDoc(new MinorityEffectivenessBoxWhiskerDocument(), "OR", "2024_pres", null, null, null, "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/minority-effectiveness-box-whisker/OR_2024_pres.json"))));
-        minorityEffectivenessBoxWhiskerRepository.save(buildDoc(new MinorityEffectivenessBoxWhiskerDocument(), "SC", "2024_pres", null, null, null, "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/minority-effectiveness-box-whisker/SC_2024_pres.json"))));
+        // Clear any stale documents (e.g. the old 2-document unified format) before inserting the 16 per-ensemble documents.
+        minorityEffectivenessBoxWhiskerRepository.deleteAll();
+        // Seed one document per (state, ensembleType, ensembleIndex) combination.
+        // Each document contains only its own side (raceBlindSummary or vraConstrainedSummary);
+        // the frontend merges the two sides at render time.
+        String[] states = {"OR", "SC"};
+        String[] types  = {"rb", "vra"};
+        for (String state : states) {
+            for (String type : types) {
+                for (int idx = 1; idx <= 4; idx++) {
+                    String filename = state + "_2024_pres_" + type + "_" + idx + ".json";
+                    MinorityEffectivenessBoxWhiskerDocument doc = buildDoc(
+                        new MinorityEffectivenessBoxWhiskerDocument(),
+                        state, "2024_pres",
+                        /*groupKey*/     null,
+                        /*ensembleType*/ type,
+                        /*metricKey*/    null,
+                        "CVAP",
+                        readJsonMap(root.resolve("mock-data/v1/minority-effectiveness-box-whisker/" + filename))
+                    );
+                    doc.setEnsembleIndex(idx);
+                    minorityEffectivenessBoxWhiskerRepository.save(doc);
+                }
+            }
+        }
     }
 
     private void seedMinorityEffectivenessHistogram(Path root) throws IOException {

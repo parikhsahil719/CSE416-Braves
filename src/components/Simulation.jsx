@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "../../styles/simulation.css";
 import { useParams } from "react-router-dom";
 import { topologyToFeatureCollection } from "../utils/topology.js";
 import { toStateCode, toGroupKey, defaultGroup, groupOptionsForState } from "../utils/stateUtils.js";
-import { useDistrictTopology, useEnsembleSplits, useBoxWhisker, useVraImpact, useMeBoxWhisker, useMeHistogram } from "../queries/stateQueries.js";
+import { useDistrictTopology, useEnsembleSplits, useBoxWhisker, useVraImpact, useMeBoxWhiskerRb, useMeBoxWhiskerVra, useMeHistogram } from "../queries/stateQueries.js";
 import DistrictMap from "./DistrictMap";
 import MinorityHeatMap from "./MinorityHeatMap";
 import BoxWhiskerChart from "../charts/BoxWhiskerChart.jsx";
@@ -394,6 +394,12 @@ function MajorityMinorityDistrictsBar({ payload, loading, failed, group }) {
   );
 }
 
+// EnsembleSelector stores the display name (e.g. "Race-Blind Ensemble 2").
+// Parse the trailing digit to get the 1-based index for the API call.
+function ensembleIdFromName(name) {
+  return parseInt(name.match(/\d+$/)?.[0] ?? '1', 10);
+}
+
 export default function Simulation({ currMap, currMinority, switchMinority, currSimData, switchSimData }) {
   const { stateName } = useParams();
   const stateCode = toStateCode(stateName);
@@ -404,12 +410,29 @@ export default function Simulation({ currMap, currMinority, switchMinority, curr
   const bwRace = useBoxWhisker(stateCode, groupKey, 'race_blind');
   const bwVra = useBoxWhisker(stateCode, groupKey, 'vra_constrained');
   const vraImpact = useVraImpact(stateCode, groupKey);
-  const meBw = useMeBoxWhisker(stateCode);
-  const meHist = useMeHistogram(stateCode, groupKey);
 
   const [tab, setTab] = useState("Box and Whisker");
   const [currRbEnsemble, switchRbEnsemble] = useState("Race-Blind Ensemble 1");
   const [currVraEnsemble, switchVraEnsemble] = useState("VRA-Constrained Ensemble 1");
+
+  // Each side is independently cached and re-fetched when its dropdown changes.
+  const meBwRb  = useMeBoxWhiskerRb(stateCode, ensembleIdFromName(currRbEnsemble));
+  const meBwVra = useMeBoxWhiskerVra(stateCode, ensembleIdFromName(currVraEnsemble));
+
+  // Merge: take raceBlindSummary from the rb response and vraConstrainedSummary from vra.
+  // Result has the same shape the chart component already expects.
+  const meBwData = useMemo(() => {
+    if (!meBwRb.data || !meBwVra.data) return null;
+    return {
+      ...meBwRb.data,
+      groupSummaries: meBwRb.data.groupSummaries.map((g, i) => ({
+        ...g,
+        vraConstrainedSummary: meBwVra.data.groupSummaries[i]?.vraConstrainedSummary,
+      })),
+    };
+  }, [meBwRb.data, meBwVra.data]);
+
+  const meHist = useMeHistogram(stateCode, groupKey);
 
   useEffect(() => {
     if (!groupOptionsForState(stateName).includes(currMinority))
@@ -452,7 +475,7 @@ export default function Simulation({ currMap, currMinority, switchMinority, curr
       return (<>
         <MinorityEffectivenessTabBar tab={tab} onSelect={handleTabSelect} />
         {tab === "Box and Whisker" ?
-          <MinorityEffectivenessBoxWhisker payload={meBw.data} loading={meBw.isLoading} failed={meBw.isError} /> :
+          <MinorityEffectivenessBoxWhisker payload={meBwData} loading={meBwRb.isLoading || meBwVra.isLoading} failed={meBwRb.isError || meBwVra.isError} /> :
           <MinorityEffectivenessHistogram payload={meHist.data} loading={meHist.isLoading} failed={meHist.isError} group={currMinority} />}
         <span className="ensemble-selectors-container">
           <EnsembleSelector stateName={stateName} ensembleType={"rb"} currEnsemble={currRbEnsemble} switchEnsemble={switchRbEnsemble} />

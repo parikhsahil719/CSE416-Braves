@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "v1",
+  "chartType": "minority-effectiveness-box-whisker",
+  "state": "SC",
+  "election": "2024 Presidential",
+  "totalDistricts": 7,
+  "units": { "count": "districts" },
+  "groupSummaries": [
+    { "key": "black",  "label": "Black",  "vraConstrainedSummary": { "min": 1, "q1": 2, "median": 3, "q3": 3, "max": 4 } },
+    { "key": "latino", "label": "Latino", "vraConstrainedSummary": { "min": 1, "q1": 1, "median": 2, "q3": 2, "max": 3 } },
+    { "key": "white",  "label": "White",  "vraConstrainedSummary": { "min": 4, "q1": 5, "median": 6, "q3": 6, "max": 7 } }
+  ]
+}

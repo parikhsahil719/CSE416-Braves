@@ -133,11 +133,29 @@ export function useVraImpact(stateCode, group) {
   });
 }
 
-export function useMeBoxWhisker(stateCode) {
+// Fetches race-blind box-and-whisker data for the given ensemble run (1–4).
+// TanStack Query caches each (stateCode, ensembleIndex) pair independently,
+// so switching ensembles serves from cache after the first load.
+export function useMeBoxWhiskerRb(stateCode, ensembleIndex) {
   return useQuery({
-    queryKey: keys.meBoxWhisker(stateCode, ELECTION),
-    queryFn: () => get(`/api/states/${stateCode}/analysis/minority-effectiveness/box-whisker`, { election: ELECTION }),
-    enabled: Boolean(stateCode),
+    queryKey: keys.meBoxWhisker(stateCode, ELECTION, 'rb', ensembleIndex),
+    queryFn: () => get(
+      `/api/states/${stateCode}/analysis/minority-effectiveness/box-whisker`,
+      { election: ELECTION, ensembleType: 'rb', ensembleIndex }
+    ),
+    enabled: Boolean(stateCode) && Boolean(ensembleIndex),
+  });
+}
+
+// Fetches VRA-constrained box-and-whisker data for the given ensemble run (1–4).
+export function useMeBoxWhiskerVra(stateCode, ensembleIndex) {
+  return useQuery({
+    queryKey: keys.meBoxWhisker(stateCode, ELECTION, 'vra', ensembleIndex),
+    queryFn: () => get(
+      `/api/states/${stateCode}/analysis/minority-effectiveness/box-whisker`,
+      { election: ELECTION, ensembleType: 'vra', ensembleIndex }
+    ),
+    enabled: Boolean(stateCode) && Boolean(ensembleIndex),
   });
 }
 
