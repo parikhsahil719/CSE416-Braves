@@ -407,7 +407,8 @@ public class StateController {
 
     @Operation(
             summary = "GUI-21: Minority effectiveness box-and-whisker comparison",
-            description = "Status: Live. Returns the stored by-group minority-effectiveness box summaries for the requested election."
+            description = "Status: Live. Returns minority-effectiveness box summaries for one ensemble run. "
+                    + "ensembleType=rb|vra, ensembleIndex=1–4."
     )
     @ApiResponses({
             @ApiResponse(
@@ -417,12 +418,18 @@ public class StateController {
     })
     @GetMapping("/states/{stateId}/analysis/minority-effectiveness/box-whisker")
     public Map<String, Object> getMinorityEffectivenessBoxWhisker(
-            @Parameter(description = "Required state code. Current supported values: OR or SC.")
+            @Parameter(description = "State code: OR or SC.")
             @PathVariable @NotBlank String stateId,
-            @Parameter(description = "Election selector. Default is 2024_pres, which matches the current seeded examples.")
-            @RequestParam(required = false, defaultValue = "2024_pres") String election
+            @Parameter(description = "Election key. Default: 2024_pres.")
+            @RequestParam(required = false, defaultValue = "2024_pres") String election,
+            // "rb" = race-blind ensemble; "vra" = VRA-constrained ensemble
+            @Parameter(description = "Ensemble type: rb or vra. Default: rb.")
+            @RequestParam(required = false, defaultValue = "rb") String ensembleType,
+            // Corresponds to the 1-based ensemble index shown in the UI dropdowns
+            @Parameter(description = "Ensemble run index 1–4. Default: 1.")
+            @RequestParam(required = false, defaultValue = "1") Integer ensembleIndex
     ) {
-        return dataService.getMinorityEffectivenessBoxWhisker(stateId, election);
+        return dataService.getMinorityEffectivenessBoxWhisker(stateId, election, ensembleType, ensembleIndex);
     }
 
     @Operation(

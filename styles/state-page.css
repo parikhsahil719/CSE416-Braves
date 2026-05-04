@@ -139,7 +139,7 @@
 
 .districts-table-container {
   width: 96%;
-  padding: clamp(0.5rem, 0.65vw, 1rem) clamp(1%, 0.5vw, 2%);
+  padding: clamp(0.5rem, 0.65vw, 1rem) clamp(1%, 1vw, 2%);
 }
 
 .districts-table {

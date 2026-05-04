@@ -242,13 +242,22 @@ public class BackendDataService {
         );
     }
 
+    // Spring caches each (stateId, election, ensembleType, ensembleIndex) combination
+    // independently — switching between ensembles hits memory after the first request.
     @Cacheable("minorityEffectivenessBoxWhisker")
-    public Map<String, Object> getMinorityEffectivenessBoxWhisker(String stateIdInput, String electionInput) {
-        String stateId = normalizeState(stateIdInput);
+    public Map<String, Object> getMinorityEffectivenessBoxWhisker(
+            String stateIdInput, String electionInput,
+            String ensembleType, Integer ensembleIndex) {
+        String stateId  = normalizeState(stateIdInput);
         String election = normalizeElection(electionInput);
         return payloadFrom(
-                minorityEffectivenessBoxWhiskerRepository.findByStateIdAndElectionId(stateId, election),
-                "Minority effectiveness box-and-whisker payload not found for stateId=" + stateId + ", election=" + election
+                minorityEffectivenessBoxWhiskerRepository
+                        .findByStateIdAndElectionIdAndEnsembleTypeAndEnsembleIndex(
+                                stateId, election, ensembleType, ensembleIndex),
+                "Minority effectiveness box-and-whisker payload not found for stateId=" + stateId
+                        + ", election=" + election
+                        + ", ensembleType=" + ensembleType
+                        + ", ensembleIndex=" + ensembleIndex
         );
     }
 

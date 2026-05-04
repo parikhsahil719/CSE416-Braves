@@ -325,7 +325,7 @@ class StateControllerTest {
             }
 
             @Override
-            public Map<String, Object> getMinorityEffectivenessBoxWhisker(String stateIdInput, String electionInput) {
+            public Map<String, Object> getMinorityEffectivenessBoxWhisker(String stateIdInput, String electionInput, String ensembleType, Integer ensembleIndex) {
                 return minorityEffectivenessBoxWhisker;
             }
 

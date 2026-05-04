@@ -77,7 +77,6 @@
   height: 25vh;
   display: flex;
   flex-direction: column;
-  margin-bottom: 2rem;
 }
 
 .sim-chartTitle {
@@ -139,6 +138,35 @@
 
 .vra-impact-table-data {
   font-size: clamp(0.75rem, 0.7vw, 0.9rem);
+}
+
+.meLabelsContainer {
+  display: flex;
+}
+
+.meDataTab {
+  font-weight: bold;
+  font-size: 1.25rem;
+  padding: 0.25rem 2rem 0.5rem;
+  margin-left: -1px;
+  color: rgb(161, 161, 161);
+}
+
+.meDataTab:hover {
+  cursor: pointer;
+}
+
+.meActiveTab {
+  color: var(--active);
+  border-bottom: solid 3px var(--active);
+}
+
+.ensemble-selectors-container {
+  width: 80%;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding-top: 0.25rem;
 }
 
 @media (max-width: 1400px) {

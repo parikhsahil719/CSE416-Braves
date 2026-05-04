@@ -17,7 +17,8 @@ export const keys = {
   ensembleSplits:  (s, size, e)    => ['ensembleSplits', s, size, e],
   boxWhisker:      (s, g, type, m) => ['boxWhisker', s, g, type, m],
   vraImpact:       (s, g, e)       => ['vraImpact', s, g, e],
-  meBoxWhisker:    (s, e)          => ['meBoxWhisker', s, e],
+  // Add ensembleType and ensembleIndex so each dropdown combination has its own cache slot
+  meBoxWhisker:    (s, e, ensembleType, ensembleIndex) => ['meBoxWhisker', s, e, ensembleType, ensembleIndex],
   meHistogram:        (s, g, e)          => ['meHistogram', s, g, e],
   interestingPlanList:(s)                => ['interestingPlanList', s],
   interestingPlan:    (s, planId)        => ['interestingPlan', s, planId],

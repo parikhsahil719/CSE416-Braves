@@ -1,0 +1,48 @@
+.ensemble-selector-container {
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1000;
+}
+
+.ensemble-selector-selected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ensemble-selector-selected:hover,
+.ensemble-selector-option:hover {
+  cursor: pointer;
+}
+
+.ensemble-selector-dropdown-container .ensemble-selector-selected:hover,
+.ensemble-selector-option:hover {
+  background-color: black;
+}
+
+.ensemble-selector-selected {
+  color: var(--active);
+}
+
+.ensemble-selector-option,
+.ensemble-selector-selected {
+  background-color: #444947;
+  padding: 0.25rem 0.75rem;
+  z-index: 1000;
+}
+
+.ensemble-selector-option {
+  color: white;
+}
+
+.ensemble-selector-dropdown-container {
+  width: 100%;
+  position: absolute;
+  top: 100%;
+  z-index: 1000;
+
+  display: flex;
+  flex-direction: column;
+}

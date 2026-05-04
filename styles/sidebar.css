@@ -41,7 +41,7 @@
 }
 
 .sidebar-subheader {
-  width: 70%;
+  width: 75%;
   color: #646464;
   font-size: 1rem;
   font-weight: 600;
@@ -50,7 +50,7 @@
 }
 
 .sidebar-tab {
-  width: 70%;
+  width: 75%;
   font-size: 1rem;
   font-weight: 600;
   padding: 0.5rem 1rem;
@@ -66,7 +66,7 @@
 
 .polarization-option,
 .sim-option {
-  width: 70%;
+  width: 75%;
   color: #60656f;
   font-size: 1rem;
   padding: 0.25rem 1.5rem;

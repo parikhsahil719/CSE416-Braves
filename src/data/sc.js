@@ -1,7 +1,7 @@
 let SouthCarolina = {
     "population": "4,014,460",
-    "voterDistributionDem": "1,417,196 (41.03%)",
-    "voterDistributionRep": "1,696,935 (49.13%)",
+    "voterDistributionDem": "1,028,452 (40.36%)",
+    "voterDistributionRep": "1,483,747 (58.23%)",
     "WhitePopulation": "2,603,975",
     "BlackPopulation": "964,667",
     "AsianPopulation": "90,466",

@@ -1,13 +1,14 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "../../styles/simulation.css";
 import { useParams } from "react-router-dom";
 import { topologyToFeatureCollection } from "../utils/topology.js";
 import { toStateCode, toGroupKey, defaultGroup, groupOptionsForState } from "../utils/stateUtils.js";
-import { useDistrictTopology, useEnsembleSplits, useBoxWhisker, useVraImpact, useMeBoxWhisker, useMeHistogram } from "../queries/stateQueries.js";
+import { useDistrictTopology, useEnsembleSplits, useBoxWhisker, useVraImpact, useMeBoxWhiskerRb, useMeBoxWhiskerVra, useMeHistogram } from "../queries/stateQueries.js";
 import DistrictMap from "./DistrictMap";
 import MinorityHeatMap from "./MinorityHeatMap";
 import BoxWhiskerChart from "../charts/BoxWhiskerChart.jsx";
 import MinoritySelector from "./MinoritySelector.jsx";
+import EnsembleSelector from "./EnsembleSelector.jsx";
 import { pct } from "../utils/chartFormat.js";
 import { ResponsiveContainer, BarChart, Bar as RechartsBar, XAxis, YAxis, CartesianGrid, Tooltip, ErrorBar, ComposedChart, Scatter, Legend, Dot } from "recharts";
 
@@ -20,25 +21,30 @@ function EnsembleSplits({ payload, loading, failed }) {
   const yMax = Math.max(...series.raceBlind.map(d => d.frequency), ...series.vraConstrained.map(d => d.frequency));
   const domain = [0, yMax + Math.ceil(yMax * 0.1) + 1];
   const toChartData = (src) => allLabels.map(label => ({ splitLabel: label, frequency: src.find(d => d.splitLabel === label)?.frequency ?? 0 }));
-  const margin = { top: 5, right: 10, left: 0, bottom: 5 };
+  const margin = { top: 5, right: 10, left: -20, bottom: 5 };
   return (
     <div className="sim-chartStack">
-      <div className="sim-chartSubtitle">Race-Blind</div>
-      <ResponsiveContainer width="100%" height={230}>
-        <BarChart data={toChartData(series.raceBlind)} margin={margin}>
-          <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="splitLabel" tick={{ fontSize: 12 }} />
-          <YAxis domain={domain} tick={{ fontSize: 12 }} /><Tooltip formatter={v => [`${v} plans`, "Frequency"]} />
-          <RechartsBar dataKey="frequency" fill="#60a5fa" name="Plans" />
-        </BarChart>
-      </ResponsiveContainer>
-      <div className="sim-chartSubtitle" style={{ marginTop: "0.75rem" }}>VRA-Constrained</div>
-      <ResponsiveContainer width="100%" height={230}>
-        <BarChart data={toChartData(series.vraConstrained)} margin={margin}>
-          <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="splitLabel" tick={{ fontSize: 12 }} />
-          <YAxis domain={domain} tick={{ fontSize: 12 }} /><Tooltip formatter={v => [`${v} plans`, "Frequency"]} />
-          <RechartsBar dataKey="frequency" fill="#f97316" name="Plans" />
-        </BarChart>
-      </ResponsiveContainer>
+      <div id="sim-page-data-container">
+        <div className="sim-chartSubtitle">Race-Blind</div>
+        <ResponsiveContainer width="100%" height={230}>
+          <BarChart data={toChartData(series.raceBlind)} margin={margin}>
+            <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="splitLabel" tick={{ fontSize: 12 }} />
+            <YAxis domain={domain} tick={{ fontSize: 12 }} /><Tooltip formatter={v => [`${v} plans`, "Frequency"]} />
+            <RechartsBar dataKey="frequency" fill="#60a5fa" name="Plans" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <br />
+      <div id="sim-page-data-container">
+        <div className="sim-chartSubtitle" style={{ marginTop: "0.75rem" }}>VRA-Constrained</div>
+        <ResponsiveContainer width="100%" height={230}>
+          <BarChart data={toChartData(series.vraConstrained)} margin={margin}>
+            <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="splitLabel" tick={{ fontSize: 12 }} />
+            <YAxis domain={domain} tick={{ fontSize: 12 }} /><Tooltip formatter={v => [`${v} plans`, "Frequency"]} />
+            <RechartsBar dataKey="frequency" fill="#f97316" name="Plans" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
@@ -82,23 +88,25 @@ function BoxWhisker({ payload, loading, failed, minority, subtitle }) {
   }
 
   return (
-    <div className="sim-chartStack">
-      <div className="sim-chartSubtitle">{subtitle}</div>
-      <ResponsiveContainer style={{ width: "100%", height: "100%" }}>
-        <ComposedChart data={data} width="100%" height="100%" margin={{bottom: 20}}>
-          <XAxis dataKey="districtRank" label={{ value: 'Indexed district', position: "bottom", fontSize : "0.75rem"}} tick={{ fontSize: "0.75rem" }} allowDuplicatedCategory={false}/>
-          <YAxis width={30} tick={{ fontSize: "0.75rem" }} ticks={[0, 0.2, 0.4, 0.6, 0.8]}/>
-          <CartesianGrid vertical={false} />
-          <RechartsBar dataKey={boxDataKey} legendType="none" barSize={20} fill="white" stroke="black" strokeWidth={1} >
-            <ErrorBar dataKey={whiskerDataKey} legendType="none" zIndex="-1"/>
-          </RechartsBar>
-          <Scatter dataKey="median" shape={<MedianLine width={20} />} legendType="none" />
-          <Scatter name="Enacted" dataKey="enactedValue" fill="#e11d48" shape={<ScatterDot color="#e11d48" />}/>  {/* fill is for legend, color prop actually colors dot*/}
-          {data[0].proposedValue && <Scatter name="Proposed" dataKey="proposedValue" fill="#ffd000" shape={<ScatterDot color="#ffd000" />} />}
-          <Tooltip content={<TooltipContent data={data}/>} />
-          <Legend align="right" verticalAlign="top" wrapperStyle={{paddingBottom: "16px", fontSize: "0.75rem"}} iconSize={8} />
-        </ComposedChart>
-      </ResponsiveContainer>
+    <div id="sim-page-data-container">
+      <div className="sim-chartStack">
+        <div className="sim-chartSubtitle">{subtitle}</div>
+        <ResponsiveContainer style={{ width: "100%", height: "100%" }}>
+          <ComposedChart data={data} width="100%" height="100%" margin={{left: -30, bottom: 20}}>
+            <XAxis dataKey="districtRank" label={{ value: 'Indexed district', position: "bottom", fontSize : "0.75rem"}} tick={{ fontSize: "0.75rem" }} allowDuplicatedCategory={false}/>
+            <YAxis width={70} label={{ value: "Population Percentage", fontSize : "0.75rem", angle: -90}} tick={{ fontSize: "0.75rem" }} ticks={[0, 0.2, 0.4, 0.6, 0.8]}/>
+            <CartesianGrid vertical={false} />
+            <RechartsBar dataKey={boxDataKey} legendType="none" barSize={20} fill="white" stroke="black" strokeWidth={1} >
+              <ErrorBar dataKey={whiskerDataKey} legendType="none" zIndex="-1"/>
+            </RechartsBar>
+            <Scatter dataKey="median" shape={<MedianLine width={20} />} legendType="none" />
+            <Scatter name="Enacted" dataKey="enactedValue" fill="#e11d48" shape={<ScatterDot color="#e11d48" />}/>  {/* fill is for legend, color prop actually colors dot*/}
+            {data[0].proposedValue && <Scatter name="Proposed" dataKey="proposedValue" fill="#ffd000" shape={<ScatterDot color="#ffd000" />} />}
+            <Tooltip content={<TooltipContent data={data}/>} />
+            <Legend align="right" verticalAlign="top" wrapperStyle={{paddingBottom: "16px", fontSize: "0.75rem"}} iconSize={8} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
@@ -132,6 +140,17 @@ function VRAImpact({ payload, loading, failed }) {
         </div>
       </div>
     </>
+  );
+}
+
+function MinorityEffectivenessTabBar({ tab, onSelect }) {
+  function cls(name) { return `meDataTab${tab === name ? " meActiveTab" : ""}`; }
+  return (
+    <span className="meLabelsContainer">
+      {["Box and Whisker", "Histogram"].map(name => (
+        <div key={name} className={cls(name)} onClick={() => onSelect(name)}>{name}</div>
+      ))}
+    </span>
   );
 }
 
@@ -198,24 +217,26 @@ function MinorityEffectivenessBoxWhisker({ payload, loading, failed }) {
   }
 
   return (
-    <div className="sim-chartStack">
-      <ResponsiveContainer style={{ width: "100%", height: "100%" }}>
-        <ComposedChart data={groupSummaries} width="100%" height="100%" margin={{bottom: 20}}>
-          <XAxis dataKey="label" label={{ value: 'Racial Group', position: "bottom", fontSize : "0.75rem"}} tick={{ fontSize: "0.75rem" }} allowDuplicatedCategory={false}/>
-          <YAxis width={30} tick={{ fontSize: "0.75rem" }} ticks={ticks}/>
-          <CartesianGrid vertical={false} />
-          <RechartsBar name="Race-Blind Ensemble" dataKey={rbBoxDataKey} barSize={20} fill="#93c5fd" stroke="black" strokeWidth={1} >
-            <ErrorBar dataKey={rbWhiskerDataKey} legendType="none" zIndex="-1"/>
-          </RechartsBar>
-          <Scatter dataKey={rbMedianKey} shape={<RbMedianLine width={20} />} legendType="none" />
-          <RechartsBar name="Vra-Constrained Ensemble" dataKey={vraBoxDataKey} barSize={20} fill="#fb923c" stroke="black" strokeWidth={1} >
-            <ErrorBar dataKey={vraWhiskerDataKey} legendType="none" zIndex="-1"/>
-          </RechartsBar>
-          <Scatter dataKey={vraMedianKey} shape={<VraMedianLine width={20} />} legendType="none" />
-          <Tooltip content={<TooltipContent data={groupSummaries}/>} />
-          <Legend align="right" verticalAlign="top" wrapperStyle={{paddingBottom: "16px", fontSize: "0.75rem"}} iconSize={8} />
-        </ComposedChart>
-      </ResponsiveContainer>
+    <div id="sim-page-data-container">
+      <div className="sim-chartStack">
+        <ResponsiveContainer style={{ width: "100%", height: "100%" }}>
+          <ComposedChart data={groupSummaries} width="100%" height="100%" margin={{left: -20, bottom: 20}}>
+            <XAxis dataKey="label" label={{ value: 'Racial Group', position: "bottom", fontSize : "0.75rem"}} tick={{ fontSize: "0.75rem" }} allowDuplicatedCategory={false}/>
+            <YAxis width={55} label={{ value: "Number of Minority Effective Districts", fontSize : "0.75rem", angle: -90}} tick={{ fontSize: "0.75rem" }} ticks={ticks}/>
+            <CartesianGrid vertical={false} />
+            <RechartsBar name="Race-Blind Ensemble" dataKey={rbBoxDataKey} barSize={20} fill="#93c5fd" stroke="black" strokeWidth={1} >
+              <ErrorBar dataKey={rbWhiskerDataKey} legendType="none" zIndex="-1"/>
+            </RechartsBar>
+            <Scatter dataKey={rbMedianKey} shape={<RbMedianLine width={20} />} legendType="none" />
+            <RechartsBar name="Vra-Constrained Ensemble" dataKey={vraBoxDataKey} barSize={20} fill="#fb923c" stroke="black" strokeWidth={1} >
+              <ErrorBar dataKey={vraWhiskerDataKey} legendType="none" zIndex="-1"/>
+            </RechartsBar>
+            <Scatter dataKey={vraMedianKey} shape={<VraMedianLine width={20} />} legendType="none" />
+            <Tooltip content={<TooltipContent data={groupSummaries}/>} />
+            <Legend align="right" verticalAlign="top" wrapperStyle={{paddingBottom: "16px", fontSize: "0.75rem"}} iconSize={8} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
@@ -269,22 +290,114 @@ function MinorityEffectivenessHistogram({ payload, loading, failed, group }) {
     return { effectiveDistricts: n, raceBlind: rb, vraConstrained: vc, maxVal: Math.max(rb, vc) };
   });
   return (
-    <div className="sim-chartStack">
-      <div style={{ display: "flex", gap: "1.25rem", marginBottom: 4, paddingLeft: "3rem", fontSize: 13 }}>
-        <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#5c6bc0", opacity: 0.55, marginRight: 5, verticalAlign: "middle" }} />Constrained: statewide score</span>
-        <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#5aa75b", opacity: 0.55, marginRight: 5, verticalAlign: "middle" }} />Non-VRA</span>
+    <div id="sim-page-data-container">
+      <div className="sim-chartStack">
+        <div style={{ display: "flex", gap: "1.25rem", marginBottom: 3, justifyContent: "flex-end", fontSize: 13 }}>
+          <span style={{fontSize: "0.75rem"}}><span style={{ display: "inline-block", width: 12, height: 12, background: "#5c6bc0", opacity: 0.55, marginRight: 5, verticalAlign: "middle" }} />Constrained: statewide score</span>
+          <span style={{fontSize: "0.75rem"}}><span style={{ display: "inline-block", width: 12, height: 12, background: "#5aa75b", opacity: 0.55, marginRight: 5, verticalAlign: "middle" }} />Non-VRA</span>
+        </div>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 45 }} barCategoryGap={0}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="effectiveDistricts" ticks={Array.from({ length: totalDistricts + 1 }, (_, i) => i)} label={{ value: `Number of Districts with ${group} effectiveness > 60%`, position: "bottom", fontSize: "0.75rem" }} tick={{ fontSize: 12 }} />
+            <YAxis label={{ value: "Plans", angle: -90, position: "insideLeft", fontSize: 13 }} tick={{ fontSize: 12 }} />
+            <Tooltip content={<HistogramTooltip />} />
+            <RechartsBar dataKey="maxVal" shape={OverlappingBar} isAnimationActive={false} />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
-      <ResponsiveContainer width="100%" height={250}>
-        <BarChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 40 }} barCategoryGap={0}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="effectiveDistricts" ticks={Array.from({ length: totalDistricts + 1 }, (_, i) => i)} label={{ value: `Number of Districts with ${group} effectiveness > 60%`, position: "insideBottom", offset: -20, fontSize: 12 }} tick={{ fontSize: 12 }} />
-          <YAxis label={{ value: "Plans", angle: -90, position: "insideLeft", fontSize: 13 }} tick={{ fontSize: 12 }} />
-          <Tooltip content={<HistogramTooltip />} />
-          <RechartsBar dataKey="maxVal" shape={OverlappingBar} isAnimationActive={false} />
-        </BarChart>
-      </ResponsiveContainer>
     </div>
   );
+}
+
+// GUI-26
+function rbBarDataKey(entry) {
+  const data = entry.raceBlind;
+  console.log(data)
+  return [data.min, data.max];
+}
+
+function vraBarDataKey(entry) {
+  const data = entry.vraConstrained;
+  return [data.min, data.max];
+}
+
+function BarsTooltipContent({ active, activeIndex, data }) {
+  if (!active) return null;
+
+  const rbData = data[activeIndex].raceBlind;
+  const vraData = data[activeIndex].vraConstrained;
+
+  return (
+    <div style={{ background: '#fafeff', border: 'solid 1px #ccc', padding: '0.5rem' }}>
+      <div>Race-Blind Min: {rbData.min}</div>
+      <div>VRA-Constrained Min: {vraData.min}</div>
+      <div>Race-Blind Max: {rbData.max}</div>
+      <div>VRA-Constrained Max: {vraData.max}</div>
+    </div>
+  );
+}
+
+// Minority-Effective Districts Bar Chart
+function MinorityEffectiveDistrictsBar({ payload, loading, failed, group }) {
+  if (loading) return <div className="sim_placeholder">Loading minority-effective districts bar chart...</div>;
+  if (failed || !payload) return <div className="sim_placeholder">No minority-effective districts bar chart data available.</div>;
+  const totalDistricts = (group === "Latino" ? 6 : 7);
+  const ticks = Array.from({ length: totalDistricts + 1 }, (_, i) => i);
+  const BAR_SIZE = 150;
+
+  return (
+    <div id="sim-page-data-container">
+      <div className="sim-chartStack">
+        <div className="sim-chartSubtitle">Range of Minority-Effective Districts</div>
+        <ResponsiveContainer style={{ width: "100%", height: "100%" }}>
+          <ComposedChart data={payload} width="100%" height="100%" margin={{left: -20, bottom: 20}}>
+            <XAxis dataKey="label" label={{ value: 'Racial Group', position: "bottom", fontSize : "0.75rem"}} tick={{ fontSize: "0.75rem" }} allowDuplicatedCategory={false}/>
+            <YAxis width={55} label={{ value: "Number of Minority-Effective Districts", fontSize : "0.75rem", angle: -90}} tick={{ fontSize: "0.75rem" }} ticks={ticks}/>
+            <CartesianGrid vertical={false} />
+            <RechartsBar name="Race-Blind Ensemble" dataKey={rbBarDataKey} fill="#93c5fd" stroke="black" strokeWidth={1} barSize={BAR_SIZE} />
+            <RechartsBar name="Vra-Constrained Ensemble" dataKey={vraBarDataKey} fill="#fb923c" stroke="black" strokeWidth={1} barSize={BAR_SIZE} />
+            <Tooltip content={<BarsTooltipContent data={payload}/>} />
+            <Legend align="right" verticalAlign="top" wrapperStyle={{paddingBottom: "16px", fontSize: "0.75rem"}} iconSize={8} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// Majority-Minority Districts Bar Chart
+function MajorityMinorityDistrictsBar({ payload, loading, failed, group }) {
+  if (loading) return <div className="sim_placeholder">Loading majority-minority districts bar chart...</div>;
+  if (failed || !payload) return <div className="sim_placeholder">No majority-minority districts bar chart data available.</div>;
+  const totalDistricts = (group === "Latino" ? 6 : 7);
+  const ticks = Array.from({ length: totalDistricts + 1 }, (_, i) => i);
+  const BAR_SIZE = 150;
+
+  return (
+    <div id="sim-page-data-container">
+      <div className="sim-chartStack">
+        <div className="sim-chartSubtitle">Range of Majority-Minority Districts</div>
+        <ResponsiveContainer style={{ width: "100%", height: "100%" }}>
+          <ComposedChart data={payload} width="100%" height="100%" margin={{left: -20, bottom: 20}}>
+            <XAxis dataKey="label" label={{ value: 'Racial Group', position: "bottom", fontSize : "0.75rem"}} tick={{ fontSize: "0.75rem" }} allowDuplicatedCategory={false}/>
+            <YAxis width={55} label={{ value: "Number of Majority-Minority Districts", fontSize : "0.75rem", angle: -90}} tick={{ fontSize: "0.75rem" }} ticks={ticks}/>
+            <CartesianGrid vertical={false} />
+            <RechartsBar name="Race-Blind Ensemble" dataKey={rbBarDataKey} fill="#93c5fd" stroke="black" strokeWidth={1} barSize={BAR_SIZE} />
+            <RechartsBar name="Vra-Constrained Ensemble" dataKey={vraBarDataKey} fill="#fb923c" stroke="black" strokeWidth={1} barSize={BAR_SIZE} />
+            <Tooltip content={<BarsTooltipContent data={payload}/>} />
+            <Legend align="right" verticalAlign="top" wrapperStyle={{paddingBottom: "16px", fontSize: "0.75rem"}} iconSize={8} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// EnsembleSelector stores the display name (e.g. "Race-Blind Ensemble 2").
+// Parse the trailing digit to get the 1-based index for the API call.
+function ensembleIdFromName(name) {
+  return parseInt(name.match(/\d+$/)?.[0] ?? '1', 10);
 }
 
 export default function Simulation({ currMap, currMinority, switchMinority, currSimData, switchSimData }) {
@@ -297,7 +410,28 @@ export default function Simulation({ currMap, currMinority, switchMinority, curr
   const bwRace = useBoxWhisker(stateCode, groupKey, 'race_blind');
   const bwVra = useBoxWhisker(stateCode, groupKey, 'vra_constrained');
   const vraImpact = useVraImpact(stateCode, groupKey);
-  const meBw = useMeBoxWhisker(stateCode);
+
+  const [tab, setTab] = useState("Box and Whisker");
+  const [currRbEnsemble, switchRbEnsemble] = useState("Race-Blind Ensemble 1");
+  const [currVraEnsemble, switchVraEnsemble] = useState("VRA-Constrained Ensemble 1");
+
+  // Each side is independently cached and re-fetched when its dropdown changes.
+  const meBwRb  = useMeBoxWhiskerRb(stateCode, ensembleIdFromName(currRbEnsemble));
+  const meBwVra = useMeBoxWhiskerVra(stateCode, ensembleIdFromName(currVraEnsemble));
+
+  // Merge: take raceBlindSummary from the rb response and vraConstrainedSummary from vra.
+  // Result has the same shape the chart component already expects.
+  const meBwData = useMemo(() => {
+    if (!meBwRb.data || !meBwVra.data) return null;
+    return {
+      ...meBwRb.data,
+      groupSummaries: meBwRb.data.groupSummaries.map((g, i) => ({
+        ...g,
+        vraConstrainedSummary: meBwVra.data.groupSummaries[i]?.vraConstrainedSummary,
+      })),
+    };
+  }, [meBwRb.data, meBwVra.data]);
+
   const meHist = useMeHistogram(stateCode, groupKey);
 
   useEffect(() => {
@@ -309,6 +443,24 @@ export default function Simulation({ currMap, currMinority, switchMinority, curr
 
   const mapData = topo.data ? topologyToFeatureCollection(topo.data, "districts") : null;
 
+  const minorityEffectiveDistsData = [
+    {
+      label: "Latino",
+      raceBlind: {
+        min: 1,
+        max: 3
+      },
+      vraConstrained: {
+        min: 2,
+        max: 4
+      }
+    }
+  ];
+
+  function handleTabSelect(nextTab) {
+    setTab(nextTab);
+  }
+
   function renderPanel() {
     if (currSimData === "Ensemble Splits")
       return <EnsembleSplits payload={splits.data} loading={splits.isLoading} failed={splits.isError} />;
@@ -319,17 +471,23 @@ export default function Simulation({ currMap, currMinority, switchMinority, curr
           <BoxWhisker payload={bwVra.data} loading={bwVra.isLoading} failed={bwVra.isError} minority={currMinority} subtitle="VRA-Constrained Ensemble" />
         </div>
       </>);
-    if (currSimData === "Minority Effectiveness Box Whisker")
+    if (currSimData === "Minority Effectiveness")
       return (<>
-        <MinorityEffectivenessBoxWhisker payload={meBw.data} loading={meBw.isLoading} failed={meBw.isError} />
+        <MinorityEffectivenessTabBar tab={tab} onSelect={handleTabSelect} />
+        {tab === "Box and Whisker" ?
+          <MinorityEffectivenessBoxWhisker payload={meBwData} loading={meBwRb.isLoading || meBwVra.isLoading} failed={meBwRb.isError || meBwVra.isError} /> :
+          <MinorityEffectivenessHistogram payload={meHist.data} loading={meHist.isLoading} failed={meHist.isError} group={currMinority} />}
+        <span className="ensemble-selectors-container">
+          <EnsembleSelector stateName={stateName} ensembleType={"rb"} currEnsemble={currRbEnsemble} switchEnsemble={switchRbEnsemble} />
+          <EnsembleSelector stateName={stateName} ensembleType={"vra"} currEnsemble={currVraEnsemble} switchEnsemble={switchVraEnsemble} />
+        </span>
         <VRAImpact payload={vraImpact.data} loading={vraImpact.isLoading} failed={vraImpact.isError} />
       </>);
-    if (currSimData === "Minority Effectiveness Histogram")
+    if (currSimData === "Minority Representation")
       return (<>
-        <div>
-          <MinorityEffectivenessHistogram payload={meHist.data} loading={meHist.isLoading} failed={meHist.isError} group={currMinority} />
-          <VRAImpact payload={vraImpact.data} loading={vraImpact.isLoading} failed={vraImpact.isError} />
-        </div>
+        <MinorityEffectiveDistrictsBar payload={minorityEffectiveDistsData} loading={false} failed={false} group={currMinority} />
+        <br />
+        <MajorityMinorityDistrictsBar payload={minorityEffectiveDistsData} loading={false} failed={false} group={currMinority} />
       </>);
     return null;
   }

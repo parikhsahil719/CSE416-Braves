@@ -10,7 +10,7 @@ import {
 } from "../queries/stateQueries.js";
 import DistrictMap from "./DistrictMap.jsx";
 import InterestingMap from "./InterestingMap.jsx";
-import arrowDropdown from "/white_arrow_drop_down.svg"
+import arrowDropdown from "/white_arrow_drop_down.svg";
 
 function InformationTable({ stateName, data, selectedDistrict, onSelectDistrict }) {
 

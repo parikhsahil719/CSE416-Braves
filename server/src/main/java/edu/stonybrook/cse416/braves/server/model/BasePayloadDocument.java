@@ -13,6 +13,9 @@ public abstract class BasePayloadDocument {
     private String groupKey;
     private String documentType;
     private String ensembleType;
+    // Distinguishes ensemble run 1–4 within an ensembleType (rb or vra).
+    // Null for documents that predate per-ensemble seeding.
+    private Integer ensembleIndex;
     private String metricKey;
     private String populationMeasure;
     private String schemaVersion;
@@ -70,6 +73,9 @@ public abstract class BasePayloadDocument {
     public void setEnsembleType(String ensembleType) {
         this.ensembleType = ensembleType;
     }
+
+    public Integer getEnsembleIndex() { return ensembleIndex; }
+    public void setEnsembleIndex(Integer ensembleIndex) { this.ensembleIndex = ensembleIndex; }
 
     public String getMetricKey() {
         return metricKey;
