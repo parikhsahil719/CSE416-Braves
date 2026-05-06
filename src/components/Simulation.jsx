@@ -14,34 +14,38 @@ import { ResponsiveContainer, BarChart, Bar as RechartsBar, XAxis, YAxis, Cartes
 
 // GUI-16: Ensemble Splits — paired bar charts on the same y-axis domain
 function EnsembleSplits({ payload, loading, failed }) {
-  if (loading) return <div className="sim_placeholder">Loading ensemble splits...</div>;
-  if (failed || !payload) return <div className="sim_placeholder">No ensemble splits data available.</div>;
+  if (loading) return <div className="sim-placeholder">Loading ensemble splits...</div>;
+  if (failed || !payload) return <div className="sim-placeholder">No ensemble splits data available.</div>;
   const { series } = payload;
   const allLabels = [...new Set([...series.raceBlind.map(d => d.splitLabel), ...series.vraConstrained.map(d => d.splitLabel)])];
   const yMax = Math.max(...series.raceBlind.map(d => d.frequency), ...series.vraConstrained.map(d => d.frequency));
   const domain = [0, yMax + Math.ceil(yMax * 0.1) + 1];
   const toChartData = (src) => allLabels.map(label => ({ splitLabel: label, frequency: src.find(d => d.splitLabel === label)?.frequency ?? 0 }));
-  const margin = { top: 5, right: 10, left: -20, bottom: 5 };
+  const margin = { top: 5, right: 10, left: -20, bottom: 15 };
   return (
     <div className="sim-chartStack">
       <div id="sim-page-data-container">
         <div className="sim-chartSubtitle">Race-Blind</div>
-        <ResponsiveContainer width="100%" height={210}>
+        <ResponsiveContainer width="100%" height={230}>
           <BarChart data={toChartData(series.raceBlind)} margin={margin}>
-            <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="splitLabel" tick={{ fontSize: 12 }} />
-            <YAxis domain={domain} tick={{ fontSize: 12 }} /><Tooltip formatter={v => [`${v} plans`, "Frequency"]} />
-            <RechartsBar dataKey="frequency" fill="#60a5fa" name="Plans" />
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="splitLabel" tick={{ fontSize: 12 }} label={{ value:"Republican wins/Democratic wins", fontSize : "0.75rem", position: "bottom" }} />
+            <YAxis domain={domain} tick={{ fontSize: 12 }} label={{ value:"Number of Plans", fontSize : "0.75rem", angle: -90 }} />
+            <Tooltip formatter={v => [`${v} plans`, "Frequency"]} />
+            <RechartsBar dataKey="frequency" fill="#1b9e77" name="Plans" />
           </BarChart>
         </ResponsiveContainer>
       </div>
       <br />
       <div id="sim-page-data-container">
-        <div className="sim-chartSubtitle" style={{ marginTop: "0.75rem" }}>VRA-Constrained</div>
+        <div className="sim-chartSubtitle">VRA-Constrained</div>
         <ResponsiveContainer width="100%" height={230}>
           <BarChart data={toChartData(series.vraConstrained)} margin={margin}>
-            <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="splitLabel" tick={{ fontSize: 12 }} />
-            <YAxis domain={domain} tick={{ fontSize: 12 }} /><Tooltip formatter={v => [`${v} plans`, "Frequency"]} />
-            <RechartsBar dataKey="frequency" fill="#f97316" name="Plans" />
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="splitLabel" tick={{ fontSize: 12 }} label={{ value:"Republican wins/Democratic wins", fontSize : "0.75rem", position: "bottom" }} />
+            <YAxis domain={domain} tick={{ fontSize: 12 }} label={{ value:"Number of Plans", fontSize : "0.75rem", angle: -90 }} />
+            <Tooltip formatter={v => [`${v} plans`, "Frequency"]} />
+            <RechartsBar dataKey="frequency" fill="#d95f02" name="Plans" />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -51,8 +55,8 @@ function EnsembleSplits({ payload, loading, failed }) {
 
 // GUI-17: Box & Whisker (minority share per district, by ensemble type)
 function BoxWhisker({ payload, loading, failed, minority, subtitle }) {
-  if (loading) return <div className="sim_placeholder">Loading box & whisker chart...</div>;
-  if (failed || !payload) return <div className="sim_placeholder">No box & whisker data available for {minority}.</div>;
+  if (loading) return <div className="sim-placeholder">Loading box & whisker chart...</div>;
+  if (failed || !payload) return <div className="sim-placeholder">No box & whisker data available for {minority}.</div>;
   const data = payload.rankSummaries;
 
   function boxDataKey(entry) {
@@ -96,7 +100,7 @@ function BoxWhisker({ payload, loading, failed, minority, subtitle }) {
             <XAxis dataKey="districtRank" label={{ value: 'Indexed district', position: "bottom", fontSize : "0.75rem"}} tick={{ fontSize: "0.75rem" }} allowDuplicatedCategory={false}/>
             <YAxis width={70} label={{ value: "Population Percentage", fontSize : "0.75rem", angle: -90}} tick={{ fontSize: "0.75rem" }} ticks={[0, 0.2, 0.4, 0.6, 0.8]}/>
             <CartesianGrid vertical={false} />
-            <RechartsBar dataKey={boxDataKey} legendType="none" barSize={20} fill="white" stroke="black" strokeWidth={1} >
+            <RechartsBar dataKey={boxDataKey} legendType="none" barSize={20} fill="#e8eaec" stroke="black" strokeWidth={1} >
               <ErrorBar dataKey={whiskerDataKey} legendType="none" zIndex="-1"/>
             </RechartsBar>
             <Scatter dataKey="median" shape={<MedianLine width={20} />} legendType="none" />
@@ -156,8 +160,8 @@ function MinorityEffectivenessTabBar({ tab, onSelect }) {
 
 // GUI-21: Minority Effectiveness Box & Whisker — paired SVG boxes per feasible group
 function MinorityEffectivenessBoxWhisker({ payload, loading, failed }) {
-  if (loading) return <div className="sim_placeholder">Loading minority effectiveness box & whisker...</div>;
-  if (failed || !payload) return <div className="sim_placeholder">No minority effectiveness box & whisker data available.</div>;
+  if (loading) return <div className="sim-placeholder">Loading minority effectiveness box & whisker...</div>;
+  if (failed || !payload) return <div className="sim-placeholder">No minority effectiveness box & whisker data available.</div>;
   const { groupSummaries, totalDistricts } = payload;
   const ticks = Array.from({ length: totalDistricts + 1 }, (_, i) => i);
 
@@ -224,11 +228,11 @@ function MinorityEffectivenessBoxWhisker({ payload, loading, failed }) {
             <XAxis dataKey="label" label={{ value: 'Racial Group', position: "bottom", fontSize : "0.75rem"}} tick={{ fontSize: "0.75rem" }} allowDuplicatedCategory={false}/>
             <YAxis width={55} label={{ value: "Number of Minority Effective Districts", fontSize : "0.75rem", angle: -90}} tick={{ fontSize: "0.75rem" }} ticks={ticks}/>
             <CartesianGrid vertical={false} />
-            <RechartsBar name="Race-Blind Ensemble" dataKey={rbBoxDataKey} barSize={20} fill="#93c5fd" stroke="black" strokeWidth={1} >
+            <RechartsBar name="Race-Blind Ensemble" dataKey={rbBoxDataKey} barSize={20} fill="#1b9e77" stroke="black" strokeWidth={1} >
               <ErrorBar dataKey={rbWhiskerDataKey} legendType="none" zIndex="-1"/>
             </RechartsBar>
             <Scatter dataKey={rbMedianKey} shape={<RbMedianLine width={20} />} legendType="none" />
-            <RechartsBar name="Vra-Constrained Ensemble" dataKey={vraBoxDataKey} barSize={20} fill="#fb923c" stroke="black" strokeWidth={1} >
+            <RechartsBar name="Vra-Constrained Ensemble" dataKey={vraBoxDataKey} barSize={20} fill="#d95f02" stroke="black" strokeWidth={1} >
               <ErrorBar dataKey={vraWhiskerDataKey} legendType="none" zIndex="-1"/>
             </RechartsBar>
             <Scatter dataKey={vraMedianKey} shape={<VraMedianLine width={20} />} legendType="none" />
@@ -280,8 +284,8 @@ function HistogramTooltip({ active, payload, label }) {
 
 // GUI-22: Minority Effectiveness Ensemble Histogram
 function MinorityEffectivenessHistogram({ payload, loading, failed, group }) {
-  if (loading) return <div className="sim_placeholder">Loading minority effectiveness ensemble histogram...</div>;
-  if (failed || !payload) return <div className="sim_placeholder">No minority effectiveness ensemble histogram data available.</div>;
+  if (loading) return <div className="sim-placeholder">Loading minority effectiveness ensemble histogram...</div>;
+  if (failed || !payload) return <div className="sim-placeholder">No minority effectiveness ensemble histogram data available.</div>;
   const { series, totalDistricts } = payload;
   const allDistricts = [...new Set([...series.raceBlind.map(d => d.effectiveDistricts), ...series.vraConstrained.map(d => d.effectiveDistricts)])].sort((a, b) => a - b);
   const chartData = allDistricts.map(n => {
@@ -296,11 +300,11 @@ function MinorityEffectivenessHistogram({ payload, loading, failed, group }) {
           <span style={{fontSize: "0.75rem"}}><span style={{ display: "inline-block", width: 12, height: 12, background: "#5c6bc0", opacity: 0.55, marginRight: 5, verticalAlign: "middle" }} />Constrained: statewide score</span>
           <span style={{fontSize: "0.75rem"}}><span style={{ display: "inline-block", width: 12, height: 12, background: "#5aa75b", opacity: 0.55, marginRight: 5, verticalAlign: "middle" }} />Non-VRA</span>
         </div>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 45 }} barCategoryGap={0}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={{ top: 5, left: -25, bottom: 15 }} barCategoryGap={0}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="effectiveDistricts" ticks={Array.from({ length: totalDistricts + 1 }, (_, i) => i)} label={{ value: `Number of Districts with ${group} effectiveness > 60%`, position: "bottom", fontSize: "0.75rem" }} tick={{ fontSize: 12 }} />
-            <YAxis label={{ value: "Plans", angle: -90, position: "insideLeft", fontSize: 13 }} tick={{ fontSize: 12 }} />
+            <YAxis label={{ value: "Plans", angle: -90, fontSize: 13 }} tick={{ fontSize: 12 }} />
             <Tooltip content={<HistogramTooltip />} />
             <RechartsBar dataKey="maxVal" shape={OverlappingBar} isAnimationActive={false} />
           </BarChart>
@@ -313,7 +317,6 @@ function MinorityEffectivenessHistogram({ payload, loading, failed, group }) {
 // GUI-26
 function rbBarDataKey(entry) {
   const data = entry.raceBlind;
-  console.log(data)
   return [data.min, data.max];
 }
 
@@ -340,8 +343,8 @@ function BarsTooltipContent({ active, activeIndex, data }) {
 
 // Minority-Effective Districts Bar Chart
 function MinorityEffectiveDistrictsBar({ payload, loading, failed, group }) {
-  if (loading) return <div className="sim_placeholder">Loading minority-effective districts bar chart...</div>;
-  if (failed || !payload) return <div className="sim_placeholder">No minority-effective districts bar chart data available.</div>;
+  if (loading) return <div className="sim-placeholder">Loading minority-effective districts bar chart...</div>;
+  if (failed || !payload) return <div className="sim-placeholder">No minority-effective districts bar chart data available.</div>;
   const totalDistricts = (group === "Latino" ? 6 : 7);
   const ticks = Array.from({ length: totalDistricts + 1 }, (_, i) => i);
   const BAR_SIZE = 150;
@@ -355,8 +358,8 @@ function MinorityEffectiveDistrictsBar({ payload, loading, failed, group }) {
             <XAxis dataKey="label" label={{ value: 'Racial Group', position: "bottom", fontSize : "0.75rem"}} tick={{ fontSize: "0.75rem" }} allowDuplicatedCategory={false}/>
             <YAxis width={55} label={{ value: "Number of Minority-Effective Districts", fontSize : "0.75rem", angle: -90}} tick={{ fontSize: "0.75rem" }} ticks={ticks}/>
             <CartesianGrid vertical={false} />
-            <RechartsBar name="Race-Blind Ensemble" dataKey={rbBarDataKey} fill="#93c5fd" stroke="black" strokeWidth={1} barSize={BAR_SIZE} />
-            <RechartsBar name="Vra-Constrained Ensemble" dataKey={vraBarDataKey} fill="#fb923c" stroke="black" strokeWidth={1} barSize={BAR_SIZE} />
+            <RechartsBar name="Race-Blind Ensemble" dataKey={rbBarDataKey} fill="#1b9e77" stroke="black" strokeWidth={1} barSize={BAR_SIZE} />
+            <RechartsBar name="Vra-Constrained Ensemble" dataKey={vraBarDataKey} fill="#d95f02" stroke="black" strokeWidth={1} barSize={BAR_SIZE} />
             <Tooltip content={<BarsTooltipContent data={payload}/>} />
             <Legend align="right" verticalAlign="top" wrapperStyle={{paddingBottom: "16px", fontSize: "0.75rem"}} iconSize={8} />
           </ComposedChart>
@@ -368,8 +371,8 @@ function MinorityEffectiveDistrictsBar({ payload, loading, failed, group }) {
 
 // Majority-Minority Districts Bar Chart
 function MajorityMinorityDistrictsBar({ payload, loading, failed, group }) {
-  if (loading) return <div className="sim_placeholder">Loading majority-minority districts bar chart...</div>;
-  if (failed || !payload) return <div className="sim_placeholder">No majority-minority districts bar chart data available.</div>;
+  if (loading) return <div className="sim-placeholder">Loading majority-minority districts bar chart...</div>;
+  if (failed || !payload) return <div className="sim-placeholder">No majority-minority districts bar chart data available.</div>;
   const totalDistricts = (group === "Latino" ? 6 : 7);
   const ticks = Array.from({ length: totalDistricts + 1 }, (_, i) => i);
   const BAR_SIZE = 150;
@@ -383,8 +386,8 @@ function MajorityMinorityDistrictsBar({ payload, loading, failed, group }) {
             <XAxis dataKey="label" label={{ value: 'Racial Group', position: "bottom", fontSize : "0.75rem"}} tick={{ fontSize: "0.75rem" }} allowDuplicatedCategory={false}/>
             <YAxis width={55} label={{ value: "Number of Majority-Minority Districts", fontSize : "0.75rem", angle: -90}} tick={{ fontSize: "0.75rem" }} ticks={ticks}/>
             <CartesianGrid vertical={false} />
-            <RechartsBar name="Race-Blind Ensemble" dataKey={rbBarDataKey} fill="#93c5fd" stroke="black" strokeWidth={1} barSize={BAR_SIZE} />
-            <RechartsBar name="Vra-Constrained Ensemble" dataKey={vraBarDataKey} fill="#fb923c" stroke="black" strokeWidth={1} barSize={BAR_SIZE} />
+            <RechartsBar name="Race-Blind Ensemble" dataKey={rbBarDataKey} fill="#1b9e77" stroke="black" strokeWidth={1} barSize={BAR_SIZE} />
+            <RechartsBar name="Vra-Constrained Ensemble" dataKey={vraBarDataKey} fill="#d95f02" stroke="black" strokeWidth={1} barSize={BAR_SIZE} />
             <Tooltip content={<BarsTooltipContent data={payload}/>} />
             <Legend align="right" verticalAlign="top" wrapperStyle={{paddingBottom: "16px", fontSize: "0.75rem"}} iconSize={8} />
           </ComposedChart>
@@ -400,7 +403,7 @@ function ensembleIdFromName(name) {
   return parseInt(name.match(/\d+$/)?.[0] ?? '1', 10);
 }
 
-export default function Simulation({ currMap, currMinority, switchMinority, currSimData, switchSimData }) {
+export default function Simulation({ currMap, currMinority, switchMinority, currSimData }) {
   const { stateName } = useParams();
   const stateCode = toStateCode(stateName);
   const groupKey = toGroupKey(currMinority) ?? defaultGroup(stateCode);
@@ -438,8 +441,6 @@ export default function Simulation({ currMap, currMinority, switchMinority, curr
     if (!groupOptionsForState(stateName).includes(currMinority))
       switchMinority(defaultGroup(stateCode));
   }, []);
-
-  useEffect(() => () => switchSimData(''), []);
 
   const mapData = topo.data ? topologyToFeatureCollection(topo.data, "districts") : null;
 

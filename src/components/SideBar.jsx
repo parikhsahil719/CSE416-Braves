@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import menuIcon from '/menu.svg';
 
 export function SideBar(props) {
-  const { currPage, switchPage, currMap, switchMap, precinctMapSelectable, currPolarization: currPolarization, switchPolarization, currSimData, switchSimData } = props; // (maybe add showMaps boolean)
+  const { currPage, switchPage, currMap, switchMap, currPolarization, switchPolarization, currSimData, switchSimData } = props;
   const navigate = useNavigate();
   const { stateName } = useParams();
 
@@ -15,20 +15,16 @@ export function SideBar(props) {
         <span className="sidebar-maps-container">
           <div className="sidebar-header">Maps</div>
           <div className={currMap === "District Map" ? "sidebar-tab activeTab" : "sidebar-tab"} onClick={() => switchMap('District Map')}>District Map</div>
-          {precinctMapSelectable ?
-            <>
-              <div className={currMap === "Precinct Heat Map" ? "sidebar-tab activeTab" : "sidebar-tab"} onClick={() => switchMap('Precinct Heat Map')}>Precinct Heat Map</div>
-            </>
-            : null}
+          <div className={currMap === "Precinct Heat Map" ? "sidebar-tab activeTab" : "sidebar-tab"} onClick={() => switchMap('Precinct Heat Map')}>Precinct Heat Map</div>
         </span>
         <span className="sidebar-analysis-container">
           <div className="sidebar-header">Analysis</div>
           <div className={currPage === "State" ? "sidebar-tab activeTab" : "sidebar-tab"} onClick={() => { switchPage('State'); navigate(`/state/${stateName}`) }}>State Data Summary</div>
           <div className={currPage === "Compare" ? "sidebar-tab activeTab" : "sidebar-tab"} onClick={() => { switchMap('District Map'); switchPage('Compare'); navigate(`/state/${stateName}/Compare`) }}>Interesting District Plans</div>
-          <div className={currPage === "Polarization" ? "sidebar-subheader activeTab" : "sidebar-subheader"}>Racial Polarization</div>
+          <div className={"sidebar-subheader"}>Racial Polarization</div>
           <div className={currPolarization === "Gingles" ? "polarization-option activeTab" : "polarization-option"} onClick={() => { switchPolarization('Gingles'); switchPage('Polarization'); navigate(`/state/${stateName}/Gingles`) }}>Gingles</div>
           <div className={currPolarization === "Ecological Inferences" ? "polarization-option activeTab" : "polarization-option"} onClick={() => { switchPolarization('Ecological Inferences'); switchPage('Polarization'); navigate(`/state/${stateName}/Ecological Inference`) }}>Ecological Inferences</div>
-          <div className={currPage === "Simulation Data" ? "sidebar-subheader activeTab" : "sidebar-subheader"}>VRA Impact</div>
+          <div className={"sidebar-subheader"}>VRA Impact</div>
           <div className={currSimData === "Ensemble Splits" ? "sim-option activeTab" : "sim-option"} onClick={() => { switchSimData('Ensemble Splits'); switchPage('Simulation Data'); navigate(`/state/${stateName}/Simulation Data`) }}>Ensemble Splits</div>
           <div className={currSimData === "Box Whisker" ? "sim-option activeTab" : "sim-option"} onClick={() => { switchSimData('Box Whisker'); switchPage('Simulation Data'); navigate(`/state/${stateName}/Simulation Data`) }}>Box & Whisker</div>
           <div className={currSimData === "Minority Effectiveness" ? "sim-option activeTab" : "sim-option"} onClick={() => { switchSimData('Minority Effectiveness'); switchPage('Simulation Data'); navigate(`/state/${stateName}/Simulation Data`) }}>Minority Effectiveness</div>

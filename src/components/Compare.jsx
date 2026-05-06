@@ -9,6 +9,7 @@ import {
   useInterestingPlan,
 } from "../queries/stateQueries.js";
 import DistrictMap from "./DistrictMap.jsx";
+import MinorityHeatMap from "./MinorityHeatMap.jsx";
 import InterestingMap from "./InterestingMap.jsx";
 import arrowDropdown from "/white_arrow_drop_down.svg";
 
@@ -43,7 +44,7 @@ function InformationTable({ stateName, data, selectedDistrict, onSelectDistrict 
   );
 }
 
-export default function Compare() {
+export default function Compare({ currMap, currMinority, switchMinority }) {
   const { stateName } = useParams();
   const stateCode = toStateCode(stateName);
 
@@ -164,7 +165,9 @@ export default function Compare() {
           <div className="compare-page-left-map-label">
             Current Congressional District Plan of {stateName}
           </div>
-          <DistrictMap stateName={stateName} data={leftMapData} selectedDistrict={selectedDistrict} onSelectDistrict={setSelectedDistrict} zoom={stateName === "Oregon" ? 6.1 : 6.7} />
+          {currMap === "District Map"
+            ? <DistrictMap stateName={stateName} data={leftMapData} selectedDistrict={selectedDistrict} onSelectDistrict={setSelectedDistrict} zoom={stateName === "Oregon" ? 6.1 : 6.7} />
+            : <MinorityHeatMap currMinority={currMinority} switchMinority={switchMinority} showPrecinctBorders={false} />}
           {leftLoading && (
             <div className="compare-page-status-message">
               Loading {stateName}&apos;s current district plan...

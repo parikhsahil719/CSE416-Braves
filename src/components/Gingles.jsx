@@ -92,11 +92,13 @@ function StateSection({ stateName, stateCode, currMinority, switchMinority }) {
   const gingles = useGingles(stateCode, group);
   const ginglesTable = useGinglesTable(stateCode, group);
   const rows = ginglesTable.data?.rows ?? gingles.data?.points ?? [];
+  const isPolarized = (stateCode === "SC" ? true : false)
 
   return (
     <section className="crossStateCard">
       <div className="crossStateHeader">
         <h2 className="crossStateHeaderTitle">Gingles</h2>
+        <h4 className="crossState-isPolarized-header">Racially polarized? {isPolarized ? "✓" : "✗"}</h4>
         <GroupSelector stateKey={stateCode} currMinority={currMinority} options={options} switchMinority={switchMinority} />
       </div>
       <div className="crossStateChartContainer">
@@ -117,8 +119,6 @@ export default function Gingles({ currMap, currMinority, switchMinority, switchP
     if (!groupOptionsForState(stateName).includes(currMinority))
       switchMinority(defaultGroup(stateCode));
   }, []);
-
-  useEffect(() => () => switchPolarization(''), []);
 
   return (
     <span id="ginglesMain">

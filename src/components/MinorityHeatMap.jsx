@@ -16,15 +16,15 @@ function percentageColor(pct) {
 }
 
 function featurePercent(feature, currMinority) {
-  const map = { Black: feature?.properties?.black, Asian: feature?.properties?.asian, Latino: feature?.properties?.hispanic };
+  const map = { Black: feature?.properties?.black, Latino: feature?.properties?.hispanic };
   const raw = map[currMinority] / feature?.properties?.total * 100;
   return Number.isFinite(raw) ? raw : 0;
 }
 
-function TopoJSON({ currMinority, data, infoRef }) {
+function TopoJSON({ currMinority, data, infoRef, showPrecinctBorders }) {
   const layerRef = useRef(null);
 
-  const style = f => ({ fillColor: percentageColor(featurePercent(f, currMinority)), weight: 2, opacity: 1, color: "white", dashArray: "3", fillOpacity: 0.7 });
+  const style = f => ({ fillColor: percentageColor(featurePercent(f, currMinority)), weight: showPrecinctBorders ? 2 : 0, opacity: 1, color: "white", dashArray: "3", fillOpacity: 0.7 });
 
   function onEachFeature(feature, layer) {
     layer.on({
@@ -76,7 +76,7 @@ function LegendControl({ bins }) {
   return null;
 }
 
-export default function MinorityHeatMap({ currMinority, switchMinority }) {
+export default function MinorityHeatMap({ currMinority, switchMinority, showPrecinctBorders = true }) {
   const { stateName } = useParams();
   const stateCode = toStateCode(stateName);
 
@@ -105,7 +105,7 @@ export default function MinorityHeatMap({ currMinority, switchMinority }) {
       <div id="minoritymap">
         <MapContainer center={center} zoom={zoom} zoomSnap={0.1} minZoom={minZoom} zoomControl={false} doubleClickZoom={false} keyboard={false} maxBounds={bounds} className="minorityLeafletMap">
           <TileLayer attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.osm.org/{z}/{x}/{y}.png" />
-          <TopoJSON currMinority={currMinority} data={topo.data} infoRef={infoRef} />
+          <TopoJSON currMinority={currMinority} data={topo.data} infoRef={infoRef} showPrecinctBorders={showPrecinctBorders} />
           <InfoControl infoRef={infoRef} />
           <LegendControl bins={heatmap.data?.bins ?? []} />
         </MapContainer>

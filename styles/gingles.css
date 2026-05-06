@@ -39,6 +39,11 @@
   line-height: 1.05;
 }
 
+.crossState-isPolarized-header {
+  font-weight: normal;
+  color: rgb(41, 0, 88);
+}
+
 .crossStateHeaderControls {
   display: flex;
   align-items: center;

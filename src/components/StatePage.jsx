@@ -80,13 +80,13 @@ function DistrictData({ districts, selectedDistrict, onSelectDistrict, onChangeT
         <tbody>
           {districts.map((d) => (
             <tr key={d.districtNumber} className={d.districtNumber === selectedDistrict ? "districts-table-row districts-table-row--selected" : "districts-table-row"}>
-              <td className="districts-table-data districts-table-distnum" onClick={currMap === "District Map" ? () => { onSelectDistrict(d.districtNumber); onChangeTab("District"); } : undefined}>{d.districtNumber}</td>
+              <td className="districts-table-data districts-table-distnum statePageDataNum" onClick={currMap === "District Map" ? () => { onSelectDistrict(d.districtNumber); onChangeTab("District"); } : undefined}>{d.districtNumber}</td>
               <td className="districts-table-data">{d.representative}</td>
               <td className="districts-table-data">{d.party}</td>
               <td className="districts-table-data">{d.racialEthnicGroup}</td>
-              <td className="districts-table-data"><VoteMarginBadge margin={d.voteMargin2024} /></td>
-              <td className="districts-table-data">{d.effectivenessScore != null ? pct(d.effectivenessScore) : "—"}</td>
-              <td className="districts-table-data">{d.calibratedEffectivenessScore != null ? pct(d.calibratedEffectivenessScore) : "—"}</td>
+              <td className="districts-table-data statePageDataNum"><VoteMarginBadge margin={d.voteMargin2024} /></td>
+              <td className="districts-table-data statePageDataNum">{d.effectivenessScore != null ? pct(d.effectivenessScore) : "—"}</td>
+              <td className="districts-table-data statePageDataNum">{d.calibratedEffectivenessScore != null ? pct(d.calibratedEffectivenessScore) : "—"}</td>
             </tr>
           ))}
         </tbody>
@@ -101,12 +101,16 @@ function EnsembleData({ ensembleSummary, loading, loadFailed }) {
   return (
     <>
       <span className="statePageDataBubble">
-        <p className="statePageDataBubbleLabel">Number of District Plans in Ensemble:</p>
-        <p className="statePageData">{ensembleSummary?.finalPlanCount ?? "Unavailable"}</p>
+        <p className="statePageDataBubbleLabel">Number of District Plans per Ensemble:</p>
+        <p className="statePageData statePageDataNum">{ensembleSummary?.finalPlanCount ?? "Unavailable"}</p>
       </span>
       <span className="statePageDataBubble">
         <p className="statePageDataBubbleLabel">Population Equality Threshold:</p>
-        <p className="statePageData">{ensembleSummary?.populationEqualityThreshold ?? "Unavailable"}</p>
+        <p className="statePageData statePageDataNum">{ensembleSummary?.populationEqualityThreshold ?? "Unavailable"}</p>
+      </span>
+      <span className="statePageDataBubble">
+        <p className="statePageDataBubbleLabel">Latino Rough Proportionality:</p>
+        <p className="statePageData statePageDataNum"></p>
       </span>
     </>
   );
