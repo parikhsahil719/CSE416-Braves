@@ -115,29 +115,50 @@
 .compare-table-container {
   width: 96%;
   padding: clamp(0.5rem, 0.65vw, 1rem) clamp(1%, 0.5vw, 2%);
+  display: flex;
+  justify-content: center;
 }
 
 .compare-table {
-  width: 100%;
+  width: fit-content;
   border-collapse: collapse;
-  background: #fafeff;
+  background: #ebebeb;
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
 }
 
 .compare-table-header,
 .compare-table-data {
-  padding: clamp(0.35rem, 0.45vw, 0.6rem);
+  padding: clamp(0.4rem, 0.45vw, 0.6rem) 2.5rem;
   text-align: center;
   line-height: 1.1;
-  border: 1px solid;
   vertical-align: middle;
+  border-bottom: solid 1px rgba(0, 0, 0, 0.2);
 }
 
 .compare-table-header {
   font-size: clamp(1rem, 1.2vw, 1.15rem);
+  background: #bdbdbd;
+}
+
+.compare-table-leftmost-header {
+  border-top-left-radius: 0.75rem;
+}
+
+.compare-table-rightmost-header {
+  border-top-right-radius: 0.75rem;
 }
 
 .compare-table-data {
   font-size: clamp(0.7rem, 1vw, 0.8rem);
+}
+
+.compare-table-dataNum {
+  text-align: left;
+}
+
+.compare-table-dataText {
+  text-align: right;
 }
 
 .compare-table-distnum:hover {
@@ -145,7 +166,7 @@
 }
 
 .compare-table-row--selected .compare-table-data {
-  background-color: #dde8ef;
+  background-color: #b3ffb3;
 }
 
 @media (max-width: 1400px) {

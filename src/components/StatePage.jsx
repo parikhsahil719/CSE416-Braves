@@ -94,7 +94,7 @@ function DistrictData({ districts, selectedDistrict, onSelectDistrict, onChangeT
   );
 }
 
-function EnsembleData({ ensembleSummary, loading, loadFailed }) {
+function EnsembleData({ ensembleSummary, loading, loadFailed, stateCode }) {
   if (loading) return <div id="statePageDataContainer"><div className="congTable_unavailable">Loading ensemble summary...</div></div>;
   if (loadFailed) return <div id="statePageDataContainer"><div className="congTable_unavailable">Ensemble summary is not available for this state.</div></div>;
   return (
@@ -108,7 +108,7 @@ function EnsembleData({ ensembleSummary, loading, loadFailed }) {
         <p className="statePageData statePageDataNum">{ensembleSummary?.populationEqualityThreshold ?? "Unavailable"}</p>
       </span>
       <span className="statePageDataBubble">
-        <p className="statePageDataBubbleLabel">Latino Rough Proportionality:</p>
+        <p className="statePageDataBubbleLabel">{stateCode === "OR" ? "Latino" : "Black"} Rough Proportionality:</p>
         <p className="statePageData statePageDataNum"></p>
       </span>
     </>
@@ -154,7 +154,7 @@ export default function StatePage({ currMap, currMinority, switchMinority }) {
   function renderPanel() {
     if (tab === "State") return <StateData stateData={summary.data} stateName={stateName} loading={summary.isLoading} loadFailed={summary.isError} />;
     if (tab === "District") return <DistrictData districts={districtRows} selectedDistrict={selectedDistrict} onSelectDistrict={setSelectedDistrict} onChangeTab={handleTabSelect} loading={districts.isLoading} loadFailed={districts.isError} currMap={currMap} />;
-    return <EnsembleData ensembleSummary={ensemble.data} loading={ensemble.isLoading && ensemblesTabVisited} loadFailed={ensemble.isError} />;
+    return <EnsembleData ensembleSummary={ensemble.data} loading={ensemble.isLoading && ensemblesTabVisited} loadFailed={ensemble.isError} stateCode={stateCode} />;
   }
 
   return (

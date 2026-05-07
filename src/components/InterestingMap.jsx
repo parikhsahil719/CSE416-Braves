@@ -4,23 +4,21 @@ import "../../styles/interesting-map.css"
 import { useEffect, useRef } from "react";
 import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 
-function getColor(result) {
-  return "#666666";
-  // return result === "DEMOCRATIC"
-  //   ? "#0011ff"
-  //   : result === "REPUBLICAN"
-  //     ? "#ff0000"
-  //     : "#666666";
+function getColor(property) {
+  if (property > 300000) return "#005a32"; if (property > 200000) return "#238443";
+  if (property > 100000) return "#41ab5d"; if (property > 50000) return "#78c679";
+  if (property > 25000) return "#addd8e"; if (property > 0) return "#d9f0a3";
+  return "#ffffcc";
 }
 
 function getBaseDistrictStyle(feature) {
   return {
-    fillColor: getColor(feature?.properties?.RESULT),
+    fillColor: getColor(feature?.properties?.blackPopulation),
     weight: 2,
     opacity: 1,
     color: "white",
     dashArray: "3",
-    fillOpacity: 0.4,
+    fillOpacity: 0.6,
   };
 }
 
@@ -33,7 +31,7 @@ function getSelectedDistrictStyle() {
   };
 }
 
-function TopoLayer({ data, infoRef }) {
+function TopoLayer({ data, infoRef, selectedDistrict, onSelectDistrict }) {
   const layerRef = useRef(null);
 
   function style(layer) {
@@ -63,14 +61,48 @@ function TopoLayer({ data, infoRef }) {
     }
   }
 
+  function applySelection(layer) {
+    const districtNumber = layer?.feature?.properties?.district_number;
+
+    if (districtNumber === selectedDistrict) {
+      layer.setStyle(getSelectedDistrictStyle());
+      layer.bringToFront();
+      return;
+    }
+
+    layer.setStyle(getBaseDistrictStyle(layer.feature));
+  }
+
+  function handleMapClick(event) {
+    onSelectDistrict(event.target.feature.properties.district_number);
+  }
+
   function onEachFeature(feature, layer) {
     layer.on({
       mouseover: highlightFeature,
       mouseout: resetHighlight,
+      click: handleMapClick,
     });
   }
 
-  return <GeoJSON ref={layerRef} data={data} style={getBaseDistrictStyle} onEachFeature={onEachFeature} />;
+  useEffect(() => {
+    if (!layerRef.current) {
+      return;
+    }
+
+    layerRef.current.eachLayer((layer) => {
+      applySelection(layer);
+    });
+  }, [selectedDistrict]);
+
+  useEffect(() => {
+    if (!layerRef.current || !data) return;
+
+    layerRef.current.clearLayers();
+    layerRef.current.addData(data);
+  }, [data]);
+
+  return <GeoJSON ref={layerRef} style={getBaseDistrictStyle} onEachFeature={onEachFeature} />;
 }
 
 function Info({ infoRef, stateName }) {
@@ -111,8 +143,10 @@ function Legend() {
 
     legend.onAdd = function onAdd() {
       const div = L.DomUtil.create("div", "info legend");
-      // div.innerHTML += `<i style="background:${getColor("DEMOCRATIC")}"></i> Democratic<br>`;
-      // div.innerHTML += `<i style="background:${getColor("REPUBLICAN")}"></i> Republican<br>`;
+      div.innerHTML += "<h4>Population</h4>";
+
+      const grades = [0, 25000, 50000, 100000, 200000, 300000];
+      grades.forEach((g, i) => { div.innerHTML += `<div style="display:flex;align-items:center;margin-bottom:4px"><i style="background:${getColor(g + 0.1)};display:inline-block"></i>${g.toLocaleString()}${grades[i + 1] ? `&ndash;${grades[i + 1].toLocaleString()}` : "+"}</div>`; });
       return div;
     };
 
@@ -126,7 +160,7 @@ function Legend() {
   return null;
 }
 
-export default function InterestingMap({ stateName, data }) {
+export default function InterestingMap({ stateName, data, selectedDistrict, onSelectDistrict }) {
   const infoRef = useRef(null);
 
     if (!data) {
@@ -152,6 +186,8 @@ export default function InterestingMap({ stateName, data }) {
           <TopoLayer
             data={data}
             infoRef={infoRef}
+            selectedDistrict={selectedDistrict}
+            onSelectDistrict={onSelectDistrict}
           />
           <Info infoRef={infoRef} stateName={stateName} />
           <Legend />
