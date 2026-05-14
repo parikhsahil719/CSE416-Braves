@@ -1,0 +1,39 @@
+{
+    "vraConstrained": [
+        {
+            "splitLabel": "5R/1D",
+            "demWins": 1,
+            "repWins": 5,
+            "frequency": 76,
+            "shareOfEnsemble": 0.015261044176706828
+        },
+        {
+            "splitLabel": "4R/2D",
+            "demWins": 2,
+            "repWins": 4,
+            "frequency": 1332,
+            "shareOfEnsemble": 0.2674698795180723
+        },
+        {
+            "splitLabel": "3R/3D",
+            "demWins": 3,
+            "repWins": 3,
+            "frequency": 2407,
+            "shareOfEnsemble": 0.48333333333333334
+        },
+        {
+            "splitLabel": "2R/4D",
+            "demWins": 4,
+            "repWins": 2,
+            "frequency": 1062,
+            "shareOfEnsemble": 0.21325301204819277
+        },
+        {
+            "splitLabel": "1R/5D",
+            "demWins": 5,
+            "repWins": 1,
+            "frequency": 103,
+            "shareOfEnsemble": 0.02068273092369478
+        }
+    ]
+}

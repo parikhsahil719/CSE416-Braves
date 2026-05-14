@@ -1,0 +1,46 @@
+{
+    "raceBlind": [
+        {
+            "splitLabel": "5R/1D",
+            "demWins": 1,
+            "repWins": 5,
+            "frequency": 30,
+            "shareOfEnsemble": 0.027777777777777776
+        },
+        {
+            "splitLabel": "4R/2D",
+            "demWins": 2,
+            "repWins": 4,
+            "frequency": 231,
+            "shareOfEnsemble": 0.21388888888888888
+        },
+        {
+            "splitLabel": "3R/3D",
+            "demWins": 3,
+            "repWins": 3,
+            "frequency": 495,
+            "shareOfEnsemble": 0.4583333333333333
+        },
+        {
+            "splitLabel": "2R/4D",
+            "demWins": 4,
+            "repWins": 2,
+            "frequency": 253,
+            "shareOfEnsemble": 0.23425925925925925
+        },
+        {
+            "splitLabel": "1R/5D",
+            "demWins": 5,
+            "repWins": 1,
+            "frequency": 37,
+            "shareOfEnsemble": 0.03425925925925926
+        },
+        {
+            "splitLabel": "0R/6D",
+            "demWins": 6,
+            "repWins": 0,
+            "frequency": 34,
+            "shareOfEnsemble": 0.03148148148148148
+        }
+    ]
+}

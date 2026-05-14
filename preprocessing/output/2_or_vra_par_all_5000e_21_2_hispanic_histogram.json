@@ -1,0 +1,74 @@
+{
+    "schemaVersion": "v1",
+    "chartType": "minority-effectiveness-histogram",
+    "state": "oregon",
+    "election": "2024 Presidential",
+    "totalDistricts": 6,
+    "selectedGroup": "hispanic",
+    "ensembleSize": 5000,
+    "units": {
+        "count": "plans"
+    },
+    "series": {
+        "vraConstrained": [
+            {
+                "effectiveDistricts": "0",
+                "frequency": 0
+            },
+            {
+                "effectiveDistricts": "1",
+                "frequency": 373174
+            },
+            {
+                "effectiveDistricts": "2",
+                "frequency": 11061
+            },
+            {
+                "effectiveDistricts": "3",
+                "frequency": 85
+            },
+            {
+                "effectiveDistricts": "4",
+                "frequency": 0
+            },
+            {
+                "effectiveDistricts": "5",
+                "frequency": 0
+            },
+            {
+                "effectiveDistricts": "6",
+                "frequency": 0
+            }
+        ],
+        "raceBlind": [
+            {
+                "effectiveDistricts": "0",
+                "frequency": 14627
+            },
+            {
+                "effectiveDistricts": "1",
+                "frequency": 385673
+            },
+            {
+                "effectiveDistricts": "2",
+                "frequency": 12118
+            },
+            {
+                "effectiveDistricts": "3",
+                "frequency": 99
+            },
+            {
+                "effectiveDistricts": "4",
+                "frequency": 0
+            },
+            {
+                "effectiveDistricts": "5",
+                "frequency": 0
+            },
+            {
+                "effectiveDistricts": "6",
+                "frequency": 0
+            }
+        ]
+    }
+}
