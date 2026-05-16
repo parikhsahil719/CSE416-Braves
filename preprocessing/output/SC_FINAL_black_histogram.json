@@ -1,11 +1,11 @@
 {
     "schemaVersion": "v1",
     "chartType": "minority-effectiveness-histogram",
-    "state": "south_carolina",
+    "state": "SC",
     "election": "2024 Presidential",
     "totalDistricts": 7,
     "selectedGroup": "black",
-    "ensembleSize": 17340,
+    "ensembleSize": 217030,
     "units": {
         "count": "plans"
     },
@@ -18,28 +18,28 @@
             },
             {
                 "effectiveDistricts": "1",
-                "frequency": 19994,
-                "shareOfEnsemble": 0.1848
+                "frequency": 39057,
+                "shareOfEnsemble": 0.18
             },
             {
                 "effectiveDistricts": "2",
-                "frequency": 43316,
-                "shareOfEnsemble": 0.4003
+                "frequency": 86736,
+                "shareOfEnsemble": 0.3996
             },
             {
                 "effectiveDistricts": "3",
-                "frequency": 33387,
-                "shareOfEnsemble": 0.3085
+                "frequency": 67570,
+                "shareOfEnsemble": 0.3113
             },
             {
                 "effectiveDistricts": "4",
-                "frequency": 10427,
-                "shareOfEnsemble": 0.0964
+                "frequency": 21409,
+                "shareOfEnsemble": 0.0986
             },
             {
                 "effectiveDistricts": "5",
-                "frequency": 1086,
-                "shareOfEnsemble": 0.01
+                "frequency": 2258,
+                "shareOfEnsemble": 0.0104
             },
             {
                 "effectiveDistricts": "6",
@@ -60,32 +60,32 @@
             },
             {
                 "effectiveDistricts": "1",
-                "frequency": 30949,
-                "shareOfEnsemble": 0.179
+                "frequency": 62716,
+                "shareOfEnsemble": 0.1829
             },
             {
                 "effectiveDistricts": "2",
-                "frequency": 69721,
-                "shareOfEnsemble": 0.4032
+                "frequency": 137215,
+                "shareOfEnsemble": 0.4001
             },
             {
                 "effectiveDistricts": "3",
-                "frequency": 53797,
-                "shareOfEnsemble": 0.3111
+                "frequency": 106347,
+                "shareOfEnsemble": 0.3101
             },
             {
                 "effectiveDistricts": "4",
-                "frequency": 16760,
-                "shareOfEnsemble": 0.0969
+                "frequency": 33292,
+                "shareOfEnsemble": 0.0971
             },
             {
                 "effectiveDistricts": "5",
-                "frequency": 1671,
-                "shareOfEnsemble": 0.0097
+                "frequency": 3416,
+                "shareOfEnsemble": 0.01
             },
             {
                 "effectiveDistricts": "6",
-                "frequency": 2,
+                "frequency": 4,
                 "shareOfEnsemble": 0.0
             },
             {

@@ -1,7 +1,7 @@
 {
     "schemaVersion": "v1",
     "chartType": "ensemble-splits",
-    "state": "oregon",
+    "state": "OR",
     "totalDistricts": 6,
     "ensembleSize": 5000,
     "election": "2024 Presidential",
@@ -14,43 +14,43 @@
                 "splitLabel": "5R/1D",
                 "demWins": 1,
                 "repWins": 5,
-                "frequency": 871,
-                "shareOfEnsemble": 0.0059
+                "frequency": 1441,
+                "shareOfEnsemble": 0.0051
             },
             {
                 "splitLabel": "4R/2D",
                 "demWins": 2,
                 "repWins": 4,
-                "frequency": 27723,
-                "shareOfEnsemble": 0.1891
+                "frequency": 54090,
+                "shareOfEnsemble": 0.192
             },
             {
                 "splitLabel": "3R/3D",
                 "demWins": 3,
                 "repWins": 3,
-                "frequency": 63125,
-                "shareOfEnsemble": 0.4306
+                "frequency": 121686,
+                "shareOfEnsemble": 0.4319
             },
             {
                 "splitLabel": "2R/4D",
                 "demWins": 4,
                 "repWins": 2,
-                "frequency": 44469,
-                "shareOfEnsemble": 0.3033
+                "frequency": 84977,
+                "shareOfEnsemble": 0.3016
             },
             {
                 "splitLabel": "1R/5D",
                 "demWins": 5,
                 "repWins": 1,
-                "frequency": 10176,
-                "shareOfEnsemble": 0.0694
+                "frequency": 19150,
+                "shareOfEnsemble": 0.068
             },
             {
                 "splitLabel": "0R/6D",
                 "demWins": 6,
                 "repWins": 0,
-                "frequency": 236,
-                "shareOfEnsemble": 0.0016
+                "frequency": 416,
+                "shareOfEnsemble": 0.0015
             }
         ],
         "raceBlind": [
@@ -58,43 +58,43 @@
                 "splitLabel": "5R/1D",
                 "demWins": 1,
                 "repWins": 5,
-                "frequency": 776,
-                "shareOfEnsemble": 0.005
+                "frequency": 1626,
+                "shareOfEnsemble": 0.0051
             },
             {
                 "splitLabel": "4R/2D",
                 "demWins": 2,
                 "repWins": 4,
-                "frequency": 30242,
-                "shareOfEnsemble": 0.1936
+                "frequency": 62032,
+                "shareOfEnsemble": 0.196
             },
             {
                 "splitLabel": "3R/3D",
                 "demWins": 3,
                 "repWins": 3,
-                "frequency": 66449,
-                "shareOfEnsemble": 0.4255
+                "frequency": 135698,
+                "shareOfEnsemble": 0.4287
             },
             {
                 "splitLabel": "2R/4D",
                 "demWins": 4,
                 "repWins": 2,
-                "frequency": 47752,
-                "shareOfEnsemble": 0.3058
+                "frequency": 95036,
+                "shareOfEnsemble": 0.3002
             },
             {
                 "splitLabel": "1R/5D",
                 "demWins": 5,
                 "repWins": 1,
-                "frequency": 10751,
-                "shareOfEnsemble": 0.0688
+                "frequency": 21676,
+                "shareOfEnsemble": 0.0685
             },
             {
                 "splitLabel": "0R/6D",
                 "demWins": 6,
                 "repWins": 0,
-                "frequency": 209,
-                "shareOfEnsemble": 0.0013
+                "frequency": 481,
+                "shareOfEnsemble": 0.0015
             }
         ]
     }

@@ -1,7 +1,7 @@
 {
     "schemaVersion": "v1",
     "chartType": "ensemble-splits",
-    "state": "south_carolina",
+    "state": "SC",
     "totalDistricts": 7,
     "ensembleSize": 5000,
     "election": "2024 Presidential",
@@ -14,35 +14,35 @@
                 "splitLabel": "7R/0D",
                 "demWins": 0,
                 "repWins": 7,
-                "frequency": 37947,
-                "shareOfEnsemble": 0.3507
+                "frequency": 75187,
+                "shareOfEnsemble": 0.3464
             },
             {
                 "splitLabel": "6R/1D",
                 "demWins": 1,
                 "repWins": 6,
-                "frequency": 46710,
-                "shareOfEnsemble": 0.4317
+                "frequency": 94069,
+                "shareOfEnsemble": 0.4334
             },
             {
                 "splitLabel": "5R/2D",
                 "demWins": 2,
                 "repWins": 5,
-                "frequency": 20153,
-                "shareOfEnsemble": 0.1862
+                "frequency": 41013,
+                "shareOfEnsemble": 0.189
             },
             {
                 "splitLabel": "4R/3D",
                 "demWins": 3,
                 "repWins": 4,
-                "frequency": 3283,
-                "shareOfEnsemble": 0.0303
+                "frequency": 6517,
+                "shareOfEnsemble": 0.03
             },
             {
                 "splitLabel": "3R/4D",
                 "demWins": 4,
                 "repWins": 3,
-                "frequency": 117,
+                "frequency": 244,
                 "shareOfEnsemble": 0.0011
             }
         ],
@@ -51,35 +51,35 @@
                 "splitLabel": "7R/0D",
                 "demWins": 0,
                 "repWins": 7,
-                "frequency": 59319,
-                "shareOfEnsemble": 0.3431
+                "frequency": 118217,
+                "shareOfEnsemble": 0.3447
             },
             {
                 "splitLabel": "6R/1D",
                 "demWins": 1,
                 "repWins": 6,
-                "frequency": 74990,
-                "shareOfEnsemble": 0.4337
+                "frequency": 148645,
+                "shareOfEnsemble": 0.4334
             },
             {
                 "splitLabel": "5R/2D",
                 "demWins": 2,
                 "repWins": 5,
-                "frequency": 33059,
-                "shareOfEnsemble": 0.1912
+                "frequency": 65164,
+                "shareOfEnsemble": 0.19
             },
             {
                 "splitLabel": "4R/3D",
                 "demWins": 3,
                 "repWins": 4,
-                "frequency": 5363,
+                "frequency": 10618,
                 "shareOfEnsemble": 0.031
             },
             {
                 "splitLabel": "3R/4D",
                 "demWins": 4,
                 "repWins": 3,
-                "frequency": 169,
+                "frequency": 346,
                 "shareOfEnsemble": 0.001
             }
         ]

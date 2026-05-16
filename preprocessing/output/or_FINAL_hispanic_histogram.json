@@ -1,11 +1,11 @@
 {
     "schemaVersion": "v1",
     "chartType": "minority-effectiveness-histogram",
-    "state": "oregon",
+    "state": "OR",
     "election": "2024 Presidential",
     "totalDistricts": 6,
     "selectedGroup": "hispanic",
-    "ensembleSize": 2430,
+    "ensembleSize": 281760,
     "units": {
         "count": "plans"
     },
@@ -13,22 +13,22 @@
         "vraConstrained": [
             {
                 "effectiveDistricts": "0",
-                "frequency": 34,
+                "frequency": 65,
                 "shareOfEnsemble": 0.0002
             },
             {
                 "effectiveDistricts": "1",
-                "frequency": 142271,
-                "shareOfEnsemble": 0.9705
+                "frequency": 273422,
+                "shareOfEnsemble": 0.9704
             },
             {
                 "effectiveDistricts": "2",
-                "frequency": 4262,
+                "frequency": 8211,
                 "shareOfEnsemble": 0.0291
             },
             {
                 "effectiveDistricts": "3",
-                "frequency": 33,
+                "frequency": 62,
                 "shareOfEnsemble": 0.0002
             },
             {
@@ -50,22 +50,22 @@
         "raceBlind": [
             {
                 "effectiveDistricts": "0",
-                "frequency": 4880,
-                "shareOfEnsemble": 0.0312
+                "frequency": 4921,
+                "shareOfEnsemble": 0.0155
             },
             {
                 "effectiveDistricts": "1",
-                "frequency": 146663,
-                "shareOfEnsemble": 0.9391
+                "frequency": 302119,
+                "shareOfEnsemble": 0.9544
             },
             {
                 "effectiveDistricts": "2",
-                "frequency": 4599,
-                "shareOfEnsemble": 0.0294
+                "frequency": 9448,
+                "shareOfEnsemble": 0.0298
             },
             {
                 "effectiveDistricts": "3",
-                "frequency": 37,
+                "frequency": 61,
                 "shareOfEnsemble": 0.0002
             },
             {
