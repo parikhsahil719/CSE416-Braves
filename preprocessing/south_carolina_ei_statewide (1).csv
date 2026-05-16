@@ -1,0 +1,5 @@
+state,racial_group,party_of_choice,confidence,mean_dem_fraction,mean_rep_fraction,mean_dem_votes,mean_rep_votes
+South Carolina,white,republican,0.9997,0.166824,0.833176,289263.51,1444684.08
+South Carolina,black,democratic,0.9997,0.749882,0.250118,407546.97,135934.85
+South Carolina,asian,democratic,0.9997,0.737317,0.262683,32496.66,11577.57
+South Carolina,hispanic,democratic,0.9997,0.865562,0.134438,112678.03,17500.95
