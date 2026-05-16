@@ -1,0 +1,5 @@
+state,racial_group,party_of_choice,confidence,mean_dem_fraction,mean_rep_fraction,mean_dem_votes,mean_rep_votes
+Oregon,white,republican,0.9997,0.439679,0.560321,757808.09,965742.34
+Oregon,black,democratic,0.9997,0.939287,0.060713,33045.11,2135.96
+Oregon,asian,democratic,0.9997,0.938098,0.061902,92328.91,6092.43
+Oregon,hispanic,democratic,0.9997,0.773623,0.226377,177849.79,52042.18
