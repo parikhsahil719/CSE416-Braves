@@ -1171,9 +1171,9 @@ public class SeedDataLoader implements ApplicationRunner {
 
     private void seedEnsembleSplits(Path root) throws IOException {
         ensembleSplitRepository.save(buildDoc(new EnsembleSplitDocument(), "OR", "2024_pres", null, null, EnsembleSize.FINAL.getKey(), "TOTAL",
-                readJsonMap(root.resolve("mock-data/v1/ensemble-splits/OR_compare.json"))));
+                readJsonMap(root.resolve("preprocessing/output/or_FINAL_OUT_ensemble_splits.json"))));
         ensembleSplitRepository.save(buildDoc(new EnsembleSplitDocument(), "SC", "2024_pres", null, null, EnsembleSize.FINAL.getKey(), "TOTAL",
-                readJsonMap(root.resolve("mock-data/v1/ensemble-splits/SC_compare.json"))));
+                readJsonMap(root.resolve("preprocessing/output/sc_FINAL_OUT_ensemble_splits.json"))));
     }
 
     private void seedBoxWhiskers(Path root) throws IOException {
@@ -1273,13 +1273,9 @@ public class SeedDataLoader implements ApplicationRunner {
 
     private void seedMinorityEffectivenessHistogram(Path root) throws IOException {
         minorityEffectivenessHistogramRepository.save(buildDoc(new MinorityEffectivenessHistogramDocument(), "OR", "2024_pres", "latino", null, null, "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/minority-effectiveness-histogram/OR_latino_2024_pres.json"))));
-        minorityEffectivenessHistogramRepository.save(buildDoc(new MinorityEffectivenessHistogramDocument(), "OR", "2024_pres", "asian",  null, null, "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/minority-effectiveness-histogram/OR_asian_2024_pres.json"))));
+                normalizeHistogramPayload(readJsonMap(root.resolve("preprocessing/output/or_FINAL_hispanic_histogram.json")))));
         minorityEffectivenessHistogramRepository.save(buildDoc(new MinorityEffectivenessHistogramDocument(), "SC", "2024_pres", "black",  null, null, "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/minority-effectiveness-histogram/SC_black_2024_pres.json"))));
-        minorityEffectivenessHistogramRepository.save(buildDoc(new MinorityEffectivenessHistogramDocument(), "SC", "2024_pres", "latino", null, null, "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/minority-effectiveness-histogram/SC_latino_2024_pres.json"))));
+                normalizeHistogramPayload(readJsonMap(root.resolve("preprocessing/output/sc_FINAL_hispanic_histogram.json")))));
     }
 
     private void seedManifests() {
@@ -1343,5 +1339,21 @@ public class SeedDataLoader implements ApplicationRunner {
         }
         return objectMapper.readValue(path.toFile(), new TypeReference<>() {
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> normalizeHistogramPayload(Map<String, Object> payload) {
+        Map<String, Object> series = (Map<String, Object>) payload.get("series");
+        if (series == null) return payload;
+        for (Object seriesValue : series.values()) {
+            List<Map<String, Object>> bins = (List<Map<String, Object>>) seriesValue;
+            for (Map<String, Object> bin : bins) {
+                Object ed = bin.get("effectiveDistricts");
+                if (ed instanceof String s) {
+                    bin.put("effectiveDistricts", Integer.parseInt(s));
+                }
+            }
+        }
+        return payload;
     }
 }

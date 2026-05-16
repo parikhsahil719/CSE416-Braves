@@ -167,47 +167,8 @@ write("mock-data/v1/vra-impact-thresholds/SC_latino_2024_pres.json", {
 // ─────────────────────────────────────────────────────────────────────────────
 // 3. MINORITY EFFECTIVENESS HISTOGRAM  (GUI-22)
 // ─────────────────────────────────────────────────────────────────────────────
-// OR Asian: with 5.5% CVAP it is very difficult to elect even 1 effective district.
-// Race-blind: ~76% of plans have 0 effective Asian districts.
-// VRA-constrained: ~60% of plans get to 1 effective Asian district.
-write("mock-data/v1/minority-effectiveness-histogram/OR_asian_2024_pres.json", {
-  schemaVersion: "v1", chartType: "minority-effectiveness-histogram",
-  state: "OR", election: "2024 Presidential", totalDistricts: 6,
-  selectedGroup: "Asian", ensembleSize: 250,
-  units: { count: "plans" },
-  series: {
-    raceBlind: [
-      { effectiveDistricts: 0, frequency: 191, shareOfEnsemble: 0.764 },
-      { effectiveDistricts: 1, frequency:  52, shareOfEnsemble: 0.208 },
-      { effectiveDistricts: 2, frequency:   7, shareOfEnsemble: 0.028 },
-    ],
-    vraConstrained: [
-      { effectiveDistricts: 0, frequency:  37, shareOfEnsemble: 0.148 },
-      { effectiveDistricts: 1, frequency: 149, shareOfEnsemble: 0.596 },
-      { effectiveDistricts: 2, frequency:  64, shareOfEnsemble: 0.256 },
-    ],
-  },
-});
-
-// SC Latino: even harder than OR Asian due to SC's overall Republican lean.
-write("mock-data/v1/minority-effectiveness-histogram/SC_latino_2024_pres.json", {
-  schemaVersion: "v1", chartType: "minority-effectiveness-histogram",
-  state: "SC", election: "2024 Presidential", totalDistricts: 7,
-  selectedGroup: "Latino", ensembleSize: 250,
-  units: { count: "plans" },
-  series: {
-    raceBlind: [
-      { effectiveDistricts: 0, frequency: 203, shareOfEnsemble: 0.812 },
-      { effectiveDistricts: 1, frequency:  43, shareOfEnsemble: 0.172 },
-      { effectiveDistricts: 2, frequency:   4, shareOfEnsemble: 0.016 },
-    ],
-    vraConstrained: [
-      { effectiveDistricts: 0, frequency:  52, shareOfEnsemble: 0.208 },
-      { effectiveDistricts: 1, frequency: 144, shareOfEnsemble: 0.576 },
-      { effectiveDistricts: 2, frequency:  54, shareOfEnsemble: 0.216 },
-    ],
-  },
-});
+// OR Latino and SC Black are seeded from real preprocessing output; no mock files needed.
+// OR Asian and SC Latino are not used by the application.
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 4. EI SUPPORT DISTRIBUTION  (GUI-12)

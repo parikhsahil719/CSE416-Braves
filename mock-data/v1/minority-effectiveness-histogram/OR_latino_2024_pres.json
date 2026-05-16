@@ -1,27 +1,88 @@
 {
-  "schemaVersion": "v1",
-  "chartType": "minority-effectiveness-histogram",
-  "state": "OR",
-  "election": "2024 Presidential",
-  "totalDistricts": 6,
-  "selectedGroup": "Latino",
-  "ensembleSize": 5000,
-  "units": {
-    "count": "plans"
-  },
-  "series": {
-    "raceBlind": [
-      { "effectiveDistricts": 0, "frequency": 1050 },
-      { "effectiveDistricts": 1, "frequency": 2400 },
-      { "effectiveDistricts": 2, "frequency": 1260 },
-      { "effectiveDistricts": 3, "frequency": 280 },
-      { "effectiveDistricts": 4, "frequency": 10 }
-    ],
-    "vraConstrained": [
-      { "effectiveDistricts": 0, "frequency": 220 },
-      { "effectiveDistricts": 1, "frequency": 1480 },
-      { "effectiveDistricts": 2, "frequency": 2580 },
-      { "effectiveDistricts": 3, "frequency": 720 }
-    ]
-  }
+    "schemaVersion": "v1",
+    "chartType": "minority-effectiveness-histogram",
+    "state": "OR",
+    "election": "2024 Presidential",
+    "totalDistricts": 6,
+    "selectedGroup": "Latino",
+    "ensembleSize": 2430,
+    "units": {
+        "count": "plans"
+    },
+    "series": {
+        "vraConstrained": [
+            {
+                "effectiveDistricts": 0,
+                "frequency": 34,
+                "shareOfEnsemble": 0.0002
+            },
+            {
+                "effectiveDistricts": 1,
+                "frequency": 142271,
+                "shareOfEnsemble": 0.9705
+            },
+            {
+                "effectiveDistricts": 2,
+                "frequency": 4262,
+                "shareOfEnsemble": 0.0291
+            },
+            {
+                "effectiveDistricts": 3,
+                "frequency": 33,
+                "shareOfEnsemble": 0.0002
+            },
+            {
+                "effectiveDistricts": 4,
+                "frequency": 0,
+                "shareOfEnsemble": 0.0
+            },
+            {
+                "effectiveDistricts": 5,
+                "frequency": 0,
+                "shareOfEnsemble": 0.0
+            },
+            {
+                "effectiveDistricts": 6,
+                "frequency": 0,
+                "shareOfEnsemble": 0.0
+            }
+        ],
+        "raceBlind": [
+            {
+                "effectiveDistricts": 0,
+                "frequency": 4880,
+                "shareOfEnsemble": 0.0312
+            },
+            {
+                "effectiveDistricts": 1,
+                "frequency": 146663,
+                "shareOfEnsemble": 0.9391
+            },
+            {
+                "effectiveDistricts": 2,
+                "frequency": 4599,
+                "shareOfEnsemble": 0.0294
+            },
+            {
+                "effectiveDistricts": 3,
+                "frequency": 37,
+                "shareOfEnsemble": 0.0002
+            },
+            {
+                "effectiveDistricts": 4,
+                "frequency": 0,
+                "shareOfEnsemble": 0.0
+            },
+            {
+                "effectiveDistricts": 5,
+                "frequency": 0,
+                "shareOfEnsemble": 0.0
+            },
+            {
+                "effectiveDistricts": 6,
+                "frequency": 0,
+                "shareOfEnsemble": 0.0
+            }
+        ]
+    }
 }
