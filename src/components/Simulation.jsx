@@ -54,7 +54,7 @@ function EnsembleSplits({ payload, loading, failed }) {
 }
 
 // GUI-17: Box & Whisker (minority share per district, by ensemble type)
-function BoxWhisker({ payload, loading, failed, minority, subtitle }) {
+function BoxWhisker({ payload, loading, failed, minority, subtitle, ensembleType, currEnsemble, switchEnsemble }) {
   if (loading) return <div className="sim-placeholder">Loading box & whisker chart...</div>;
   if (failed || !payload) return <div className="sim-placeholder">No box & whisker data available for {minority}.</div>;
   const data = payload.rankSummaries;
@@ -94,11 +94,13 @@ function BoxWhisker({ payload, loading, failed, minority, subtitle }) {
   return (
     <div id="sim-page-data-container">
       <div className="sim-chartStack">
-        <div className="sim-chartSubtitle">{subtitle}</div>
+        <div className="box-whisker-selector-container">
+          <EnsembleSelector ensembleType={ensembleType} currEnsemble={currEnsemble} switchEnsemble={switchEnsemble} />
+        </div>
         <ResponsiveContainer style={{ width: "100%", height: "100%" }}>
           <ComposedChart data={data} width="100%" height="100%" margin={{left: -30, bottom: 20}}>
             <XAxis dataKey="districtRank" label={{ value: 'Indexed district', position: "bottom", fontSize : "0.85rem"}} tick={{ fontSize: "0.75rem" }} allowDuplicatedCategory={false}/>
-            <YAxis width={70} label={{ value: "Population Percentage", fontSize : "0.8rem", angle: -90}} tick={{ fontSize: "0.75rem" }} ticks={[0, 0.2, 0.4, 0.6, 0.8]}/>
+            <YAxis width={70} label={{ value: "Population Percentage", fontSize : "0.8rem", angle: -90}} tick={{ fontSize: "0.75rem" }} ticks={[0, 0.2, 0.4, 0.6]}/>
             <CartesianGrid vertical={false} />
             <RechartsBar dataKey={boxDataKey} legendType="none" barSize={20} fill="#e8eaec" stroke="black" strokeWidth={1} >
               <ErrorBar dataKey={whiskerDataKey} legendType="none" zIndex="-1"/>
@@ -468,8 +470,8 @@ export default function Simulation({ currMap, currMinority, switchMinority, curr
     if (currSimData === "Box Whisker")
       return (<>
         <div className="box-whisker-container">
-          <BoxWhisker payload={bwRace.data} loading={bwRace.isLoading} failed={bwRace.isError} minority={currMinority} subtitle="Race-Blind Ensemble" />
-          <BoxWhisker payload={bwVra.data} loading={bwVra.isLoading} failed={bwVra.isError} minority={currMinority} subtitle="VRA-Constrained Ensemble" />
+          <BoxWhisker payload={bwRace.data} loading={bwRace.isLoading} failed={bwRace.isError} minority={currMinority} subtitle="Race-Blind Ensemble" ensembleType={"rb"} currEnsemble={currRbEnsemble} switchEnsemble={switchRbEnsemble} />
+          <BoxWhisker payload={bwVra.data} loading={bwVra.isLoading} failed={bwVra.isError} minority={currMinority} subtitle="VRA-Constrained Ensemble" ensembleType={"vra"} currEnsemble={currVraEnsemble} switchEnsemble={switchVraEnsemble} />
         </div>
       </>);
     if (currSimData === "Minority Effectiveness")
@@ -480,8 +482,8 @@ export default function Simulation({ currMap, currMinority, switchMinority, curr
           <>
             <MinorityEffectivenessBoxWhisker payload={meBwData} loading={meBwRb.isLoading || meBwVra.isLoading} failed={meBwRb.isError || meBwVra.isError} />
             <span className="ensemble-selectors-container">
-              <EnsembleSelector stateName={stateName} ensembleType={"rb"} currEnsemble={currRbEnsemble} switchEnsemble={switchRbEnsemble} />
-              <EnsembleSelector stateName={stateName} ensembleType={"vra"} currEnsemble={currVraEnsemble} switchEnsemble={switchVraEnsemble} />
+              <EnsembleSelector ensembleType={"rb"} currEnsemble={currRbEnsemble} switchEnsemble={switchRbEnsemble} />
+              <EnsembleSelector ensembleType={"vra"} currEnsemble={currVraEnsemble} switchEnsemble={switchVraEnsemble} />
             </span>
           </> :
           <MinorityEffectivenessHistogram payload={meHist.data} loading={meHist.isLoading} failed={meHist.isError} group={currMinority} />}

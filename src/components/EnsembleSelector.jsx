@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "../../styles/ensemble-selector.css";
 import arrowDropdown from "/white_arrow_drop_down.svg";
 
-export default function EnsembleSelector({ stateName, ensembleType, currEnsemble, switchEnsemble }) {
+export default function EnsembleSelector({ ensembleType, currEnsemble, switchEnsemble }) {
   const [showList, setShowList] = useState(false);
   const rbEnsembleList = [
     {
