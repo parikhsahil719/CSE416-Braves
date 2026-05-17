@@ -1,0 +1,12 @@
+{
+  "key": "latino",
+  "label": "Latino",
+  "enactedValue": 0,
+  "raceBlindSummary": {
+    "min": 0.0,
+    "q1": 1.0,
+    "median": 1.0,
+    "q3": 1.0,
+    "max": 3.0
+  }
+}

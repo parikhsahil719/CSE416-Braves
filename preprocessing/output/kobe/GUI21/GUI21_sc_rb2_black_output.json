@@ -1,0 +1,12 @@
+{
+  "key": "black",
+  "label": "Black",
+  "enactedValue": 1,
+  "raceBlindSummary": {
+    "min": 1.0,
+    "q1": 2.0,
+    "median": 2.0,
+    "q3": 3.0,
+    "max": 5.0
+  }
+}

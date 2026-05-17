@@ -6,8 +6,7 @@
   "totalDistricts": 6,
   "units": { "count": "districts" },
   "groupSummaries": [
-    { "key": "latino", "label": "Latino", "raceBlindSummary": { "min": 0, "q1": 0, "median": 1, "q3": 2, "max": 3 } },
-    { "key": "asian",  "label": "Asian",  "raceBlindSummary": { "min": 0, "q1": 0, "median": 1, "q3": 1, "max": 3 } },
-    { "key": "white",  "label": "White",  "raceBlindSummary": { "min": 2, "q1": 4, "median": 4, "q3": 5, "max": 6 } }
+    { "key": "latino", "label": "Latino", "enactedValue": 0, "raceBlindSummary": { "min": 0.0, "q1": 1.0, "median": 1.0, "q3": 1.0, "max": 3.0 } },
+    { "key": "white",  "label": "White",  "enactedValue": 0, "raceBlindSummary": { "min": 4.0, "q1": 5.0, "median": 6.0, "q3": 6.0, "max": 6.0 } }
   ]
 }

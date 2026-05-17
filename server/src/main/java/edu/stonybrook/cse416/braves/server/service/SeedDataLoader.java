@@ -144,9 +144,9 @@ public class SeedDataLoader implements ApplicationRunner {
         if (boxWhiskerResultRepository.count() == 0) seedBoxWhiskers(root);
         seedInterestingPlans(root);
         if (vraImpactThresholdTableRepository.count() == 0) seedVraImpactThresholdTables(root);
-        // Expect 16 documents here: 2 states x 2 ensemble types x 4 ensemble indices. Any smaller count
+        // Expect 12 documents here: 2 states x 2 ensemble types x 3 ensemble indices. Any smaller count
         // implies stale pre-split data that should be replaced wholesale.
-        if (minorityEffectivenessBoxWhiskerRepository.count() < 16) seedMinorityEffectivenessBoxWhisker(root);
+        if (minorityEffectivenessBoxWhiskerRepository.count() < 12) seedMinorityEffectivenessBoxWhisker(root);
         if (minorityEffectivenessHistogramRepository.count() == 0) seedMinorityEffectivenessHistogram(root);
         if (runManifestRepository.count() == 0 || ingestManifestRepository.count() == 0) seedManifests();
         LOG.info("Mongo seed completed successfully");
@@ -1112,22 +1112,43 @@ public class SeedDataLoader implements ApplicationRunner {
     }
 
     private void seedBoxWhiskers(Path root) throws IOException {
+        Path gui17 = root.resolve("preprocessing/output/kobe/GUI17");
+        // OR latino: real preprocessing data from GUI17 (ensemble 1 as representative)
         boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "OR", "2024_pres", "latino", EnsembleType.VRA_CONSTRAINED.getKey(), "minority_share", "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/box-whisker/OR_latino_cvap_vra.json"))));
+                buildBoxWhiskerPayload(gui17.resolve("GUI17_or_vra1_output.json"), "OR", "Latino", EnsembleType.VRA_CONSTRAINED.getKey(), 6)));
         boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "OR", "2024_pres", "latino", EnsembleType.RACE_BLIND.getKey(),      "minority_share", "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/box-whisker/OR_latino_cvap_race_blind.json"))));
+                buildBoxWhiskerPayload(gui17.resolve("GUI17_or_rb1_output.json"),  "OR", "Latino", EnsembleType.RACE_BLIND.getKey(),      6)));
+        // OR asian: no preprocessing output yet — use mock data
         boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "OR", "2024_pres", "asian",  EnsembleType.VRA_CONSTRAINED.getKey(), "minority_share", "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/box-whisker/OR_asian_cvap_vra.json"))));
         boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "OR", "2024_pres", "asian",  EnsembleType.RACE_BLIND.getKey(),      "minority_share", "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/box-whisker/OR_asian_cvap_race_blind.json"))));
+        // SC black: real preprocessing data from GUI17 (vra0 used as representative VRA ensemble)
         boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "SC", "2024_pres", "black",  EnsembleType.VRA_CONSTRAINED.getKey(), "minority_share", "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/box-whisker/SC_black_cvap_vra.json"))));
+                buildBoxWhiskerPayload(gui17.resolve("GUI17_sc_vra0_output.json"), "SC", "Black",  EnsembleType.VRA_CONSTRAINED.getKey(), 7)));
         boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "SC", "2024_pres", "black",  EnsembleType.RACE_BLIND.getKey(),      "minority_share", "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/box-whisker/SC_black_cvap_race_blind.json"))));
+                buildBoxWhiskerPayload(gui17.resolve("GUI17_sc_rb1_output.json"),  "SC", "Black",  EnsembleType.RACE_BLIND.getKey(),      7)));
+        // SC latino: no preprocessing output yet — use mock data
         boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "SC", "2024_pres", "latino", EnsembleType.VRA_CONSTRAINED.getKey(), "minority_share", "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/box-whisker/SC_latino_cvap_vra.json"))));
         boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "SC", "2024_pres", "latino", EnsembleType.RACE_BLIND.getKey(),      "minority_share", "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/box-whisker/SC_latino_cvap_race_blind.json"))));
+    }
+
+    private Map<String, Object> buildBoxWhiskerPayload(
+            Path file, String state, String groupLabel, String ensembleType, int totalDistricts) throws IOException {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("schemaVersion", "v1");
+        payload.put("chartType", "box-whisker");
+        payload.put("state", state);
+        payload.put("totalDistricts", totalDistricts);
+        payload.put("election", "2024 Presidential");
+        payload.put("ensembleType", ensembleType);
+        payload.put("selectedGroup", groupLabel);
+        payload.put("metricLabel", groupLabel + " CVAP share");
+        payload.put("units", Map.of("share", "decimal_0_to_1"));
+        payload.put("rankSummaries", readJsonList(file));
+        return payload;
     }
 
     private void seedInterestingPlans(Path root) throws IOException {
@@ -1179,30 +1200,42 @@ public class SeedDataLoader implements ApplicationRunner {
     }
 
     private void seedMinorityEffectivenessBoxWhisker(Path root) throws IOException {
-        // Clear any stale documents (e.g. the old 2-document unified format) before inserting the 16 per-ensemble documents.
         minorityEffectivenessBoxWhiskerRepository.deleteAll();
-        // Seed one document per (state, ensembleType, ensembleIndex) combination.
-        // Each document contains only its own side (raceBlindSummary or vraConstrainedSummary);
-        // the frontend merges the two sides at render time.
-        String[] states = {"OR", "SC"};
-        String[] types  = {"rb", "vra"};
-        for (String state : states) {
-            for (String type : types) {
-                for (int idx = 1; idx <= 4; idx++) {
-                    String filename = state + "_2024_pres_" + type + "_" + idx + ".json";
-                    MinorityEffectivenessBoxWhiskerDocument doc = buildDoc(
-                        new MinorityEffectivenessBoxWhiskerDocument(),
-                        state, "2024_pres",
-                        /*groupKey*/     null,
-                        /*ensembleType*/ type,
-                        /*metricKey*/    null,
-                        "CVAP",
-                        readJsonMap(root.resolve("mock-data/v1/minority-effectiveness-box-whisker/" + filename))
-                    );
-                    doc.setEnsembleIndex(idx);
-                    minorityEffectivenessBoxWhiskerRepository.save(doc);
-                }
+        // Each document merges per-race preprocessing files into a single groupSummaries payload.
+        // Source files: preprocessing/output/kobe/GUI21/GUI21_{state}_{type}{srcIdx}_{race}_output.json
+        // SC VRA has data at source indices 0,2,3 (index 1 missing); these map to ensemble indices 1,2,3.
+        seedMeBoxWhiskerEnsembles(root, "OR", "rb",  6, new int[]{1,2,3}, new int[]{1,2,3}, new String[]{"hispanic","white"});
+        seedMeBoxWhiskerEnsembles(root, "OR", "vra", 6, new int[]{1,2,3}, new int[]{1,2,3}, new String[]{"hispanic","white"});
+        seedMeBoxWhiskerEnsembles(root, "SC", "rb",  7, new int[]{1,2,3}, new int[]{1,2,3}, new String[]{"black","white"});
+        seedMeBoxWhiskerEnsembles(root, "SC", "vra", 7, new int[]{0,2,3}, new int[]{1,2,3}, new String[]{"black","white"});
+    }
+
+    private void seedMeBoxWhiskerEnsembles(
+            Path root, String state, String type, int totalDistricts,
+            int[] srcIndices, int[] destIndices, String[] races) throws IOException {
+        Path prepro = root.resolve("preprocessing/output/kobe/GUI21");
+        String stateLC = state.toLowerCase();
+        for (int i = 0; i < srcIndices.length; i++) {
+            int srcIdx = srcIndices[i];
+            int destIdx = destIndices[i];
+            List<Map<String, Object>> groupSummaries = new ArrayList<>();
+            for (String race : races) {
+                String filename = String.format("GUI21_%s_%s%d_%s_output.json", stateLC, type, srcIdx, race);
+                groupSummaries.add(readJsonMap(prepro.resolve(filename)));
             }
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("schemaVersion", "v1");
+            payload.put("chartType", "minority-effectiveness-box-whisker");
+            payload.put("state", state);
+            payload.put("election", "2024 Presidential");
+            payload.put("totalDistricts", totalDistricts);
+            payload.put("units", Map.of("count", "districts"));
+            payload.put("groupSummaries", groupSummaries);
+            MinorityEffectivenessBoxWhiskerDocument doc = buildDoc(
+                new MinorityEffectivenessBoxWhiskerDocument(),
+                state, "2024_pres", null, type, null, "CVAP", payload);
+            doc.setEnsembleIndex(destIdx);
+            minorityEffectivenessBoxWhiskerRepository.save(doc);
         }
     }
 
@@ -1260,8 +1293,14 @@ public class SeedDataLoader implements ApplicationRunner {
         if (!Files.exists(path)) {
             throw new IllegalStateException("Required seed file not found: " + path);
         }
-        return objectMapper.readValue(path.toFile(), new TypeReference<>() {
-        });
+        return objectMapper.readValue(path.toFile(), new TypeReference<>() {});
+    }
+
+    private List<Map<String, Object>> readJsonList(Path path) throws IOException {
+        if (!Files.exists(path)) {
+            throw new IllegalStateException("Required seed file not found: " + path);
+        }
+        return objectMapper.readValue(path.toFile(), new TypeReference<>() {});
     }
 
     @SuppressWarnings("unchecked")

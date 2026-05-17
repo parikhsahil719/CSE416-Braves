@@ -9,12 +9,12 @@
   "metricLabel": "Black CVAP share",
   "units": { "share": "decimal_0_to_1" },
   "rankSummaries": [
-    { "districtRank": 1, "min": 0.04, "q1": 0.07, "median": 0.09, "q3": 0.12, "max": 0.17, "enactedValue": 0.10, "proposedValue": 0.11 },
-    { "districtRank": 2, "min": 0.08, "q1": 0.11, "median": 0.14, "q3": 0.18, "max": 0.24, "enactedValue": 0.16, "proposedValue": 0.17 },
-    { "districtRank": 3, "min": 0.12, "q1": 0.16, "median": 0.20, "q3": 0.24, "max": 0.30, "enactedValue": 0.22, "proposedValue": 0.21 },
-    { "districtRank": 4, "min": 0.17, "q1": 0.22, "median": 0.27, "q3": 0.31, "max": 0.37, "enactedValue": 0.29, "proposedValue": 0.30 },
-    { "districtRank": 5, "min": 0.24, "q1": 0.30, "median": 0.35, "q3": 0.40, "max": 0.47, "enactedValue": 0.38, "proposedValue": 0.36 },
-    { "districtRank": 6, "min": 0.31, "q1": 0.38, "median": 0.44, "q3": 0.50, "max": 0.57, "enactedValue": 0.47, "proposedValue": 0.45 },
-    { "districtRank": 7, "min": 0.42, "q1": 0.49, "median": 0.56, "q3": 0.63, "max": 0.72, "enactedValue": 0.60, "proposedValue": 0.58 }
+    { "districtRank": 1, "min": 0.0,   "q1": 0.0,   "median": 0.0,   "q3": 0.0,   "max": 0.096, "enactedValue": 0.163, "proposedValue": null },
+    { "districtRank": 2, "min": 0.0,   "q1": 0.0,   "median": 0.001, "q3": 0.001, "max": 0.116, "enactedValue": 0.166, "proposedValue": null },
+    { "districtRank": 3, "min": 0.0,   "q1": 0.001, "median": 0.003, "q3": 0.016, "max": 0.166, "enactedValue": 0.178, "proposedValue": null },
+    { "districtRank": 4, "min": 0.05,  "q1": 0.145, "median": 0.167, "q3": 0.183, "max": 0.224, "enactedValue": 0.239, "proposedValue": null },
+    { "districtRank": 5, "min": 0.115, "q1": 0.192, "median": 0.208, "q3": 0.232, "max": 0.28,  "enactedValue": 0.237, "proposedValue": null },
+    { "districtRank": 6, "min": 0.148, "q1": 0.255, "median": 0.269, "q3": 0.288, "max": 0.346, "enactedValue": 0.243, "proposedValue": null },
+    { "districtRank": 7, "min": 0.225, "q1": 0.313, "median": 0.336, "q3": 0.361, "max": 0.43,  "enactedValue": 0.45,  "proposedValue": null }
   ]
 }
