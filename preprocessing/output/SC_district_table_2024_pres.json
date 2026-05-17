@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "v1",
+  "state": "SC",
+  "election": "2024_pres",
+  "districts": [
+    {
+      "districtNumber": 1,
+      "representative": "Nancy Mace",
+      "party": "Republican",
+      "racialEthnicGroup": "White",
+      "voteMargin2024": -13.0,
+      "effectivenessScore": 0.31,
+      "calibratedEffectivenessScore": 0.29
+    },
+    {
+      "districtNumber": 2,
+      "representative": "Joe Wilson",
+      "party": "Republican",
+      "racialEthnicGroup": "White",
+      "voteMargin2024": -13.9,
+      "effectivenessScore": 0.28,
+      "calibratedEffectivenessScore": 0.26
+    },
+    {
+      "districtNumber": 3,
+      "representative": "Sheri Biggs",
+      "party": "Republican",
+      "racialEthnicGroup": "White",
+      "voteMargin2024": -43.1,
+      "effectivenessScore": 0.24,
+      "calibratedEffectivenessScore": 0.22
+    },
+    {
+      "districtNumber": 4,
+      "representative": "William Timmons",
+      "party": "Republican",
+      "racialEthnicGroup": "White",
+      "voteMargin2024": -23.6,
+      "effectivenessScore": 0.26,
+      "calibratedEffectivenessScore": 0.24
+    },
+    {
+      "districtNumber": 5,
+      "representative": "Ralph Norman",
+      "party": "Republican",
+      "racialEthnicGroup": "White",
+      "voteMargin2024": -22.8,
+      "effectivenessScore": 0.27,
+      "calibratedEffectivenessScore": 0.25
+    },
+    {
+      "districtNumber": 6,
+      "representative": "James Clyburn",
+      "party": "Democratic",
+      "racialEthnicGroup": "Black",
+      "voteMargin2024": 22.6,
+      "effectivenessScore": 0.71,
+      "calibratedEffectivenessScore": 0.69
+    },
+    {
+      "districtNumber": 7,
+      "representative": "Russell Fry",
+      "party": "Republican",
+      "racialEthnicGroup": "White",
+      "voteMargin2024": -26.3,
+      "effectivenessScore": 0.25,
+      "calibratedEffectivenessScore": 0.23
+    }
+  ]
+}

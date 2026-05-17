@@ -131,9 +131,9 @@ public class SeedDataLoader implements ApplicationRunner {
         validatePrecinctCounts(root);
         validatePopulationRealism(root);
         if (stateRepository.count() == 0) seedStates();
-        seedStateSummaries();
-        seedEnsembleSummaries();
-        seedDistrictTables();
+        seedStateSummaries(root);
+        seedEnsembleSummaries(root);
+        seedDistrictTables(root);
         seedHeatmapBins();
         seedGingles(root);
         seedGinglesTables(root);
@@ -246,93 +246,28 @@ public class SeedDataLoader implements ApplicationRunner {
         )));
     }
 
-    private void seedStateSummaries() {
+    private void seedStateSummaries(Path root) throws IOException {
         stateSummaryRepository.deleteAll();
-        Map<String, Object> orPayload = new LinkedHashMap<>();
-        orPayload.put("schemaVersion", "v1");
-        orPayload.put("state", "OR");
-        orPayload.put("totalDistricts", 6);
-        orPayload.put("population", "3,370,625");
-        orPayload.put("voterDistributionDem", "1,240,600 (55.27%)");
-        orPayload.put("voterDistributionRep", "919,480 (40.97%)");
-        orPayload.put("WhitePopulation", "2,526,251");
-        orPayload.put("BlackPopulation", "60,012");
-        orPayload.put("AsianPopulation", "194,538");
-        orPayload.put("HispanicPopulation", "389,384");
-        orPayload.put("partyControl", "Democratic");
-        orPayload.put("democratReps", "Suzanne Bonamici, Maxine Dexter, Val Hoyle, Janelle Bynum, Andrea Salinas");
-        orPayload.put("republicanReps", "Cliff Bentz");
-        orPayload.put("feasibleGroups", List.of("Latino", "Asian", "White"));
-        orPayload.put("ensembleSummary", Map.of("available", true, "sizes", List.of(EnsembleSize.TEST.getKey(), EnsembleSize.FINAL.getKey()), "finalPlanCount", "5,000"));
-
-        Map<String, Object> scPayload = new LinkedHashMap<>();
-        scPayload.put("schemaVersion", "v1");
-        scPayload.put("state", "SC");
-        scPayload.put("totalDistricts", 7);
-        scPayload.put("population", "4,014,460");
-        scPayload.put("voterDistributionDem", "1,028,452 (40.36%)");
-        scPayload.put("voterDistributionRep", "1,483,747 (58.23%)");
-        scPayload.put("WhitePopulation", "2,603,975");
-        scPayload.put("BlackPopulation", "964,667");
-        scPayload.put("AsianPopulation", "90,466");
-        scPayload.put("HispanicPopulation", "231,124");
-        scPayload.put("partyControl", "Republican");
-        scPayload.put("democratReps", "James Clyburn");
-        scPayload.put("republicanReps", "Nancy Mace, Joe Wilson, Sheri Biggs, William Timmons, Ralph Norman, Russell Fry");
-        scPayload.put("feasibleGroups", List.of("Black", "Latino", "White"));
-        scPayload.put("ensembleSummary", Map.of("available", true, "sizes", List.of(EnsembleSize.TEST.getKey(), EnsembleSize.FINAL.getKey()), "finalPlanCount", "5,000"));
-
-        stateSummaryRepository.save(buildDoc(new StateSummaryDocument(), "OR", null, null, null, null, "TOTAL", orPayload));
-        stateSummaryRepository.save(buildDoc(new StateSummaryDocument(), "SC", null, null, null, null, "TOTAL", scPayload));
+        stateSummaryRepository.save(buildDoc(new StateSummaryDocument(), "OR", null, null, null, null, "TOTAL",
+                readJsonMap(root.resolve("preprocessing/output/OR_state_summary.json"))));
+        stateSummaryRepository.save(buildDoc(new StateSummaryDocument(), "SC", null, null, null, null, "TOTAL",
+                readJsonMap(root.resolve("preprocessing/output/SC_state_summary.json"))));
     }
 
-    private void seedEnsembleSummaries() {
+    private void seedEnsembleSummaries(Path root) throws IOException {
         ensembleSummaryRepository.deleteAll();
-        ensembleSummaryRepository.save(buildDoc(new EnsembleSummaryDocument(), "OR", null, null, null, null, "TOTAL", Map.of(
-                "schemaVersion", "v1",
-                "state", "OR",
-                "finalPlanCount", "5,000",
-                "populationEqualityThreshold", "0.50%"
-        )));
-
-        ensembleSummaryRepository.save(buildDoc(new EnsembleSummaryDocument(), "SC", null, null, null, null, "TOTAL", Map.of(
-                "schemaVersion", "v1",
-                "state", "SC",
-                "finalPlanCount", "5,000",
-                "populationEqualityThreshold", "0.50%"
-        )));
+        ensembleSummaryRepository.save(buildDoc(new EnsembleSummaryDocument(), "OR", null, null, null, null, "TOTAL",
+                readJsonMap(root.resolve("preprocessing/output/OR_ensemble_summary.json"))));
+        ensembleSummaryRepository.save(buildDoc(new EnsembleSummaryDocument(), "SC", null, null, null, null, "TOTAL",
+                readJsonMap(root.resolve("preprocessing/output/SC_ensemble_summary.json"))));
     }
 
-    private void seedDistrictTables() {
+    private void seedDistrictTables(Path root) throws IOException {
         districtTableRepository.deleteAll();
-        districtTableRepository.save(buildDoc(new DistrictTableDocument(), "OR", "2024_pres", null, null, null, "TOTAL", Map.of(
-                "schemaVersion", "v1",
-                "state", "OR",
-                "election", "2024_pres",
-                "districts", List.of(
-                        districtRow(1, "Suzanne Bonamici", "Democratic", "White", 37.6, 0.41, 0.38),
-                        districtRow(2, "Cliff Bentz", "Republican", "White", -27.1, 0.29, 0.27),
-                        districtRow(3, "Maxine Dexter", "Democratic", "White", 45.6, 0.44, 0.42),
-                        districtRow(4, "Val Hoyle", "Democratic", "White", 12.0, 0.38, 0.35),
-                        districtRow(5, "Janelle Bynum", "Democratic", "Black", 8.6, 0.62, 0.61),
-                        districtRow(6, "Andrea Salinas", "Democratic", "Latino", 11.3, 0.67, 0.65)
-                )
-        )));
-
-        districtTableRepository.save(buildDoc(new DistrictTableDocument(), "SC", "2024_pres", null, null, null, "TOTAL", Map.of(
-                "schemaVersion", "v1",
-                "state", "SC",
-                "election", "2024_pres",
-                "districts", List.of(
-                        districtRow(1, "Nancy Mace", "Republican", "White", -13.0, 0.31, 0.29),
-                        districtRow(2, "Joe Wilson", "Republican", "White", -13.9, 0.28, 0.26),
-                        districtRow(3, "Sheri Biggs", "Republican", "White", -43.1, 0.24, 0.22),
-                        districtRow(4, "William Timmons", "Republican", "White", -23.6, 0.26, 0.24),
-                        districtRow(5, "Ralph Norman", "Republican", "White", -22.8, 0.27, 0.25),
-                        districtRow(6, "James Clyburn", "Democratic", "Black", 22.6, 0.71, 0.69),
-                        districtRow(7, "Russell Fry", "Republican", "White", -26.3, 0.25, 0.23)
-                )
-        )));
+        districtTableRepository.save(buildDoc(new DistrictTableDocument(), "OR", "2024_pres", null, null, null, "TOTAL",
+                readJsonMap(root.resolve("preprocessing/output/OR_district_table_2024_pres.json"))));
+        districtTableRepository.save(buildDoc(new DistrictTableDocument(), "SC", "2024_pres", null, null, null, "TOTAL",
+                readJsonMap(root.resolve("preprocessing/output/SC_district_table_2024_pres.json"))));
     }
 
     private void seedHeatmapBins() {
@@ -1171,9 +1106,9 @@ public class SeedDataLoader implements ApplicationRunner {
 
     private void seedEnsembleSplits(Path root) throws IOException {
         ensembleSplitRepository.save(buildDoc(new EnsembleSplitDocument(), "OR", "2024_pres", null, null, EnsembleSize.FINAL.getKey(), "TOTAL",
-                readJsonMap(root.resolve("preprocessing/output/or_FINAL_OUT_ensemble_splits.json"))));
+                readJsonMap(root.resolve("preprocessing/output/OR_FINAL_OUT_ensemble_splits-2.json"))));
         ensembleSplitRepository.save(buildDoc(new EnsembleSplitDocument(), "SC", "2024_pres", null, null, EnsembleSize.FINAL.getKey(), "TOTAL",
-                readJsonMap(root.resolve("preprocessing/output/sc_FINAL_OUT_ensemble_splits.json"))));
+                readJsonMap(root.resolve("preprocessing/output/SC_FINAL_OUT_ensemble_splits-2.json"))));
     }
 
     private void seedBoxWhiskers(Path root) throws IOException {
@@ -1275,7 +1210,7 @@ public class SeedDataLoader implements ApplicationRunner {
         minorityEffectivenessHistogramRepository.save(buildDoc(new MinorityEffectivenessHistogramDocument(), "OR", "2024_pres", "latino", null, null, "CVAP",
                 normalizeHistogramPayload(readJsonMap(root.resolve("preprocessing/output/or_FINAL_hispanic_histogram.json")))));
         minorityEffectivenessHistogramRepository.save(buildDoc(new MinorityEffectivenessHistogramDocument(), "SC", "2024_pres", "black",  null, null, "CVAP",
-                normalizeHistogramPayload(readJsonMap(root.resolve("preprocessing/output/sc_FINAL_hispanic_histogram.json")))));
+                normalizeHistogramPayload(readJsonMap(root.resolve("preprocessing/output/SC_FINAL_black_histogram.json")))));
     }
 
     private void seedManifests() {
@@ -1292,18 +1227,6 @@ public class SeedDataLoader implements ApplicationRunner {
                 "source", "local-mock-data",
                 "timestamp", Instant.now().toString()
         )));
-    }
-
-    private Map<String, Object> districtRow(int districtNumber, String representative, String party, String racialEthnicGroup, double voteMargin2024, double effectivenessScore, double calibratedEffectivenessScore) {
-        return Map.of(
-                "districtNumber", districtNumber,
-                "representative", representative,
-                "party", party,
-                "racialEthnicGroup", racialEthnicGroup,
-                "voteMargin2024", voteMargin2024,
-                "effectivenessScore", effectivenessScore,
-                "calibratedEffectivenessScore", calibratedEffectivenessScore
-        );
     }
 
     private <T extends BasePayloadDocument> T buildDoc(

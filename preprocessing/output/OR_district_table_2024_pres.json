@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "v1",
+  "state": "OR",
+  "election": "2024_pres",
+  "districts": [
+    {
+      "districtNumber": 1,
+      "representative": "Suzanne Bonamici",
+      "party": "Democratic",
+      "racialEthnicGroup": "White",
+      "voteMargin2024": 37.6,
+      "effectivenessScore": 0.41,
+      "calibratedEffectivenessScore": 0.38
+    },
+    {
+      "districtNumber": 2,
+      "representative": "Cliff Bentz",
+      "party": "Republican",
+      "racialEthnicGroup": "White",
+      "voteMargin2024": -27.1,
+      "effectivenessScore": 0.29,
+      "calibratedEffectivenessScore": 0.27
+    },
+    {
+      "districtNumber": 3,
+      "representative": "Maxine Dexter",
+      "party": "Democratic",
+      "racialEthnicGroup": "White",
+      "voteMargin2024": 45.6,
+      "effectivenessScore": 0.44,
+      "calibratedEffectivenessScore": 0.42
+    },
+    {
+      "districtNumber": 4,
+      "representative": "Val Hoyle",
+      "party": "Democratic",
+      "racialEthnicGroup": "White",
+      "voteMargin2024": 12.0,
+      "effectivenessScore": 0.38,
+      "calibratedEffectivenessScore": 0.35
+    },
+    {
+      "districtNumber": 5,
+      "representative": "Janelle Bynum",
+      "party": "Democratic",
+      "racialEthnicGroup": "Black",
+      "voteMargin2024": 8.6,
+      "effectivenessScore": 0.62,
+      "calibratedEffectivenessScore": 0.61
+    },
+    {
+      "districtNumber": 6,
+      "representative": "Andrea Salinas",
+      "party": "Democratic",
+      "racialEthnicGroup": "Latino",
+      "voteMargin2024": 11.3,
+      "effectivenessScore": 0.67,
+      "calibratedEffectivenessScore": 0.65
+    }
+  ]
+}
