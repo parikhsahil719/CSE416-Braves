@@ -141,8 +141,8 @@ public class SeedDataLoader implements ApplicationRunner {
         eiPrecinctBarCiRepository.deleteAll(); seedEiPrecinctBarCi(root);
         eiKdeRepository.deleteAll(); seedEiKde(root);
         if (ensembleSplitRepository.count() == 0) seedEnsembleSplits(root);
-        // Expect 8 docs: OR × {latino,asian} × 2 + SC × {black,latino} × 2 = 8.
-        if (boxWhiskerResultRepository.count() < 8) { boxWhiskerResultRepository.deleteAll(); seedBoxWhiskers(root); }
+        // Expect 4 docs: OR × {latino} × 2 + SC × {black} × 2 = 4.
+        if (boxWhiskerResultRepository.count() < 4) { boxWhiskerResultRepository.deleteAll(); seedBoxWhiskers(root); }
         seedInterestingPlans(root);
         // Expect 2 docs: OR/latino + SC/black (only primary minority per state).
         if (vraImpactThresholdTableRepository.count() < 2) { vraImpactThresholdTableRepository.deleteAll(); seedVraImpactThresholdTables(root); }
@@ -267,9 +267,31 @@ public class SeedDataLoader implements ApplicationRunner {
     private void seedDistrictTables(Path root) throws IOException {
         districtTableRepository.deleteAll();
         districtTableRepository.save(buildDoc(new DistrictTableDocument(), "OR", "2024_pres", null, null, null, "TOTAL",
-                readJsonMap(root.resolve("preprocessing/output/OR_district_table_2024_pres.json"))));
+                mergeEffectivenessScores(
+                        readJsonMap(root.resolve("preprocessing/output/OR_district_table_2024_pres.json")),
+                        readJsonMap(root.resolve("preprocessing/output/GUI_6_or.json")),
+                        "hispanic")));
         districtTableRepository.save(buildDoc(new DistrictTableDocument(), "SC", "2024_pres", null, null, null, "TOTAL",
-                readJsonMap(root.resolve("preprocessing/output/SC_district_table_2024_pres.json"))));
+                mergeEffectivenessScores(
+                        readJsonMap(root.resolve("preprocessing/output/SC_district_table_2024_pres.json")),
+                        readJsonMap(root.resolve("preprocessing/output/GUI_6_sc.json")),
+                        "black")));
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> mergeEffectivenessScores(
+            Map<String, Object> tablePayload, Map<String, Object> gui6Payload, String groupKey) {
+        Map<String, Object> scores = (Map<String, Object>)
+                ((Map<String, Object>) gui6Payload.get("effective_district_score")).get(groupKey);
+        List<Map<String, Object>> districts = (List<Map<String, Object>>) tablePayload.get("districts");
+        for (Map<String, Object> district : districts) {
+            int distNum = ((Number) district.get("districtNumber")).intValue();
+            Object score = scores.get(String.valueOf(distNum));
+            if (score != null) {
+                district.put("effectivenessScore", score);
+            }
+        }
+        return tablePayload;
     }
 
     private void seedHeatmapBins() {
@@ -1066,13 +1088,10 @@ public class SeedDataLoader implements ApplicationRunner {
         saveEiSupport("OR", "latino", "2024_pres", "REP", root.resolve("preprocessing/output/ei/ei-support/OR_latino_2024_president_REP.json"));
         saveEiSupport("OR", "white",  "2024_pres", "DEM", root.resolve("preprocessing/output/ei/ei-support/OR_white_2024_president_DEM.json"));
         saveEiSupport("OR", "white",  "2024_pres", "REP", root.resolve("preprocessing/output/ei/ei-support/OR_white_2024_president_REP.json"));
-        saveEiSupport("OR", "asian",  "2024_pres", "DEM", root.resolve("mock-data/v1/ei-support/OR_asian_2024_president.json"));
         saveEiSupport("SC", "black",  "2024_pres", "DEM", root.resolve("preprocessing/output/ei/ei-support/SC_black_2024_president_DEM.json"));
         saveEiSupport("SC", "black",  "2024_pres", "REP", root.resolve("preprocessing/output/ei/ei-support/SC_black_2024_president_REP.json"));
         saveEiSupport("SC", "white",  "2024_pres", "DEM", root.resolve("preprocessing/output/ei/ei-support/SC_white_2024_president_DEM.json"));
         saveEiSupport("SC", "white",  "2024_pres", "REP", root.resolve("preprocessing/output/ei/ei-support/SC_white_2024_president_REP.json"));
-        saveEiSupport("SC", "latino", "2024_pres", "DEM", root.resolve("preprocessing/output/ei/ei-support/SC_latino_2024_president_DEM.json"));
-        saveEiSupport("SC", "latino", "2024_pres", "REP", root.resolve("preprocessing/output/ei/ei-support/SC_latino_2024_president_REP.json"));
     }
 
     private void saveEiSupport(String stateId, String groupKey, String electionId, String partyKey, Path path) throws IOException {
@@ -1086,13 +1105,10 @@ public class SeedDataLoader implements ApplicationRunner {
         saveEiPrecinctBarCi("OR", "latino", "2024_pres", PartyKey.REP, root.resolve("preprocessing/output/ei/ei-precinct-bar-ci/OR_latino_2024_pres_REP.json"));
         saveEiPrecinctBarCi("OR", "white",  "2024_pres", PartyKey.DEM, root.resolve("preprocessing/output/ei/ei-precinct-bar-ci/OR_white_2024_pres_DEM.json"));
         saveEiPrecinctBarCi("OR", "white",  "2024_pres", PartyKey.REP, root.resolve("preprocessing/output/ei/ei-precinct-bar-ci/OR_white_2024_pres_REP.json"));
-        saveEiPrecinctBarCi("OR", "asian",  "2024_pres", PartyKey.DEM, root.resolve("mock-data/v1/ei-precinct-bar-ci/OR_asian_demo.json"));
         saveEiPrecinctBarCi("SC", "black",  "2024_pres", PartyKey.DEM, root.resolve("preprocessing/output/ei/ei-precinct-bar-ci/SC_black_2024_pres_DEM.json"));
         saveEiPrecinctBarCi("SC", "black",  "2024_pres", PartyKey.REP, root.resolve("preprocessing/output/ei/ei-precinct-bar-ci/SC_black_2024_pres_REP.json"));
         saveEiPrecinctBarCi("SC", "white",  "2024_pres", PartyKey.DEM, root.resolve("preprocessing/output/ei/ei-precinct-bar-ci/SC_white_2024_pres_DEM.json"));
         saveEiPrecinctBarCi("SC", "white",  "2024_pres", PartyKey.REP, root.resolve("preprocessing/output/ei/ei-precinct-bar-ci/SC_white_2024_pres_REP.json"));
-        saveEiPrecinctBarCi("SC", "latino", "2024_pres", PartyKey.DEM, root.resolve("preprocessing/output/ei/ei-precinct-bar-ci/SC_latino_2024_pres_DEM.json"));
-        saveEiPrecinctBarCi("SC", "latino", "2024_pres", PartyKey.REP, root.resolve("preprocessing/output/ei/ei-precinct-bar-ci/SC_latino_2024_pres_REP.json"));
     }
 
     private void saveEiPrecinctBarCi(String stateId, String groupKey, String electionId, PartyKey partyKey, Path path) throws IOException {
@@ -1106,13 +1122,10 @@ public class SeedDataLoader implements ApplicationRunner {
         saveEiKde("OR", "latino", "2024_pres", "support_gap", "REP", root.resolve("preprocessing/output/ei/ei-kde/OR_latino_2024_pres_support_gap_REP.json"));
         saveEiKde("OR", "white",  "2024_pres", "support_gap", "DEM", root.resolve("preprocessing/output/ei/ei-kde/OR_white_2024_pres_support_gap_DEM.json"));
         saveEiKde("OR", "white",  "2024_pres", "support_gap", "REP", root.resolve("preprocessing/output/ei/ei-kde/OR_white_2024_pres_support_gap_REP.json"));
-        saveEiKde("OR", "asian",  "2024_pres", "support_gap", "DEM", root.resolve("mock-data/v1/ei-kde/OR_asian_demo.json"));
         saveEiKde("SC", "black",  "2024_pres", "support_gap", "DEM", root.resolve("preprocessing/output/ei/ei-kde/SC_black_2024_pres_support_gap_DEM.json"));
         saveEiKde("SC", "black",  "2024_pres", "support_gap", "REP", root.resolve("preprocessing/output/ei/ei-kde/SC_black_2024_pres_support_gap_REP.json"));
         saveEiKde("SC", "white",  "2024_pres", "support_gap", "DEM", root.resolve("preprocessing/output/ei/ei-kde/SC_white_2024_pres_support_gap_DEM.json"));
         saveEiKde("SC", "white",  "2024_pres", "support_gap", "REP", root.resolve("preprocessing/output/ei/ei-kde/SC_white_2024_pres_support_gap_REP.json"));
-        saveEiKde("SC", "latino", "2024_pres", "support_gap", "DEM", root.resolve("preprocessing/output/ei/ei-kde/SC_latino_2024_pres_support_gap_DEM.json"));
-        saveEiKde("SC", "latino", "2024_pres", "support_gap", "REP", root.resolve("preprocessing/output/ei/ei-kde/SC_latino_2024_pres_support_gap_REP.json"));
     }
 
     private void saveEiKde(String stateId, String groupKey, String electionId, String metricKey, String partyKey, Path path) throws IOException {
@@ -1135,21 +1148,11 @@ public class SeedDataLoader implements ApplicationRunner {
                 buildBoxWhiskerPayload(gui17.resolve("GUI17_or_vra1_output.json"), "OR", "Latino", EnsembleType.VRA_CONSTRAINED.getKey(), 6)));
         boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "OR", "2024_pres", "latino", EnsembleType.RACE_BLIND.getKey(),      "minority_share", "CVAP",
                 buildBoxWhiskerPayload(gui17.resolve("GUI17_or_rb1_output.json"),  "OR", "Latino", EnsembleType.RACE_BLIND.getKey(),      6)));
-        // OR asian: no preprocessing output yet — use mock data
-        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "OR", "2024_pres", "asian",  EnsembleType.VRA_CONSTRAINED.getKey(), "minority_share", "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/box-whisker/OR_asian_cvap_vra.json"))));
-        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "OR", "2024_pres", "asian",  EnsembleType.RACE_BLIND.getKey(),      "minority_share", "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/box-whisker/OR_asian_cvap_race_blind.json"))));
         // SC black: real preprocessing data from GUI17 (vra0 used as representative VRA ensemble)
         boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "SC", "2024_pres", "black",  EnsembleType.VRA_CONSTRAINED.getKey(), "minority_share", "CVAP",
                 buildBoxWhiskerPayload(gui17.resolve("GUI17_sc_vra0_output.json"), "SC", "Black",  EnsembleType.VRA_CONSTRAINED.getKey(), 7)));
         boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "SC", "2024_pres", "black",  EnsembleType.RACE_BLIND.getKey(),      "minority_share", "CVAP",
                 buildBoxWhiskerPayload(gui17.resolve("GUI17_sc_rb1_output.json"),  "SC", "Black",  EnsembleType.RACE_BLIND.getKey(),      7)));
-        // SC latino: no preprocessing output yet — use mock data
-        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "SC", "2024_pres", "latino", EnsembleType.VRA_CONSTRAINED.getKey(), "minority_share", "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/box-whisker/SC_latino_cvap_vra.json"))));
-        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "SC", "2024_pres", "latino", EnsembleType.RACE_BLIND.getKey(),      "minority_share", "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/box-whisker/SC_latino_cvap_race_blind.json"))));
     }
 
     private Map<String, Object> buildBoxWhiskerPayload(
