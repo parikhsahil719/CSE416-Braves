@@ -9,26 +9,26 @@
     {
       "category": "White",
       "peak": 0.439679,
-      "ciLow": 0,
-      "ciHigh": 0.886053
+      "ciLow": 0.424855,
+      "ciHigh": 0.439679
     },
     {
       "category": "Black",
       "peak": 0.939287,
-      "ciLow": 0,
-      "ciHigh": 1
+      "ciLow": 0.714233,
+      "ciHigh": 0.974613
     },
     {
       "category": "Asian",
       "peak": 0.938098,
-      "ciLow": 0,
-      "ciHigh": 1
+      "ciLow": 0.871668,
+      "ciHigh": 0.978862
     },
     {
       "category": "Latino",
       "peak": 0.773623,
-      "ciLow": 0,
-      "ciHigh": 1
+      "ciLow": 0.607555,
+      "ciHigh": 0.817652
     }
   ]
 }

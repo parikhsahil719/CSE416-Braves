@@ -55,15 +55,47 @@ const STATES = [
 
 function parseCsv(filePath) {
   const text = fs.readFileSync(filePath, "utf8").trim();
-  const [headerLine, ...lines] = text.split(/\r?\n/);
-  const headers = headerLine.split(",");
-  return lines.filter(Boolean).map((line) => {
-    const cells = line.split(",");
-    const row = {};
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    if (ch === "\"") {
+      if (inQuotes && text[i + 1] === "\"") {
+        cell += "\"";
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+    if (ch === "," && !inQuotes) {
+      row.push(cell);
+      cell = "";
+      continue;
+    }
+    if ((ch === "\n" || ch === "\r") && !inQuotes) {
+      if (ch === "\r" && text[i + 1] === "\n") i += 1;
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = "";
+      continue;
+    }
+    cell += ch;
+  }
+  row.push(cell);
+  rows.push(row);
+
+  const headers = rows[0];
+  return rows.slice(1).filter((cells) => cells.some((v) => v !== "")).map((cells) => {
+    const parsed = {};
     headers.forEach((header, index) => {
-      row[header] = cells[index];
+      parsed[header] = cells[index] ?? "";
     });
-    return row;
+    return parsed;
   });
 }
 
@@ -212,9 +244,35 @@ function parseSamplesCsv(filePath) {
   const result = {};
   for (const row of rows) {
     const groupKey = row.racial_group === "hispanic" ? "latino" : row.racial_group;
+    const parseDraws = (raw, fieldName) => {
+      const tokens = (raw || "").split(",");
+      const draws = [];
+      for (let index = 0; index < tokens.length; index += 1) {
+        const token = tokens[index].trim();
+        if (token === "") continue;
+        const numeric = Number(token);
+        if (!Number.isFinite(numeric)) {
+          throw new Error(
+            `Invalid ${fieldName} draw for ${row.state} ${groupKey} at token ${index}: "${token}"`,
+          );
+        }
+        draws.push(numeric);
+      }
+      if (draws.length === 0) {
+        throw new Error(`No numeric draws found in ${fieldName} for ${row.state} ${groupKey}`);
+      }
+      return draws;
+    };
+    const b1 = parseDraws(row.b1_samples, "b1_samples");
+    const b2 = parseDraws(row.b2_samples, "b2_samples");
+    if (b1.length !== b2.length) {
+      throw new Error(
+        `Draw length mismatch for ${row.state} ${groupKey}: b1_samples=${b1.length}, b2_samples=${b2.length}`,
+      );
+    }
     result[groupKey] = {
-      b1: row.b1_samples.split(",").map(Number),
-      b2: row.b2_samples.split(",").map(Number),
+      b1,
+      b2,
     };
   }
   return result;
@@ -354,21 +412,33 @@ function buildSupportPayload(stateConfig, focalGroup, partyKey, precinctRows, pr
   };
 }
 
-function buildBarPayload(stateConfig, focalGroup, partyKey, precinctRows, precinctDemographics, statewideRows) {
+function buildBarPayload(stateConfig, focalGroup, partyKey, precinctRows, precinctDemographics, statewideRows, mcmcSamples) {
   const categories = MODELED_GROUPS.map((groupKey) => {
+    const samplesForGroup = mcmcSamples?.[groupKey]?.b1 ?? null;
+    const hasSamples = Array.isArray(samplesForGroup) && samplesForGroup.length > 0;
     const values = [];
     const weights = [];
-    for (const precinctRow of precinctRows) {
-      const precinctDemo = precinctDemographics.get(String(precinctRow.precinct_id));
-      if (!precinctDemo) continue;
-      const groupWeight = precinctDemo[groupKey];
-      if (groupWeight <= 0) continue;
-      values.push(toNumber(precinctRow[precinctSupportField(groupKey, partyKey)]));
-      weights.push(groupWeight);
+    let ciLow;
+    let ciHigh;
+
+    if (hasSamples) {
+      const sampleValues = partyKey === "REP" ? samplesForGroup.map((v) => 1 - v) : samplesForGroup.slice();
+      ciLow = weightedQuantile(sampleValues, new Array(sampleValues.length).fill(1), 0.025);
+      ciHigh = weightedQuantile(sampleValues, new Array(sampleValues.length).fill(1), 0.975);
+    } else {
+      for (const precinctRow of precinctRows) {
+        const precinctDemo = precinctDemographics.get(String(precinctRow.precinct_id));
+        if (!precinctDemo) continue;
+        const groupWeight = precinctDemo[groupKey];
+        if (groupWeight <= 0) continue;
+        values.push(toNumber(precinctRow[precinctSupportField(groupKey, partyKey)]));
+        weights.push(groupWeight);
+      }
+      ciLow = weightedQuantile(values, weights, 0.025);
+      ciHigh = weightedQuantile(values, weights, 0.975);
     }
+
     const peak = statewideRows[groupKey][`mean_${PARTIES[partyKey].voteFractionField}_fraction`];
-    const ciLow = weightedQuantile(values, weights, 0.025);
-    const ciHigh = weightedQuantile(values, weights, 0.975);
     return {
       category: labelForGroup(groupKey),
       peak: round(peak),
@@ -513,6 +583,7 @@ function generateForState(stateConfig) {
         precinctRows,
         precinctDemographics,
         statewideRows,
+        mcmcSamples,
       );
       const kdePayload = buildKdePayload(
         stateConfig,
