@@ -48,6 +48,8 @@ public class SeedDataLoader implements ApplicationRunner {
     private static final int GINGLES_TARGET_POINT_COUNT = 500;
     private static final int GINGLES_SAMPLE_BIN_COUNT = 40;
     private static final int GINGLES_SAMPLE_RANDOM_SEED = 42;
+    private static final long EXPECTED_GUI17_BOX_WHISKER_DOC_COUNT = 16L;
+    private static final long EXPECTED_GUI21_ME_BOX_WHISKER_DOC_COUNT = 15L;
 
     private final ObjectMapper objectMapper;
     private final GeometryAssetService geometryAssetService;
@@ -146,14 +148,16 @@ public class SeedDataLoader implements ApplicationRunner {
         eiPrecinctBarCiRepository.deleteAll(); seedEiPrecinctBarCi(root);
         eiKdeRepository.deleteAll(); seedEiKde(root);
         if (ensembleSplitRepository.count() == 0) seedEnsembleSplits(root);
-        // Expect 4 docs: OR × {latino} × 2 + SC × {black} × 2 = 4.
-        if (boxWhiskerResultRepository.count() < 4) { boxWhiskerResultRepository.deleteAll(); seedBoxWhiskers(root); }
+        if (boxWhiskerResultRepository.count() != EXPECTED_GUI17_BOX_WHISKER_DOC_COUNT) {
+            boxWhiskerResultRepository.deleteAll();
+            seedBoxWhiskers(root);
+        }
         seedInterestingPlans(root);
         // Expect 2 docs: OR/latino + SC/black (only primary minority per state).
         if (vraImpactThresholdTableRepository.count() < 2) { vraImpactThresholdTableRepository.deleteAll(); seedVraImpactThresholdTables(root); }
-        // Expect 12 documents here: 2 states x 2 ensemble types x 3 ensemble indices. Any smaller count
-        // implies stale pre-split data that should be replaced wholesale.
-        if (minorityEffectivenessBoxWhiskerRepository.count() < 12) seedMinorityEffectivenessBoxWhisker(root);
+        if (minorityEffectivenessBoxWhiskerRepository.count() != EXPECTED_GUI21_ME_BOX_WHISKER_DOC_COUNT) {
+            seedMinorityEffectivenessBoxWhisker(root);
+        }
         if (minorityEffectivenessHistogramRepository.count() == 0) seedMinorityEffectivenessHistogram(root);
         if (runManifestRepository.count() == 0 || ingestManifestRepository.count() == 0) seedManifests();
         LOG.info("Mongo seed completed successfully");
@@ -1148,16 +1152,40 @@ public class SeedDataLoader implements ApplicationRunner {
 
     private void seedBoxWhiskers(Path root) throws IOException {
         Path gui17 = root.resolve("preprocessing/output/kobe/GUI17");
-        // OR latino: real preprocessing data from GUI17 (ensemble 1 as representative)
-        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "OR", "2024_pres", "latino", EnsembleType.VRA_CONSTRAINED.getKey(), "minority_share", "CVAP",
-                buildBoxWhiskerPayload(gui17.resolve("GUI17_or_vra1_output.json"), "OR", "Latino", EnsembleType.VRA_CONSTRAINED.getKey(), 6)));
-        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "OR", "2024_pres", "latino", EnsembleType.RACE_BLIND.getKey(),      "minority_share", "CVAP",
-                buildBoxWhiskerPayload(gui17.resolve("GUI17_or_rb1_output.json"),  "OR", "Latino", EnsembleType.RACE_BLIND.getKey(),      6)));
-        // SC black: real preprocessing data from GUI17 (vra0 used as representative VRA ensemble)
-        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "SC", "2024_pres", "black",  EnsembleType.VRA_CONSTRAINED.getKey(), "minority_share", "CVAP",
-                buildBoxWhiskerPayload(gui17.resolve("GUI17_sc_vra0_output.json"), "SC", "Black",  EnsembleType.VRA_CONSTRAINED.getKey(), 7)));
-        boxWhiskerResultRepository.save(buildDoc(new BoxWhiskerResultDocument(), "SC", "2024_pres", "black",  EnsembleType.RACE_BLIND.getKey(),      "minority_share", "CVAP",
-                buildBoxWhiskerPayload(gui17.resolve("GUI17_sc_rb1_output.json"),  "SC", "Black",  EnsembleType.RACE_BLIND.getKey(),      7)));
+        seedGui17BoxWhiskerSeries(gui17, "OR", "latino", "Latino", 6, "rb", EnsembleType.RACE_BLIND.getKey());
+        seedGui17BoxWhiskerSeries(gui17, "OR", "latino", "Latino", 6, "vra", EnsembleType.VRA_CONSTRAINED.getKey());
+        seedGui17BoxWhiskerSeries(gui17, "SC", "black", "Black", 7, "rb", EnsembleType.RACE_BLIND.getKey());
+        seedGui17BoxWhiskerSeries(gui17, "SC", "black", "Black", 7, "vra", EnsembleType.VRA_CONSTRAINED.getKey());
+    }
+
+    private void seedGui17BoxWhiskerSeries(
+            Path gui17Root,
+            String stateId,
+            String groupKey,
+            String groupLabel,
+            int totalDistricts,
+            String sourceType,
+            String ensembleTypeKey) throws IOException {
+        String stateLC = stateId.toLowerCase(Locale.US);
+        for (int sourceIndex = 0; sourceIndex < 4; sourceIndex++) {
+            BoxWhiskerResultDocument doc = buildDoc(
+                    new BoxWhiskerResultDocument(),
+                    stateId,
+                    "2024_pres",
+                    groupKey,
+                    ensembleTypeKey,
+                    "minority_share",
+                    "CVAP",
+                    buildBoxWhiskerPayload(
+                            gui17Root.resolve(String.format("GUI17_%s_%s%d_5000plans.json", stateLC, sourceType, sourceIndex)),
+                            stateId,
+                            groupLabel,
+                            ensembleTypeKey,
+                            totalDistricts
+                    ));
+            doc.setEnsembleIndex(sourceIndex + 1);
+            boxWhiskerResultRepository.save(doc);
+        }
     }
 
     private Map<String, Object> buildBoxWhiskerPayload(
@@ -1304,27 +1332,24 @@ public class SeedDataLoader implements ApplicationRunner {
 
     private void seedMinorityEffectivenessBoxWhisker(Path root) throws IOException {
         minorityEffectivenessBoxWhiskerRepository.deleteAll();
-        // Each document merges per-race preprocessing files into a single groupSummaries payload.
-        // Source files: preprocessing/output/kobe/GUI21/GUI21_{state}_{type}{srcIdx}_{race}_output.json
-        // SC VRA has data at source indices 0,2,3 (index 1 missing); these map to ensemble indices 1,2,3.
-        seedMeBoxWhiskerEnsembles(root, "OR", "rb",  6, new int[]{1,2,3}, new int[]{1,2,3}, new String[]{"hispanic","white"});
-        seedMeBoxWhiskerEnsembles(root, "OR", "vra", 6, new int[]{1,2,3}, new int[]{1,2,3}, new String[]{"hispanic","white"});
-        seedMeBoxWhiskerEnsembles(root, "SC", "rb",  7, new int[]{1,2,3}, new int[]{1,2,3}, new String[]{"black","white"});
-        seedMeBoxWhiskerEnsembles(root, "SC", "vra", 7, new int[]{0,2,3}, new int[]{1,2,3}, new String[]{"black","white"});
+        seedMeBoxWhiskerEnsembles(root, "OR", "rb", 6, new int[]{0, 1, 2}, "250plans", "5000plans", new String[]{"hispanic", "white"});
+        seedMeBoxWhiskerEnsembles(root, "OR", "vra", 6, new int[]{0, 1, 2, 3}, "5000plans", "5000plans", new String[]{"hispanic", "white"});
+        seedMeBoxWhiskerEnsembles(root, "SC", "rb", 7, new int[]{0, 1, 2, 3}, "5000plans", "250plans", new String[]{"black", "white"});
+        seedMeBoxWhiskerEnsembles(root, "SC", "vra", 7, new int[]{0, 1, 2, 3}, "5000plans", "250plans", new String[]{"black", "white"});
     }
 
     private void seedMeBoxWhiskerEnsembles(
             Path root, String state, String type, int totalDistricts,
-            int[] srcIndices, int[] destIndices, String[] races) throws IOException {
+            int[] srcIndices, String defaultPlanSuffix, String highIndexPlanSuffix, String[] races) throws IOException {
         Path prepro = root.resolve("preprocessing/output/kobe/GUI21");
-        String stateLC = state.toLowerCase();
-        for (int i = 0; i < srcIndices.length; i++) {
-            int srcIdx = srcIndices[i];
-            int destIdx = destIndices[i];
+        String stateLC = state.toLowerCase(Locale.US);
+        for (int srcIdx : srcIndices) {
+            int selectorIndex = srcIdx + 1;
             List<Map<String, Object>> groupSummaries = new ArrayList<>();
+            String plansSuffix = srcIdx >= 2 ? highIndexPlanSuffix : defaultPlanSuffix;
             for (String race : races) {
-                String filename = String.format("GUI21_%s_%s%d_%s_output.json", stateLC, type, srcIdx, race);
-                groupSummaries.add(readJsonMap(prepro.resolve(filename)));
+                Path sourceFile = resolveGui21SeedFile(prepro, stateLC, type, srcIdx, race, plansSuffix);
+                groupSummaries.add(readJsonMap(sourceFile));
             }
             Map<String, Object> payload = new LinkedHashMap<>();
             payload.put("schemaVersion", "v1");
@@ -1337,9 +1362,42 @@ public class SeedDataLoader implements ApplicationRunner {
             MinorityEffectivenessBoxWhiskerDocument doc = buildDoc(
                 new MinorityEffectivenessBoxWhiskerDocument(),
                 state, "2024_pres", null, type, null, "CVAP", payload);
-            doc.setEnsembleIndex(destIdx);
+            doc.setEnsembleIndex(selectorIndex);
             minorityEffectivenessBoxWhiskerRepository.save(doc);
         }
+    }
+
+    private Path resolveGui21SeedFile(
+            Path gui21Dir, String stateLC, String type, int srcIdx, String race, String preferredSuffix) throws IOException {
+        String preferredFilename = String.format("GUI21_%s_%s%d_%s_%s.json", stateLC, type, srcIdx, race, preferredSuffix);
+        Path preferredPath = gui21Dir.resolve(preferredFilename);
+        if (Files.exists(preferredPath)) {
+            return preferredPath;
+        }
+
+        String filenamePrefix = String.format("GUI21_%s_%s%d_%s_", stateLC, type, srcIdx, race);
+        try (var paths = Files.list(gui21Dir)) {
+            List<Path> matches = paths
+                    .filter(Files::isRegularFile)
+                    .filter(path -> {
+                        String name = path.getFileName().toString();
+                        return name.startsWith(filenamePrefix) && name.endsWith(".json");
+                    })
+                    .sorted(Comparator.comparing(path -> path.getFileName().toString()))
+                    .toList();
+            if (!matches.isEmpty()) {
+                LOG.warn(
+                        "Preferred GUI21 seed file missing ({}); falling back to {}",
+                        preferredPath.getFileName(),
+                        matches.get(0).getFileName());
+                return matches.get(0);
+            }
+        }
+
+        throw new IllegalStateException(
+                "Required seed file not found. Preferred path: " + preferredPath
+                        + "; searched directory: " + gui21Dir
+                        + "; searched prefix: " + filenamePrefix + "*.json");
     }
 
     private void seedMinorityEffectivenessHistogram(Path root) throws IOException {
