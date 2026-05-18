@@ -1,0 +1,4 @@
+state,group,white_mean_dem_fraction,group_mean_dem_fraction,mean_difference,overlap_pct_of_white,polarization_pct,polarization_interpretation
+South Carolina,black,0.1663,0.9446,0.7783,0.0,100.0,high polarization
+South Carolina,asian,0.1663,0.7718,0.6055,0.0,100.0,high polarization
+South Carolina,hispanic,0.1663,0.8794,0.7131,0.0,100.0,high polarization

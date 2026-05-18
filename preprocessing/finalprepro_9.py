@@ -235,6 +235,7 @@ print('All helper functions defined.')
 def run_prepro9_for_state(df, state_name,
                            precinct_output_filename,
                            statewide_output_filename,
+                           samples_output_filename,
                            n_samples=1000, n_tune=500):
     print(f'\n{"="*60}')
     print(f'  Prepro-9 EI Analysis: {state_name}')
@@ -247,6 +248,7 @@ def run_prepro9_for_state(df, state_name,
     precinct_out['total_votes'] = df['total_votes'].values
 
     statewide_rows = []
+    samples_rows = []
 
     for group_name in RACIAL_GROUPS:
         print(f'\n  ── Group: {group_name} ──')
@@ -268,6 +270,15 @@ def run_prepro9_for_state(df, state_name,
             b1_precinct >= 0.5, 'democratic', 'republican')
         precinct_out[f'ei_{group_name}_precinct_confidence'] = np.where(
             b1_precinct >= 0.5, b1_precinct, 1.0 - b1_precinct).round(4)
+
+        # Accumulate MCMC posterior samples for KDE generation
+        # samples[0] = b1 draws (focal group → DEM), samples[1] = b2 draws (non-focal → DEM)
+        samples_rows.append({
+            'state':        state_name,
+            'racial_group': group_name,
+            'b1_samples':   ','.join(f'{v:.6f}' for v in samples[0, :].tolist()),
+            'b2_samples':   ','.join(f'{v:.6f}' for v in samples[1, :].tolist()),
+        })
 
         # D: Statewide
         poc, conf, mean_dem, mean_rep, dem_frac, rep_frac = compute_2x2_statewide(
@@ -296,6 +307,11 @@ def run_prepro9_for_state(df, state_name,
     print(f'  Saved statewide file: {statewide_output_filename} '
           f'({len(statewide_out)} rows × {len(statewide_out.columns)} cols)')
 
+    samples_out = pd.DataFrame(samples_rows)
+    samples_out.to_csv(samples_output_filename, index=False)
+    print(f'  Saved samples file: {samples_output_filename} '
+          f'({len(samples_out)} rows × {len(samples_out.columns)} cols)')
+
     return precinct_out, statewide_out
 
 
@@ -312,6 +328,7 @@ oregon_precinct, oregon_statewide = run_prepro9_for_state(
     state_name='Oregon',
     precinct_output_filename='oregon_ei_precinct.csv',
     statewide_output_filename='oregon_ei_statewide.csv',
+    samples_output_filename='oregon_ei_samples.csv',
     n_samples=1000,
     n_tune=500,
 )
@@ -327,6 +344,7 @@ sc_precinct, sc_statewide = run_prepro9_for_state(
     state_name='South Carolina',
     precinct_output_filename='south_carolina_ei_precinct.csv',
     statewide_output_filename='south_carolina_ei_statewide.csv',
+    samples_output_filename='south_carolina_ei_samples.csv',
     n_samples=1000,
     n_tune=500,
 )
@@ -341,8 +359,10 @@ from google.colab import files
 
 files.download('oregon_ei_precinct.csv')
 files.download('oregon_ei_statewide.csv')
+files.download('oregon_ei_samples.csv')
 files.download('south_carolina_ei_precinct.csv')
 files.download('south_carolina_ei_statewide.csv')
+files.download('south_carolina_ei_samples.csv')
 
 print('Downloads triggered.')
 

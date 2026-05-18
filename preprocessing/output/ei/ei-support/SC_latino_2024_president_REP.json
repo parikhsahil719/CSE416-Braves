@@ -9,6 +9,8 @@
   "units": {
     "share": "decimal_0_to_1"
   },
+  "overlapPct": 0,
+  "polarizationPct": 100,
   "series": [
     {
       "key": "latino",

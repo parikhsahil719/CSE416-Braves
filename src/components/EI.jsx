@@ -56,12 +56,17 @@ function CandidateSelector({ selectedCandidate, switchCandidate }) {
 function EiAnalysisPanel({ payload, loading, failed, minority, selectedCandidate, switchCandidate }) {
   if (loading) return <div className="ei_placeholder">Loading EI support...</div>;
   if (failed || !payload) return <div className="ei_placeholder">No EI support data available for {minority}.</div>;
+  const overlapLine = payload.overlapPct != null ? ` — Curve overlap: ${payload.overlapPct.toFixed(1)}%` : "";
+  const polarizationLine = payload.polarizationPct != null
+    ? `Party of choice for ${minority}: ${payload.series?.[0]?.label ?? minority} — Polarization: ${payload.polarizationPct.toFixed(1)}%`
+    : null;
   return (
     <div className="ei-chartStack">
       <div className="ei-chartTitle">Support for
         <CandidateSelector selectedCandidate={selectedCandidate} switchCandidate={switchCandidate} />
       </div>
-      <div className="ei-chartSubtitle">Estimated support distribution by group</div>
+      {polarizationLine && <div className="ei-chartSubtitle">{polarizationLine}</div>}
+      <div className="ei-chartSubtitle">Estimated support distribution by group{overlapLine}</div>
       <EiSupportChart payload={payload} showHeader={false} />
     </div>
   );

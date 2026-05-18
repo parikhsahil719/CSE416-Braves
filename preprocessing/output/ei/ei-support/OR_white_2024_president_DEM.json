@@ -9,6 +9,8 @@
   "units": {
     "share": "decimal_0_to_1"
   },
+  "overlapPct": null,
+  "polarizationPct": null,
   "series": [
     {
       "key": "white",

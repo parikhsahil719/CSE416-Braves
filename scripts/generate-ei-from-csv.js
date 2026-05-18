@@ -37,6 +37,8 @@ const STATES = [
     precinctCsv: path.join(ROOT, "preprocessing", "oregon_ei_precinct (1).csv"),
     statewideCsv: path.join(ROOT, "preprocessing", "oregon_ei_statewide (4).csv"),
     topologyJson: path.join(ROOT, "src", "data", "precincts_or.json"),
+    samplesCsv: path.join(ROOT, "preprocessing", "oregon_ei_samples.csv"),
+    overlapCsv: path.join(ROOT, "preprocessing", "output", "oregon_prepro15_overlap.csv"),
   },
   {
     stateId: "SC",
@@ -46,6 +48,8 @@ const STATES = [
     precinctCsv: path.join(ROOT, "preprocessing", "south_carolina_ei_precinct.csv"),
     statewideCsv: path.join(ROOT, "preprocessing", "south_carolina_ei_statewide (1).csv"),
     topologyJson: path.join(ROOT, "src", "data", "precincts_sc.json"),
+    samplesCsv: path.join(ROOT, "preprocessing", "south_carolina_ei_samples.csv"),
+    overlapCsv: path.join(ROOT, "preprocessing", "output", "south_carolina_prepro15_overlap.csv"),
   },
 ];
 
@@ -202,6 +206,33 @@ function normalizeStatewideRows(rows) {
   return result;
 }
 
+function parseSamplesCsv(filePath) {
+  if (!fs.existsSync(filePath)) return null;
+  const rows = parseCsv(filePath);
+  const result = {};
+  for (const row of rows) {
+    const groupKey = row.racial_group === "hispanic" ? "latino" : row.racial_group;
+    result[groupKey] = {
+      b1: row.b1_samples.split(",").map(Number),
+      b2: row.b2_samples.split(",").map(Number),
+    };
+  }
+  return result;
+}
+
+function parseOverlapCsv(filePath) {
+  const rows = parseCsv(filePath);
+  const result = {};
+  for (const row of rows) {
+    const groupKey = row.group === "hispanic" ? "latino" : row.group;
+    result[groupKey] = {
+      overlapPct: toNumber(row.overlap_pct_of_white),
+      polarizationPct: toNumber(row.polarization_pct),
+    };
+  }
+  return result;
+}
+
 function buildComparisonSupport(precinctRow, precinctDemo, focalGroup, partyKey) {
   const otherGroups = MODELED_GROUPS.filter((groupKey) => groupKey !== focalGroup);
   let weightedSum = 0;
@@ -216,33 +247,78 @@ function buildComparisonSupport(precinctRow, precinctDemo, focalGroup, partyKey)
   return { value: weightedSum / totalWeight, weight: totalWeight };
 }
 
-function buildSupportPayload(stateConfig, focalGroup, partyKey, precinctRows, precinctDemographics, statewideRows, statewideGroupTotals) {
-  const focalValues = [];
-  const focalWeights = [];
-  const comparisonValues = [];
-  const comparisonWeights = [];
-
-  for (const precinctRow of precinctRows) {
-    const precinctId = String(precinctRow.precinct_id);
-    const precinctDemo = precinctDemographics.get(precinctId);
-    if (!precinctDemo) continue;
-
-    const focalWeight = precinctDemo[focalGroup];
-    if (focalWeight > 0) {
-      focalValues.push(toNumber(precinctRow[precinctSupportField(focalGroup, partyKey)]));
-      focalWeights.push(focalWeight);
-    }
-
-    const comparison = buildComparisonSupport(precinctRow, precinctDemo, focalGroup, partyKey);
-    if (comparison && comparison.weight > 0) {
-      comparisonValues.push(comparison.value);
-      comparisonWeights.push(comparison.weight);
-    }
-  }
-
+function buildSupportPayload(stateConfig, focalGroup, partyKey, precinctRows, precinctDemographics, statewideRows, statewideGroupTotals, mcmcSamples, overlapData) {
   const comparisonGroups = MODELED_GROUPS.filter((groupKey) => groupKey !== focalGroup);
   const comparisonConfidenceWeights = comparisonGroups.map((groupKey) => statewideGroupTotals[groupKey] ?? 0);
   const comparisonConfidences = comparisonGroups.map((groupKey) => statewideRows[groupKey].confidence);
+
+  let focalValues, compValues, uniformWeights;
+
+  if (mcmcSamples && mcmcSamples[focalGroup]) {
+    // Use MCMC posterior samples for narrow, accurate bell curves
+    const groupSamples = mcmcSamples[focalGroup];
+    const focalDraws = groupSamples.b1;
+    const compDraws = groupSamples.b2;
+    uniformWeights = new Array(focalDraws.length).fill(1);
+    // Posterior draws are always DEM support — invert for REP
+    focalValues = partyKey === "REP" ? focalDraws.map((v) => 1 - v) : focalDraws;
+    compValues  = partyKey === "REP" ? compDraws.map((v) => 1 - v) : compDraws;
+  } else {
+    // Fallback: per-precinct estimates (wide curves — run finalprepro_9.py on Colab for proper curves)
+    console.warn(`  [warn] MCMC samples not found for ${stateConfig.stateId} ${focalGroup} — using per-precinct estimates`);
+    const focalPrecinct = [];
+    const focalPrecWeights = [];
+    const compPrecinct = [];
+    const compPrecWeights = [];
+    for (const precinctRow of precinctRows) {
+      const precinctId = String(precinctRow.precinct_id);
+      const precinctDemo = precinctDemographics.get(precinctId);
+      if (!precinctDemo) continue;
+      const fw = precinctDemo[focalGroup];
+      if (fw > 0) {
+        focalPrecinct.push(toNumber(precinctRow[precinctSupportField(focalGroup, partyKey)]));
+        focalPrecWeights.push(fw);
+      }
+      const comparison = buildComparisonSupport(precinctRow, precinctDemo, focalGroup, partyKey);
+      if (comparison && comparison.weight > 0) {
+        compPrecinct.push(comparison.value);
+        compPrecWeights.push(comparison.weight);
+      }
+    }
+    focalValues = focalPrecinct;
+    compValues  = compPrecinct;
+    uniformWeights = null; // signals use of precinctWeights below
+    // Rebuild using weighted KDE directly and return early
+    const overlapEntry2 = overlapData[focalGroup] ?? null;
+    return {
+      schemaVersion: "v1",
+      chartType: "ei-support",
+      state: stateConfig.stateId,
+      totalDistricts: stateConfig.totalDistricts,
+      election: "2024 Presidential",
+      selectedCandidate: PARTIES[partyKey].candidate,
+      selectedGroup: labelForGroup(focalGroup),
+      units: { share: "decimal_0_to_1" },
+      overlapPct: overlapEntry2 !== null ? round(overlapEntry2.overlapPct, 4) : null,
+      polarizationPct: overlapEntry2 !== null ? round(overlapEntry2.polarizationPct, 4) : null,
+      series: [
+        {
+          key: focalGroup,
+          label: labelForGroup(focalGroup),
+          confidenceScore: round(statewideRows[focalGroup].confidence, 4),
+          points: weightedKde(focalPrecinct, focalPrecWeights, 0, 1, 80).map((pt) => ({ xSupportShare: pt.x, density: pt.density })),
+        },
+        {
+          key: `non_${focalGroup}`,
+          label: comparisonLabel(focalGroup),
+          confidenceScore: round(weightedMean(comparisonConfidences, comparisonConfidenceWeights), 4),
+          points: weightedKde(compPrecinct, compPrecWeights, 0, 1, 80).map((pt) => ({ xSupportShare: pt.x, density: pt.density })),
+        },
+      ],
+    };
+  }
+
+  const overlapEntry = overlapData[focalGroup] ?? null;
 
   return {
     schemaVersion: "v1",
@@ -253,12 +329,14 @@ function buildSupportPayload(stateConfig, focalGroup, partyKey, precinctRows, pr
     selectedCandidate: PARTIES[partyKey].candidate,
     selectedGroup: labelForGroup(focalGroup),
     units: { share: "decimal_0_to_1" },
+    overlapPct: overlapEntry !== null ? round(overlapEntry.overlapPct, 4) : null,
+    polarizationPct: overlapEntry !== null ? round(overlapEntry.polarizationPct, 4) : null,
     series: [
       {
         key: focalGroup,
         label: labelForGroup(focalGroup),
         confidenceScore: round(statewideRows[focalGroup].confidence, 4),
-        points: weightedKde(focalValues, focalWeights, 0, 1, 80).map((point) => ({
+        points: weightedKde(focalValues, uniformWeights, 0, 1, 80).map((point) => ({
           xSupportShare: point.x,
           density: point.density,
         })),
@@ -267,7 +345,7 @@ function buildSupportPayload(stateConfig, focalGroup, partyKey, precinctRows, pr
         key: `non_${focalGroup}`,
         label: comparisonLabel(focalGroup),
         confidenceScore: round(weightedMean(comparisonConfidences, comparisonConfidenceWeights), 4),
-        points: weightedKde(comparisonValues, comparisonWeights, 0, 1, 80).map((point) => ({
+        points: weightedKde(compValues, uniformWeights, 0, 1, 80).map((point) => ({
           xSupportShare: point.x,
           density: point.density,
         })),
@@ -396,6 +474,8 @@ function generateForState(stateConfig) {
   const precinctRows = parseCsv(stateConfig.precinctCsv);
   const statewideRows = normalizeStatewideRows(parseCsv(stateConfig.statewideCsv));
   const precinctDemographics = readTopology(stateConfig.topologyJson);
+  const mcmcSamples = parseSamplesCsv(stateConfig.samplesCsv);
+  const overlapData = parseOverlapCsv(stateConfig.overlapCsv);
 
   const statewideGroupTotals = {};
   for (const groupKey of MODELED_GROUPS) {
@@ -423,6 +503,8 @@ function generateForState(stateConfig) {
         precinctDemographics,
         statewideRows,
         statewideGroupTotals,
+        mcmcSamples,
+        overlapData,
       );
       const barPayload = buildBarPayload(
         stateConfig,

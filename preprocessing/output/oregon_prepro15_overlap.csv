@@ -1,0 +1,4 @@
+state,group,white_mean_dem_fraction,group_mean_dem_fraction,mean_difference,overlap_pct_of_white,polarization_pct,polarization_interpretation
+Oregon,black,0.4405,0.889,0.4485,0.0,100.0,high polarization
+Oregon,asian,0.4405,0.9125,0.472,0.0,100.0,high polarization
+Oregon,hispanic,0.4405,0.7154,0.2749,0.0,100.0,high polarization

@@ -86,7 +86,10 @@ export default function EiSupportChart({ payload, showHeader = true, title, eyeb
         <>
           <div className="chartPanelEyebrow">{eyebrow ?? "GUI-12"}</div>
           <h3 className="chartPanelTitle">{title ?? `Support for ${payload.selectedCandidate}`}</h3>
-          <p className="chartPanelSubtitle">{subtitle ?? "Estimated support distribution by group"}</p>
+          <p className="chartPanelSubtitle">
+            {subtitle ?? "Estimated support distribution by group"}
+            {payload.overlapPct != null && ` — Curve overlap: ${payload.overlapPct.toFixed(1)}%`}
+          </p>
         </>
       ) : null}
       <div className="chartFrame chartFrameEi">
