@@ -1324,10 +1324,42 @@ public class SeedDataLoader implements ApplicationRunner {
     }
 
     private void seedVraImpactThresholdTables(Path root) throws IOException {
+        Map<String, Object> orVraImpact = normalizeVraImpactThresholdPayload(
+                readJsonMap(root.resolve("preprocessing/output/oregon_hispanic_2024_pres.json")),
+                "OR",
+                "Latino");
+        Map<String, Object> scVraImpact = normalizeVraImpactThresholdPayload(
+                readJsonMap(root.resolve("preprocessing/output/south_carolina_black_2024_pres.json")),
+                "SC",
+                "Black");
+
         vraImpactThresholdTableRepository.save(buildDoc(new VraImpactThresholdTableDocument(), "OR", "2024_pres", "latino", null, null, "CVAP",
-                readJsonMap(root.resolve("preprocessing/output/oregon_hispanic_2024_pres.json"))));
+                orVraImpact));
         vraImpactThresholdTableRepository.save(buildDoc(new VraImpactThresholdTableDocument(), "SC", "2024_pres", "black",  null, null, "CVAP",
-                readJsonMap(root.resolve("preprocessing/output/south_carolina_black_2024_pres.json"))));
+                scVraImpact));
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> normalizeVraImpactThresholdPayload(Map<String, Object> payload, String stateId, String selectedGroup) {
+        Map<String, Object> normalized = new LinkedHashMap<>(payload);
+        normalized.put("state", stateId);
+        normalized.put("selectedGroup", selectedGroup);
+        normalized.put("populationMeasure", "CVAP");
+
+        Object rowsRaw = normalized.get("rows");
+        if (rowsRaw instanceof List<?> rowsAny) {
+            List<Map<String, Object>> rows = new ArrayList<>();
+            for (Object rowRaw : rowsAny) {
+                if (!(rowRaw instanceof Map<?, ?> rowAny)) continue;
+                Map<String, Object> row = new LinkedHashMap<>((Map<String, Object>) rowAny);
+                if ("rough_proportionality".equals(String.valueOf(row.get("metricKey")))) {
+                    row.put("metricLabel", "Achieve rough proportionality relative to " + selectedGroup + " CVAP share");
+                }
+                rows.add(row);
+            }
+            normalized.put("rows", rows);
+        }
+        return normalized;
     }
 
     private void seedMinorityEffectivenessBoxWhisker(Path root) throws IOException {
