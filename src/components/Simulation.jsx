@@ -375,19 +375,35 @@ function MajorityMinorityDistrictsBar({ payload, loading, failed, totalDistricts
   if (loading) return <div className="sim-placeholder">Loading majority-minority districts bar chart...</div>;
   if (failed || !payload) return <div className="sim-placeholder">No majority-minority districts bar chart data available.</div>;
   const ticks = Array.from({ length: (totalDistricts ?? 7) + 1 }, (_, i) => i);
-  const BAR_SIZE = 150;
+  const BAR_SIZE = 38;
+
+  const chartData = payload.map((entry) => {
+    const rbMin = Number(entry.raceBlind?.min ?? 0);
+    const rbMax = Number(entry.raceBlind?.max ?? rbMin);
+    const vraMin = Number(entry.vraConstrained?.min ?? 0);
+    const vraMax = Number(entry.vraConstrained?.max ?? vraMin);
+    return {
+      ...entry,
+      rbMin,
+      rbSpan: Math.max(0, rbMax - rbMin),
+      vraMin,
+      vraSpan: Math.max(0, vraMax - vraMin),
+    };
+  });
 
   return (
     <div id="sim-page-data-container">
       <div className="sim-chartStack">
         <div className="sim-chartSubtitle">Range of Majority-Minority Districts</div>
         <ResponsiveContainer style={{ width: "100%", height: "100%" }}>
-          <ComposedChart data={payload} width="100%" height="100%" margin={{left: -20, bottom: 20}}>
+          <ComposedChart data={chartData} width="100%" height="100%" margin={{left: -20, bottom: 20}}>
             <XAxis dataKey="label" label={{ value: 'Racial Group', position: "bottom", fontSize : "0.8rem"}} tick={{ fontSize: "0.75rem" }} allowDuplicatedCategory={false}/>
             <YAxis width={55} label={{ value: "Number of Majority-Minority Districts", fontSize : "0.8rem", angle: -90}} tick={{ fontSize: "0.75rem" }} ticks={ticks}/>
             <CartesianGrid vertical={false} />
-            <RechartsBar name="Race-Blind Ensemble" dataKey={rbBarDataKey} fill="#1b9e77" stroke="black" strokeWidth={1} barSize={BAR_SIZE} />
-            <RechartsBar name="Vra-Constrained Ensemble" dataKey={vraBarDataKey} fill="#d95f02" stroke="black" strokeWidth={1} barSize={BAR_SIZE} />
+            <RechartsBar dataKey="rbMin" stackId="rb" fill="transparent" stroke="none" barSize={BAR_SIZE} />
+            <RechartsBar name="Race-Blind Ensemble" dataKey="rbSpan" stackId="rb" fill="#1b9e77" stroke="black" strokeWidth={1} barSize={BAR_SIZE} />
+            <RechartsBar dataKey="vraMin" stackId="vra" fill="transparent" stroke="none" barSize={BAR_SIZE} />
+            <RechartsBar name="Vra-Constrained Ensemble" dataKey="vraSpan" stackId="vra" fill="#d95f02" stroke="black" strokeWidth={1} barSize={BAR_SIZE} />
             <Tooltip content={<BarsTooltipContent data={payload}/>} />
             <Legend align="right" verticalAlign="top" wrapperStyle={{paddingBottom: "16px", fontSize: "0.8rem"}} iconSize={8} />
           </ComposedChart>

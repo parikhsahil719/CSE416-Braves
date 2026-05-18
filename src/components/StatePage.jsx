@@ -100,15 +100,9 @@ function EnsembleData({ ensembleSummary, stateSummary, loading, loadFailed, stat
   const roughRows = Array.isArray(stateSummary?.groupRoughProportionality)
     ? stateSummary.groupRoughProportionality
     : [];
-  const roughProportionalityText = roughRows.length > 0
-    ? roughRows
-      .map((row) => {
-        const label = row?.label ?? row?.groupKey ?? "group";
-        const ratio = Number(row?.roughProportionalityRatio);
-        const ratioText = Number.isFinite(ratio) ? ratio.toFixed(2) : "—";
-        return `${label}: ${ratioText}`;
-      })
-      .join(" | ")
+  const primaryRoughRatio = Number(roughRows[0]?.roughProportionalityRatio);
+  const roughProportionalityText = Number.isFinite(primaryRoughRatio)
+    ? primaryRoughRatio.toFixed(2)
     : "Unavailable";
 
   return (

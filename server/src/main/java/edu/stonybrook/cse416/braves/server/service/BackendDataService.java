@@ -5,17 +5,23 @@ import edu.stonybrook.cse416.braves.server.model.BasePayloadDocument;
 import edu.stonybrook.cse416.braves.server.model.enums.PartyKey;
 import edu.stonybrook.cse416.braves.server.repository.*;
 import edu.stonybrook.cse416.braves.server.util.GroupThresholds;
+import edu.stonybrook.cse416.braves.server.util.ProjectPathResolver;
 import edu.stonybrook.cse416.braves.server.util.StateCodeUtil;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import edu.stonybrook.cse416.braves.server.model.BoxWhiskerResultDocument;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.nio.file.Path;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,6 +46,9 @@ public class BackendDataService {
     private final VraImpactThresholdTableRepository vraImpactThresholdTableRepository;
     private final MinorityEffectivenessBoxWhiskerRepository minorityEffectivenessBoxWhiskerRepository;
     private final MinorityEffectivenessHistogramRepository minorityEffectivenessHistogramRepository;
+    private final ObjectMapper objectMapper;
+    @Value("${app.seed.root-path:}")
+    private String configuredRootPath;
 
     public BackendDataService(
             StateRepository stateRepository,
@@ -57,7 +66,8 @@ public class BackendDataService {
             InterestingPlanRepository interestingPlanRepository,
             VraImpactThresholdTableRepository vraImpactThresholdTableRepository,
             MinorityEffectivenessBoxWhiskerRepository minorityEffectivenessBoxWhiskerRepository,
-            MinorityEffectivenessHistogramRepository minorityEffectivenessHistogramRepository
+            MinorityEffectivenessHistogramRepository minorityEffectivenessHistogramRepository,
+            ObjectMapper objectMapper
     ) {
         this.stateRepository = stateRepository;
         this.stateSummaryRepository = stateSummaryRepository;
@@ -75,6 +85,7 @@ public class BackendDataService {
         this.vraImpactThresholdTableRepository = vraImpactThresholdTableRepository;
         this.minorityEffectivenessBoxWhiskerRepository = minorityEffectivenessBoxWhiskerRepository;
         this.minorityEffectivenessHistogramRepository = minorityEffectivenessHistogramRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Cacheable("states")
@@ -309,27 +320,28 @@ public class BackendDataService {
         );
     }
 
-    // Derives majority-minority district ranges from already-seeded box_whisker_results (minority_share metric).
-    // A rank is majority-minority when cvapShare > 0.5; min = count(ranks where every plan exceeded 0.5),
-    // max = count(ranks where at least one plan exceeded 0.5).
+    // Derives majority-minority district ranges from min_eff_bw.json (SeaWulf minority-opportunity distributions).
+    // For each ensemble run, the first/last non-zero histogram bins are that run's min/max opportunity counts.
+    // We then aggregate runs to a single [min, max] range per ensemble/group.
     @Cacheable("majorityMinorityBar")
     public Map<String, Object> getMajorityMinorityBar(String stateIdInput, String electionInput) {
         String stateId = normalizeState(stateIdInput);
         String election = normalizeElection(electionInput);
-
-        List<BoxWhiskerResultDocument> rbDocs =
-                boxWhiskerResultRepository.findByStateIdAndEnsembleTypeAndMetricKey(stateId, "race_blind", "minority_share");
-        List<BoxWhiskerResultDocument> vraDocs =
-                boxWhiskerResultRepository.findByStateIdAndEnsembleTypeAndMetricKey(stateId, "vra_constrained", "minority_share");
+        Map<String, Object> root = loadMinEffBw();
+        String stateKey = "SC".equals(stateId) ? "south_carolina" : "oregon";
+        @SuppressWarnings("unchecked")
+        Map<String, Object> stateNode = (Map<String, Object>) root.get(stateKey);
+        if (stateNode == null) {
+            throw new NoSuchElementException("min_eff_bw.json missing state node: " + stateKey);
+        }
 
         List<Map<String, Object>> groups = GroupThresholds.feasibleGroupsFor(stateId).stream().map(key -> {
-            Map<String, Object> rbPayload  = payloadForGroup(rbDocs, key);
-            Map<String, Object> vraPayload = payloadForGroup(vraDocs, key);
+            String minEffKey = toMinEffGroupKey(stateId, key);
             Map<String, Object> entry = new LinkedHashMap<>();
             entry.put("key", key);
             entry.put("label", capitalize(key));
-            entry.put("raceBlind", majorityMinorityRange(rbPayload));
-            entry.put("vraConstrained", majorityMinorityRange(vraPayload));
+            entry.put("raceBlind", majorityMinorityRangeFromHistograms(stateNode, "raceblind", minEffKey));
+            entry.put("vraConstrained", majorityMinorityRangeFromHistograms(stateNode, "vra", minEffKey));
             return entry;
         }).collect(Collectors.toList());
 
@@ -343,24 +355,65 @@ public class BackendDataService {
         return response;
     }
 
-    private Map<String, Object> payloadForGroup(List<BoxWhiskerResultDocument> docs, String groupKey) {
-        return docs.stream()
-                .filter(d -> groupKey.equals(d.getGroupKey()))
-                .findFirst()
-                .map(BoxWhiskerResultDocument::getPayload)
-                .orElseThrow(() -> new NoSuchElementException(
-                        "Box-whisker result not found for groupKey=" + groupKey));
+    private Map<String, Object> loadMinEffBw() {
+        Path root = ProjectPathResolver.resolveRoot(configuredRootPath);
+        Path source = root.resolve("preprocessing/output/kobe/min_eff_bw.json");
+        try {
+            return objectMapper.readValue(source.toFile(), new TypeReference<>() {});
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to read majority-minority source file: " + source, e);
+        }
+    }
+
+    private String toMinEffGroupKey(String stateId, String groupKey) {
+        // SeaWulf export uses "hispanic" for Oregon instead of "latino".
+        if ("OR".equals(stateId) && "latino".equals(groupKey)) {
+            return "hispanic";
+        }
+        return groupKey;
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, Integer> majorityMinorityRange(Map<String, Object> bwPayload) {
-        List<Map<String, Object>> rankSummaries = (List<Map<String, Object>>) bwPayload.get("rankSummaries");
-        int min = 0, max = 0;
-        for (Map<String, Object> rs : rankSummaries) {
-            if (toDouble(rs.get("min")) > 0.5) min++;
-            if (toDouble(rs.get("max")) > 0.5) max++;
+    private Map<String, Integer> majorityMinorityRangeFromHistograms(
+            Map<String, Object> stateNode,
+            String ensembleKey,
+            String groupKey) {
+        Object runsRaw = stateNode.get(ensembleKey);
+        if (!(runsRaw instanceof List<?> runs) || runs.isEmpty()) {
+            throw new NoSuchElementException("min_eff_bw.json missing ensemble node: " + ensembleKey);
         }
-        return Map.of("min", min, "max", max);
+
+        int aggregatedMin = Integer.MAX_VALUE;
+        int aggregatedMax = Integer.MIN_VALUE;
+
+        for (Object runRaw : runs) {
+            if (!(runRaw instanceof Map<?, ?> runMapAny)) continue;
+            Object histogramRaw = runMapAny.get(groupKey);
+            if (!(histogramRaw instanceof Map<?, ?> histogramAny)) continue;
+            @SuppressWarnings("unchecked")
+            Map<String, Object> histogram = (Map<String, Object>) histogramAny;
+
+            int runMin = Integer.MAX_VALUE;
+            int runMax = Integer.MIN_VALUE;
+            for (Map.Entry<String, Object> bucket : histogram.entrySet()) {
+                int districtCount = Integer.parseInt(bucket.getKey());
+                int frequency = ((Number) bucket.getValue()).intValue();
+                if (frequency <= 0) continue;
+                runMin = Math.min(runMin, districtCount);
+                runMax = Math.max(runMax, districtCount);
+            }
+            if (runMin != Integer.MAX_VALUE) {
+                aggregatedMin = Math.min(aggregatedMin, runMin);
+                aggregatedMax = Math.max(aggregatedMax, runMax);
+            }
+        }
+
+        if (aggregatedMin == Integer.MAX_VALUE) {
+            throw new NoSuchElementException(
+                    "min_eff_bw.json has no non-zero buckets for ensemble=" + ensembleKey + ", group=" + groupKey);
+        }
+
+        return Map.of("min", aggregatedMin, "max", aggregatedMax);
     }
 
     private double toDouble(Object value) {
