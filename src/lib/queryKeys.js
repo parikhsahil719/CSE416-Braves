@@ -22,4 +22,5 @@ export const keys = {
   meHistogram:        (s, g, e)          => ['meHistogram', s, g, e],
   interestingPlanList:(s)                => ['interestingPlanList', s],
   interestingPlan:    (s, planId)        => ['interestingPlan', s, planId],
+  majorityMinorityBar:(s, e)             => ['majorityMinorityBar', s, e],
 };

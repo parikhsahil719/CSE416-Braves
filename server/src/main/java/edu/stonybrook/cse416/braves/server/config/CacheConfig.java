@@ -32,6 +32,7 @@ public class CacheConfig {
                 "vraImpactThresholds",
                 "minorityEffectivenessBoxWhisker",
                 "minorityEffectivenessHistogram",
+                "majorityMinorityBar",
                 "districtTopology",
                 "precinctTopology",
                 "usStatesTopology"

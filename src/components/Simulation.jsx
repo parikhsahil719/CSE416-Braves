@@ -3,7 +3,7 @@ import "../../styles/simulation.css";
 import { useParams } from "react-router-dom";
 import { topologyToFeatureCollection } from "../utils/topology.js";
 import { toStateCode, toGroupKey, defaultGroup, groupOptionsForState } from "../utils/stateUtils.js";
-import { useDistrictTopology, useEnsembleSplits, useBoxWhisker, useVraImpact, useMeBoxWhiskerRb, useMeBoxWhiskerVra, useMeHistogram } from "../queries/stateQueries.js";
+import { useDistrictTopology, useEnsembleSplits, useBoxWhisker, useVraImpact, useMeBoxWhiskerRb, useMeBoxWhiskerVra, useMeHistogram, useMajorityMinorityBar } from "../queries/stateQueries.js";
 import DistrictMap from "./DistrictMap";
 import MinorityHeatMap from "./MinorityHeatMap";
 import BoxWhiskerChart from "../charts/BoxWhiskerChart.jsx";
@@ -342,11 +342,10 @@ function BarsTooltipContent({ active, activeIndex, data }) {
 }
 
 // Minority-Effective Districts Bar Chart
-function MinorityEffectiveDistrictsBar({ payload, loading, failed, group }) {
+function MinorityEffectiveDistrictsBar({ payload, loading, failed, totalDistricts }) {
   if (loading) return <div className="sim-placeholder">Loading minority-effective districts bar chart...</div>;
   if (failed || !payload) return <div className="sim-placeholder">No minority-effective districts bar chart data available.</div>;
-  const totalDistricts = (group === "Latino" ? 6 : 7);
-  const ticks = Array.from({ length: totalDistricts + 1 }, (_, i) => i);
+  const ticks = Array.from({ length: (totalDistricts ?? 7) + 1 }, (_, i) => i);
   const BAR_SIZE = 150;
 
   return (
@@ -370,11 +369,10 @@ function MinorityEffectiveDistrictsBar({ payload, loading, failed, group }) {
 }
 
 // Majority-Minority Districts Bar Chart
-function MajorityMinorityDistrictsBar({ payload, loading, failed, group }) {
+function MajorityMinorityDistrictsBar({ payload, loading, failed, totalDistricts }) {
   if (loading) return <div className="sim-placeholder">Loading majority-minority districts bar chart...</div>;
   if (failed || !payload) return <div className="sim-placeholder">No majority-minority districts bar chart data available.</div>;
-  const totalDistricts = (group === "Latino" ? 6 : 7);
-  const ticks = Array.from({ length: totalDistricts + 1 }, (_, i) => i);
+  const ticks = Array.from({ length: (totalDistricts ?? 7) + 1 }, (_, i) => i);
   const BAR_SIZE = 150;
 
   return (
@@ -436,6 +434,7 @@ export default function Simulation({ currMap, currMinority, switchMinority, curr
   }, [meBwRb.data, meBwVra.data]);
 
   const meHist = useMeHistogram(stateCode, groupKey);
+  const mmBar = useMajorityMinorityBar(stateCode);
 
   useEffect(() => {
     if (!groupOptionsForState(stateName).includes(currMinority))
@@ -444,19 +443,25 @@ export default function Simulation({ currMap, currMinority, switchMinority, curr
 
   const mapData = topo.data ? topologyToFeatureCollection(topo.data, "districts") : null;
 
-  const minorityEffectiveDistsData = [
-    {
-      label: "Latino",
-      raceBlind: {
-        min: 1,
-        max: 3
-      },
-      vraConstrained: {
-        min: 2,
-        max: 4
-      }
-    }
-  ];
+  // Derive minority-effective district ranges from the GUI-21 box-whisker data already in memory.
+  const meBarPayload = useMemo(() => {
+    if (!meBwData?.groupSummaries) return null;
+    return meBwData.groupSummaries.map(g => ({
+      label: g.label,
+      raceBlind: { min: g.raceBlindSummary.min, max: g.raceBlindSummary.max },
+      vraConstrained: { min: g.vraConstrainedSummary.min, max: g.vraConstrainedSummary.max },
+    }));
+  }, [meBwData]);
+
+  // Transform API groups array into the chart's expected payload shape.
+  const mmBarPayload = useMemo(() => {
+    if (!mmBar.data?.groups) return null;
+    return mmBar.data.groups.map(g => ({
+      label: g.label,
+      raceBlind: g.raceBlind,
+      vraConstrained: g.vraConstrained,
+    }));
+  }, [mmBar.data]);
 
   function handleTabSelect(nextTab) {
     setTab(nextTab);
@@ -489,9 +494,19 @@ export default function Simulation({ currMap, currMinority, switchMinority, curr
       </div>);
     if (currSimData === "Minority Representation")
       return (<>
-        <MinorityEffectiveDistrictsBar payload={minorityEffectiveDistsData} loading={false} failed={false} group={currMinority} />
+        <MinorityEffectiveDistrictsBar
+          payload={meBarPayload}
+          loading={meBwRb.isLoading || meBwVra.isLoading}
+          failed={meBwRb.isError || meBwVra.isError}
+          totalDistricts={meBwData?.totalDistricts}
+        />
         <br />
-        <MajorityMinorityDistrictsBar payload={minorityEffectiveDistsData} loading={false} failed={false} group={currMinority} />
+        <MajorityMinorityDistrictsBar
+          payload={mmBarPayload}
+          loading={mmBar.isLoading}
+          failed={mmBar.isError}
+          totalDistricts={mmBar.data?.totalDistricts}
+        />
       </>);
     return null;
   }

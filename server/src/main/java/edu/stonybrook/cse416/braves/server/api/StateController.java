@@ -456,6 +456,27 @@ public class StateController {
         return dataService.getMinorityEffectivenessHistogram(stateId, group, election);
     }
 
+    @Operation(
+            summary = "GUI-26: Majority-minority district bar chart",
+            description = "Status: Live. Derives majority-minority district ranges (min/max count of districts "
+                    + "where group CVAP share > 0.5) from seeded box-whisker results for each feasible group."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Majority-minority bar chart payload"
+            )
+    })
+    @GetMapping("/states/{stateId}/analysis/majority-minority-bar")
+    public Map<String, Object> getMajorityMinorityBar(
+            @Parameter(description = "State code: OR or SC.")
+            @PathVariable @NotBlank String stateId,
+            @Parameter(description = "Election selector. Default is 2024_pres.")
+            @RequestParam(required = false, defaultValue = "2024_pres") String election
+    ) {
+        return dataService.getMajorityMinorityBar(stateId, election);
+    }
+
     private ResponseEntity<Map<String, Object>> cachedGeometryResponse(GeometryAssetService.GeometryAsset asset, WebRequest webRequest) {
         if (webRequest.checkNotModified(asset.etag())) {
             return ResponseEntity.status(HttpStatus.NOT_MODIFIED)

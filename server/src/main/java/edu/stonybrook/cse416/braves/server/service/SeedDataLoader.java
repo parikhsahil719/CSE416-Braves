@@ -141,9 +141,11 @@ public class SeedDataLoader implements ApplicationRunner {
         eiPrecinctBarCiRepository.deleteAll(); seedEiPrecinctBarCi(root);
         eiKdeRepository.deleteAll(); seedEiKde(root);
         if (ensembleSplitRepository.count() == 0) seedEnsembleSplits(root);
-        if (boxWhiskerResultRepository.count() == 0) seedBoxWhiskers(root);
+        // Expect 8 docs: OR × {latino,asian} × 2 + SC × {black,latino} × 2 = 8.
+        if (boxWhiskerResultRepository.count() < 8) { boxWhiskerResultRepository.deleteAll(); seedBoxWhiskers(root); }
         seedInterestingPlans(root);
-        if (vraImpactThresholdTableRepository.count() == 0) seedVraImpactThresholdTables(root);
+        // Expect 2 docs: OR/latino + SC/black (only primary minority per state).
+        if (vraImpactThresholdTableRepository.count() < 2) { vraImpactThresholdTableRepository.deleteAll(); seedVraImpactThresholdTables(root); }
         // Expect 12 documents here: 2 states x 2 ensemble types x 3 ensemble indices. Any smaller count
         // implies stale pre-split data that should be replaced wholesale.
         if (minorityEffectivenessBoxWhiskerRepository.count() < 12) seedMinorityEffectivenessBoxWhisker(root);
@@ -1206,12 +1208,8 @@ public class SeedDataLoader implements ApplicationRunner {
     private void seedVraImpactThresholdTables(Path root) throws IOException {
         vraImpactThresholdTableRepository.save(buildDoc(new VraImpactThresholdTableDocument(), "OR", "2024_pres", "latino", null, null, "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/vra-impact-thresholds/OR_latino_2024_pres.json"))));
-        vraImpactThresholdTableRepository.save(buildDoc(new VraImpactThresholdTableDocument(), "OR", "2024_pres", "asian",  null, null, "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/vra-impact-thresholds/OR_asian_2024_pres.json"))));
         vraImpactThresholdTableRepository.save(buildDoc(new VraImpactThresholdTableDocument(), "SC", "2024_pres", "black",  null, null, "CVAP",
                 readJsonMap(root.resolve("mock-data/v1/vra-impact-thresholds/SC_black_2024_pres.json"))));
-        vraImpactThresholdTableRepository.save(buildDoc(new VraImpactThresholdTableDocument(), "SC", "2024_pres", "latino", null, null, "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/vra-impact-thresholds/SC_latino_2024_pres.json"))));
     }
 
     private void seedMinorityEffectivenessBoxWhisker(Path root) throws IOException {

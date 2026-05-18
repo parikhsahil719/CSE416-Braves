@@ -9,6 +9,7 @@ import edu.stonybrook.cse416.braves.server.util.StateCodeUtil;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import edu.stonybrook.cse416.braves.server.model.BoxWhiskerResultDocument;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -292,6 +293,74 @@ public class BackendDataService {
                 minorityEffectivenessHistogramRepository.findByStateIdAndGroupKeyAndElectionId(stateId, group, election),
                 "Minority effectiveness histogram payload not found for stateId=" + stateId + ", group=" + group + ", election=" + election
         );
+    }
+
+    // Derives majority-minority district ranges from already-seeded box_whisker_results (minority_share metric).
+    // A rank is majority-minority when cvapShare > 0.5; min = count(ranks where every plan exceeded 0.5),
+    // max = count(ranks where at least one plan exceeded 0.5).
+    @Cacheable("majorityMinorityBar")
+    public Map<String, Object> getMajorityMinorityBar(String stateIdInput, String electionInput) {
+        String stateId = normalizeState(stateIdInput);
+        String election = normalizeElection(electionInput);
+
+        List<BoxWhiskerResultDocument> rbDocs =
+                boxWhiskerResultRepository.findByStateIdAndEnsembleTypeAndMetricKey(stateId, "race_blind", "minority_share");
+        List<BoxWhiskerResultDocument> vraDocs =
+                boxWhiskerResultRepository.findByStateIdAndEnsembleTypeAndMetricKey(stateId, "vra_constrained", "minority_share");
+
+        List<Map<String, Object>> groups = GroupThresholds.feasibleGroupsFor(stateId).stream().map(key -> {
+            Map<String, Object> rbPayload  = payloadForGroup(rbDocs, key);
+            Map<String, Object> vraPayload = payloadForGroup(vraDocs, key);
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("key", key);
+            entry.put("label", capitalize(key));
+            entry.put("raceBlind", majorityMinorityRange(rbPayload));
+            entry.put("vraConstrained", majorityMinorityRange(vraPayload));
+            return entry;
+        }).collect(Collectors.toList());
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("schemaVersion", "v1");
+        response.put("chartType", "majority-minority-bar");
+        response.put("state", stateId);
+        response.put("election", electionLabel(election));
+        response.put("totalDistricts", "SC".equals(stateId) ? 7 : 6);
+        response.put("groups", groups);
+        return response;
+    }
+
+    private Map<String, Object> payloadForGroup(List<BoxWhiskerResultDocument> docs, String groupKey) {
+        return docs.stream()
+                .filter(d -> groupKey.equals(d.getGroupKey()))
+                .findFirst()
+                .map(BoxWhiskerResultDocument::getPayload)
+                .orElseThrow(() -> new NoSuchElementException(
+                        "Box-whisker result not found for groupKey=" + groupKey));
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Integer> majorityMinorityRange(Map<String, Object> bwPayload) {
+        List<Map<String, Object>> rankSummaries = (List<Map<String, Object>>) bwPayload.get("rankSummaries");
+        int min = 0, max = 0;
+        for (Map<String, Object> rs : rankSummaries) {
+            if (toDouble(rs.get("min")) > 0.5) min++;
+            if (toDouble(rs.get("max")) > 0.5) max++;
+        }
+        return Map.of("min", min, "max", max);
+    }
+
+    private double toDouble(Object value) {
+        if (value instanceof Number n) return n.doubleValue();
+        return Double.parseDouble(String.valueOf(value));
+    }
+
+    private String capitalize(String key) {
+        if (key == null || key.isBlank()) return key;
+        return Character.toUpperCase(key.charAt(0)) + key.substring(1);
+    }
+
+    private String electionLabel(String electionId) {
+        return "2024_pres".equals(electionId) ? "2024 Presidential" : electionId;
     }
 
     private String normalizeState(String stateIdInput) {

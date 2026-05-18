@@ -1,5 +1,6 @@
 package edu.stonybrook.cse416.braves.server.util;
 
+import java.util.List;
 import java.util.Map;
 
 public final class GroupThresholds {
@@ -21,7 +22,15 @@ public final class GroupThresholds {
             "asian", 120_534
     );
 
+    // Primary minority group per state — the only minority used in ensemble bar charts (GUI-26).
+    private static final List<String> OR_FEASIBLE = List.of("latino");
+    private static final List<String> SC_FEASIBLE = List.of("black");
+
     private GroupThresholds() {
+    }
+
+    public static List<String> feasibleGroupsFor(String stateId) {
+        return "SC".equals(stateId) ? SC_FEASIBLE : OR_FEASIBLE;
     }
 
     public static boolean isFeasible(String stateId, String group) {

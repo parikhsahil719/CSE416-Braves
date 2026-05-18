@@ -765,6 +765,45 @@ Missing x-axis values are filled with frequency 0. Invariants: `sum(frequencies)
 
 ---
 
+### 2.20 `GET /api/states/{stateId}/analysis/majority-minority-bar?election=` — GUI-26
+
+**Component:** `Simulation` → `MajorityMinorityDistrictsBar`
+
+`election` optional, defaults to `2024_pres`. Response is computed server-side from seeded `box_whisker_results` (`minority_share` metric). A district is majority-minority when its group CVAP share > 0.5. The `min` count = number of ranks where every plan exceeded 0.5; `max` count = number of ranks where at least one plan exceeded 0.5.
+
+```json
+{
+  "schemaVersion": "v1",
+  "chartType": "majority-minority-bar",
+  "state": "OR",
+  "election": "2024 Presidential",
+  "totalDistricts": 6,
+  "groups": [
+    { "key": "latino", "label": "Latino",
+      "raceBlind": { "min": 0, "max": 2 },
+      "vraConstrained": { "min": 1, "max": 3 } },
+    { "key": "asian", "label": "Asian",
+      "raceBlind": { "min": 0, "max": 1 },
+      "vraConstrained": { "min": 0, "max": 2 } },
+    { "key": "white", "label": "White",
+      "raceBlind": { "min": 4, "max": 6 },
+      "vraConstrained": { "min": 3, "max": 6 } }
+  ]
+}
+```
+
+**Fields the chart reads:**
+- `groups[].label` → x-axis `dataKey` (via frontend transform to `[{ label, raceBlind: {min,max}, vraConstrained: {min,max} }]`)
+- `groups[].raceBlind.{min,max}` → green range bar
+- `groups[].vraConstrained.{min,max}` → orange range bar
+- `totalDistricts` → Y-axis tick range `[0, totalDistricts]`
+
+**No MongoDB collection.** Computed at request time from `box_whisker_results`. Invariants: `groups` = feasible groups for the state (OR: latino/asian/white; SC: black/latino/white); `min ≤ max`; all counts in `[0, totalDistricts]`.
+
+**Minority-effective bar (GUI-26 Part 1):** No endpoint — frontend derives from `meBwData.groupSummaries` (GUI-21 data) using `raceBlindSummary.{min,max}` and `vraConstrainedSummary.{min,max}`.
+
+---
+
 ## 3. MongoDB Collection Schemas
 
 Only fields needed to assemble the API responses above, plus lookup keys. `schemaVersion`, `createdAt`, `updatedAt` are internal envelope fields present on all documents but not returned to the frontend.

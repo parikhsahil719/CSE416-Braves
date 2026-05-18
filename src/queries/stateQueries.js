@@ -182,3 +182,11 @@ export function useInterestingPlan(stateCode, planId) {
     enabled: Boolean(stateCode) && Boolean(planId),
   });
 }
+
+export function useMajorityMinorityBar(stateCode) {
+  return useQuery({
+    queryKey: keys.majorityMinorityBar(stateCode, ELECTION),
+    queryFn: () => get(`/api/states/${stateCode}/analysis/majority-minority-bar`, { election: ELECTION }),
+    enabled: Boolean(stateCode),
+  });
+}
