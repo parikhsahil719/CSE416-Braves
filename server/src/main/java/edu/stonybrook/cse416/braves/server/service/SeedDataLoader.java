@@ -1405,9 +1405,9 @@ public class SeedDataLoader implements ApplicationRunner {
         Map<String, Object> gui22Payload = readJsonMap(gui22);
 
         minorityEffectivenessHistogramRepository.save(buildDoc(new MinorityEffectivenessHistogramDocument(), "OR", "2024_pres", "latino", null, null, "CVAP",
-                buildGui22HistogramPayload(gui22Payload, "oregon", "hispanic", "OR", "Latino", 6, 3)));
+                buildGui22HistogramPayload(gui22Payload, "oregon", "hispanic", "OR", "Latino", 6, 2)));
         minorityEffectivenessHistogramRepository.save(buildDoc(new MinorityEffectivenessHistogramDocument(), "SC", "2024_pres", "black",  null, null, "CVAP",
-                buildGui22HistogramPayload(gui22Payload, "south_carolina", "black", "SC", "Black", 7, 3)));
+                buildGui22HistogramPayload(gui22Payload, "south_carolina", "black", "SC", "Black", 7, 2)));
     }
 
     @SuppressWarnings("unchecked")

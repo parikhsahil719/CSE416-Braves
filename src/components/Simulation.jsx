@@ -416,7 +416,11 @@ function MajorityMinorityDistrictsBar({ payload, loading, failed, totalDistricts
 export default function Simulation({ currMap, currMinority, switchMinority, currSimData }) {
   const { stateName } = useParams();
   const stateCode = toStateCode(stateName);
-  const groupKey = toGroupKey(currMinority) ?? defaultGroup(stateCode);
+  const validGroups = groupOptionsForState(stateName).map(toGroupKey);
+  const requestedGroupKey = toGroupKey(currMinority);
+  const groupKey = validGroups.includes(requestedGroupKey)
+    ? requestedGroupKey
+    : toGroupKey(defaultGroup(stateCode));
 
   const topo = useDistrictTopology(stateCode);
   const splits = useEnsembleSplits(stateCode);
@@ -462,7 +466,7 @@ export default function Simulation({ currMap, currMinority, switchMinority, curr
   useEffect(() => {
     if (!groupOptionsForState(stateName).includes(currMinority))
       switchMinority(defaultGroup(stateCode));
-  }, []);
+  }, [currMinority, stateCode, stateName, switchMinority]);
 
   const mapData = topo.data ? topologyToFeatureCollection(topo.data, "districts") : null;
 
