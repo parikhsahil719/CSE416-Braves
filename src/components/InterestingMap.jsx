@@ -11,9 +11,15 @@ function getColor(property) {
   return "#ffffcc";
 }
 
-function getBaseDistrictStyle(feature) {
+function getMinorityPop(feature, stateName) {
+  return stateName === "Oregon"
+    ? feature?.properties?.hispanic
+    : feature?.properties?.black;
+}
+
+function getBaseDistrictStyle(feature, stateName) {
   return {
-    fillColor: getColor(feature?.properties?.blackPopulation),
+    fillColor: getColor(getMinorityPop(feature, stateName)),
     weight: 2,
     opacity: 1,
     color: "white",
@@ -31,11 +37,11 @@ function getSelectedDistrictStyle() {
   };
 }
 
-function TopoLayer({ data, infoRef, selectedDistrict, onSelectDistrict }) {
+function TopoLayer({ data, infoRef, selectedDistrict, onSelectDistrict, stateName }) {
   const layerRef = useRef(null);
 
   function style(layer) {
-    layer.setStyle(getBaseDistrictStyle(layer.feature));
+    layer.setStyle(getBaseDistrictStyle(layer.feature, stateName));
   }
 
   function highlightFeature(event) {
@@ -44,7 +50,7 @@ function TopoLayer({ data, infoRef, selectedDistrict, onSelectDistrict }) {
     layer.bringToFront();
 
     if (infoRef.current) {
-      infoRef.current.update(layer.feature.properties.NAMELSAD);
+      infoRef.current.update(`District ${layer.feature.properties.district_id}`);
     }
   }
 
@@ -62,7 +68,7 @@ function TopoLayer({ data, infoRef, selectedDistrict, onSelectDistrict }) {
   }
 
   function applySelection(layer) {
-    const districtNumber = layer?.feature?.properties?.district_number;
+    const districtNumber = layer?.feature?.properties?.district_id;
 
     if (districtNumber === selectedDistrict) {
       layer.setStyle(getSelectedDistrictStyle());
@@ -70,11 +76,11 @@ function TopoLayer({ data, infoRef, selectedDistrict, onSelectDistrict }) {
       return;
     }
 
-    layer.setStyle(getBaseDistrictStyle(layer.feature));
+    layer.setStyle(getBaseDistrictStyle(layer.feature, stateName));
   }
 
   function handleMapClick(event) {
-    onSelectDistrict(event.target.feature.properties.district_number);
+    onSelectDistrict(event.target.feature.properties.district_id);
   }
 
   function onEachFeature(feature, layer) {
@@ -93,7 +99,7 @@ function TopoLayer({ data, infoRef, selectedDistrict, onSelectDistrict }) {
     layerRef.current.eachLayer((layer) => {
       applySelection(layer);
     });
-  }, [selectedDistrict]);
+  }, [selectedDistrict, stateName]);
 
   useEffect(() => {
     if (!layerRef.current || !data) return;
@@ -102,7 +108,7 @@ function TopoLayer({ data, infoRef, selectedDistrict, onSelectDistrict }) {
     layerRef.current.addData(data);
   }, [data]);
 
-  return <GeoJSON ref={layerRef} style={getBaseDistrictStyle} onEachFeature={onEachFeature} />;
+  return <GeoJSON ref={layerRef} style={(feature) => getBaseDistrictStyle(feature, stateName)} onEachFeature={onEachFeature} />;
 }
 
 function Info({ infoRef, stateName }) {
@@ -135,7 +141,7 @@ function Info({ infoRef, stateName }) {
   return null;
 }
 
-function Legend() {
+function Legend({ stateName }) {
   const map = useMap();
 
   useEffect(() => {
@@ -143,7 +149,7 @@ function Legend() {
 
     legend.onAdd = function onAdd() {
       const div = L.DomUtil.create("div", "info legend");
-      div.innerHTML += "<h4>Population</h4>";
+      div.innerHTML += `<h4>${stateName === "Oregon" ? "Hispanic" : "Black"} Population</h4>`;
 
       const grades = [0, 25000, 50000, 100000, 200000, 300000];
       grades.forEach((g, i) => { div.innerHTML += `<div style="display:flex;align-items:center;margin-bottom:4px"><i style="background:${getColor(g + 0.1)};display:inline-block"></i>${g.toLocaleString()}${grades[i + 1] ? `&ndash;${grades[i + 1].toLocaleString()}` : "+"}</div>`; });
@@ -155,7 +161,7 @@ function Legend() {
     return () => {
       legend.remove();
     };
-  }, [map]);
+  }, [map, stateName]);
 
   return null;
 }
@@ -188,9 +194,10 @@ export default function InterestingMap({ stateName, data, selectedDistrict, onSe
             infoRef={infoRef}
             selectedDistrict={selectedDistrict}
             onSelectDistrict={onSelectDistrict}
+            stateName={stateName}
           />
           <Info infoRef={infoRef} stateName={stateName} />
-          <Legend />
+          <Legend stateName={stateName} />
         </MapContainer>
       </div>
     );

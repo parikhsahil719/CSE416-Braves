@@ -71,7 +71,9 @@ function TopoLayer({ data, infoRef, selectedDistrict, onSelectDistrict, onChange
 
   function handleMapClick(event) {
     onSelectDistrict(event.target.feature.properties.district_number);
-    onChangeTab("District");
+    if (onChangeTab) {
+      onChangeTab("District");
+    }
   }
 
   function onEachFeature(feature, layer) {

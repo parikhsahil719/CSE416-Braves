@@ -13,9 +13,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -67,6 +69,7 @@ public class SeedDataLoader implements ApplicationRunner {
     private final MinorityEffectivenessHistogramRepository minorityEffectivenessHistogramRepository;
     private final RunManifestRepository runManifestRepository;
     private final IngestManifestRepository ingestManifestRepository;
+    private final CacheManager cacheManager;
 
     @Value("${app.seed.enabled:true}")
     private boolean seedEnabled;
@@ -94,7 +97,8 @@ public class SeedDataLoader implements ApplicationRunner {
             MinorityEffectivenessBoxWhiskerRepository minorityEffectivenessBoxWhiskerRepository,
             MinorityEffectivenessHistogramRepository minorityEffectivenessHistogramRepository,
             RunManifestRepository runManifestRepository,
-            IngestManifestRepository ingestManifestRepository
+            IngestManifestRepository ingestManifestRepository,
+            CacheManager cacheManager
     ) {
         this.objectMapper = objectMapper;
         this.geometryAssetService = geometryAssetService;
@@ -116,6 +120,7 @@ public class SeedDataLoader implements ApplicationRunner {
         this.minorityEffectivenessHistogramRepository = minorityEffectivenessHistogramRepository;
         this.runManifestRepository = runManifestRepository;
         this.ingestManifestRepository = ingestManifestRepository;
+        this.cacheManager = cacheManager;
     }
 
     @Override
@@ -1175,37 +1180,86 @@ public class SeedDataLoader implements ApplicationRunner {
         // Interesting plans are treated as a curated showcase set, so reseed them from files on every startup
         // instead of preserving potentially stale Mongo copies.
         interestingPlanRepository.deleteAll();
-        List<String> planSeedFiles = List.of(
-                "OR_plan-42.json",
-                "OR_plan-43.json",
-                "SC_plan-42.json",
-                "SC_plan-43.json"
-        );
-        for (String fileName : planSeedFiles) {
-            interestingPlanRepository.save(readInterestingPlanDoc(root.resolve("mock-data/v1/interesting-plans").resolve(fileName)));
+        Path aydenRoot = root.resolve("preprocessing/output/Ayden");
+        seedStateInterestingPlans(aydenRoot.resolve("SC_Interesting_Plans"), "SC");
+        seedStateInterestingPlans(aydenRoot.resolve("OR_Interesting_Plans"), "OR");
+        clearInterestingPlanCaches();
+    }
+
+    private void seedStateInterestingPlans(Path dir, String stateId) throws IOException {
+        try (var stream = Files.list(dir)) {
+            stream.filter(file -> file.toString().endsWith(".topojson"))
+                    .sorted()
+                    .forEach(file -> {
+                        try {
+                            InterestingPlanDocument doc = buildInterestingPlanDoc(file, stateId);
+                            if (hasRenderableInterestingPlanTopology(doc.getPayload())) {
+                                interestingPlanRepository.save(doc);
+                            }
+                        } catch (IOException exception) {
+                            throw new UncheckedIOException(exception);
+                        }
+                    });
+        } catch (UncheckedIOException exception) {
+            throw exception.getCause();
         }
     }
 
-    private InterestingPlanDocument readInterestingPlanDoc(Path file) throws IOException {
-        Map<String, Object> payload = new LinkedHashMap<>(readJsonMap(file));
-        String stateId = requireString(payload, "state", file);
-        String planId = requireString(payload, "planId", file);
-        String ensembleType = requireString(payload, "ensembleType", file);
-        // Inject topology from the canonical geometry assets so every interesting-plan document stays aligned
-        // with the backend's current map source rather than duplicating geometry in each seed file.
-        payload.put("topology", geometryAssetService.getDistrictTopology(stateId));
+    private InterestingPlanDocument buildInterestingPlanDoc(Path file, String stateId) throws IOException {
+        String fileName = file.getFileName().toString();
+        String planId = fileName.endsWith(".topojson")
+                ? fileName.substring(0, fileName.length() - ".topojson".length())
+                : fileName;
+        String ensembleType = planId.startsWith("vra_") ? "vra_constrained" : "race_blind";
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("state", stateId);
+        payload.put("planId", planId);
+        payload.put("planName", toHumanPlanName(planId));
+        payload.put("ensembleType", ensembleType);
+        payload.put("reasonInteresting", "Imported from Ayden preprocessing output");
+        payload.put("summary", new LinkedHashMap<>());
+        payload.put("topology", readJsonMap(file));
 
         InterestingPlanDocument doc = buildDoc(new InterestingPlanDocument(), stateId, "2024_pres", null, ensembleType, null, "TOTAL", payload);
         doc.setPlanId(planId);
         return doc;
     }
 
-    private String requireString(Map<String, Object> payload, String fieldName, Path file) {
-        Object value = payload.get(fieldName);
-        if (!(value instanceof String stringValue) || stringValue.isBlank()) {
-            throw new IllegalArgumentException("Interesting plan seed file " + file + " is missing required field: " + fieldName);
+    @SuppressWarnings("unchecked")
+    private boolean hasRenderableInterestingPlanTopology(Map<String, Object> payload) {
+        Object topologyValue = payload.get("topology");
+        if (!(topologyValue instanceof Map<?, ?> topology)) {
+            return false;
         }
-        return stringValue;
+        Object objectsValue = topology.get("objects");
+        if (!(objectsValue instanceof Map<?, ?> objects)) {
+            return false;
+        }
+        for (Object geometryCollectionValue : objects.values()) {
+            if (!(geometryCollectionValue instanceof Map<?, ?> geometryCollection)) {
+                continue;
+            }
+            Object geometriesValue = geometryCollection.get("geometries");
+            if (geometriesValue instanceof List<?> geometries && !geometries.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String toHumanPlanName(String planId) {
+        String prefix = planId.startsWith("vra_") ? "VRA" : "Race-Blind";
+        String body = planId.replaceFirst("^(race_blind|vra)_", "").replace('_', ' ');
+        if (body.isEmpty()) {
+            return prefix;
+        }
+        return prefix + ": " + Character.toUpperCase(body.charAt(0)) + body.substring(1);
+    }
+
+    private void clearInterestingPlanCaches() {
+        Objects.requireNonNull(cacheManager.getCache("interestingPlanList")).clear();
+        Objects.requireNonNull(cacheManager.getCache("interestingPlan")).clear();
     }
 
     private void seedVraImpactThresholdTables(Path root) throws IOException {

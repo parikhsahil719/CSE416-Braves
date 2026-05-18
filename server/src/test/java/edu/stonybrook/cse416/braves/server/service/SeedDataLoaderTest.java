@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.stonybrook.cse416.braves.server.model.StateSummaryDocument;
 import edu.stonybrook.cse416.braves.server.repository.*;
 import org.junit.jupiter.api.Test;
+import org.springframework.cache.CacheManager;
 import org.mockito.ArgumentCaptor;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -41,7 +42,8 @@ class SeedDataLoaderTest {
                 mock(MinorityEffectivenessBoxWhiskerRepository.class),
                 mock(MinorityEffectivenessHistogramRepository.class),
                 mock(RunManifestRepository.class),
-                mock(IngestManifestRepository.class)
+                mock(IngestManifestRepository.class),
+                mock(CacheManager.class)
         );
 
         ReflectionTestUtils.invokeMethod(loader, "seedStateSummaries");

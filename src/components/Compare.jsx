@@ -12,14 +12,37 @@ import DistrictMap from "./DistrictMap.jsx";
 import MinorityHeatMap from "./MinorityHeatMap.jsx";
 import InterestingMap from "./InterestingMap.jsx";
 import arrowDropdown from "/white_arrow_drop_down.svg";
-import SCCurrentDistrictData from "../data/sc_test_compare_left.js";
-import SCPackingData from "../data/sc_test_packing.js";
-import SCCrackingData from "../data/sc_test_cracking.js";
+
+const CONGRESSIONAL_DATA = {
+  Oregon: {
+    districts: [
+      { districtNumber: 1, latinoPopulation: "71,720", isEffective: "No" },
+      { districtNumber: 2, latinoPopulation: "66,135", isEffective: "No" },
+      { districtNumber: 3, latinoPopulation: "67,576", isEffective: "No" },
+      { districtNumber: 4, latinoPopulation: "42,694", isEffective: "No" },
+      { districtNumber: 5, latinoPopulation: "46,448", isEffective: "No" },
+      { districtNumber: 6, latinoPopulation: "94,821", isEffective: "Yes" },
+    ],
+  },
+  SouthCarolina: {
+    districts: [
+      { districtNumber: 1, blackPopulation: "92,299", isEffective: "No" },
+      { districtNumber: 2, blackPopulation: "133,256", isEffective: "No" },
+      { districtNumber: 3, blackPopulation: "95,968", isEffective: "No" },
+      { districtNumber: 4, blackPopulation: "100,848", isEffective: "No" },
+      { districtNumber: 5, blackPopulation: "133,990", isEffective: "No" },
+      { districtNumber: 6, blackPopulation: "265,209", isEffective: "Yes" },
+      { districtNumber: 7, blackPopulation: "143,097", isEffective: "Yes" },
+    ],
+  },
+};
 
 function InformationTable({ stateName, data, selectedDistrict, onSelectDistrict }) {
+  if (!data) {
+    return null;
+  }
 
-  if (!data) return;
-	const { districts } = data;
+  const { districts } = data;
   const feasibleGroups = groupOptionsForState(stateName);
 
   return (
@@ -35,12 +58,20 @@ function InformationTable({ stateName, data, selectedDistrict, onSelectDistrict 
           </tr>
         </thead>
         <tbody>
-          {districts.map((d) => (
-            <tr key={d.districtNumber} className={d.districtNumber === selectedDistrict ? "compare-table-row compare-table-row--selected" : "compare-table-row"}>
-              <td className="compare-table-data compare-table-distnum compare-table-dataNum" onClick={() => { onSelectDistrict(d.districtNumber); onChangeTab("District"); }}>{d.districtNumber}</td>
-              {d.latinoPopulation && <td className="compare-table-data compare-table-dataNum">{d.latinoPopulation}</td>}
-              {d.blackPopulation && <td className="compare-table-data compare-table-dataNum">{d.blackPopulation}</td>}
-              <td className="compare-table-data compare-table-dataText">{d.isEffective}</td>
+          {districts.map((district) => (
+            <tr
+              key={district.districtNumber}
+              className={district.districtNumber === selectedDistrict ? "compare-table-row compare-table-row--selected" : "compare-table-row"}
+            >
+              <td
+                className="compare-table-data compare-table-distnum compare-table-dataNum"
+                onClick={() => onSelectDistrict(district.districtNumber)}
+              >
+                {district.districtNumber}
+              </td>
+              {district.latinoPopulation && <td className="compare-table-data compare-table-dataNum">{district.latinoPopulation}</td>}
+              {district.blackPopulation && <td className="compare-table-data compare-table-dataNum">{district.blackPopulation}</td>}
+              <td className="compare-table-data compare-table-dataText">{district.isEffective}</td>
             </tr>
           ))}
         </tbody>
@@ -53,14 +84,12 @@ export default function Compare({ currMap, currMinority, switchMinority }) {
   const { stateName } = useParams();
   const stateCode = toStateCode(stateName);
 
-  // Left map — enacted district plan
   const {
     data: enactedTopo,
     isLoading: leftLoading,
     isError: leftError,
   } = useDistrictTopology(stateCode);
 
-  // Right map — interesting plans
   const {
     data: planList,
     isLoading: listLoading,
@@ -78,142 +107,88 @@ export default function Compare({ currMap, currMinority, switchMinority }) {
   );
 
   const [showList, setShowList] = useState(false);
-  const [currentPlan, setCurrentPlan] = useState("Select a plan");
   const [selectedPlanId, setSelectedPlanId] = useState(null);
   const [selectedCurrentDistrict, setSelectedCurrentDistrict] = useState(0);
   const [selectedInterestingDistrict, setSelectedInterestingDistrict] = useState(0);
-  const [rightMapData, setRightMapData] = useState(null);
-  const [rightTableData, setRightTableData] = useState(null);
 
   useEffect(() => {
     if (sortedPlanList.length === 0) {
       setSelectedPlanId(null);
-      setCurrentPlan("Select a plan");
       return;
     }
 
-    // const matchingPlan = sortedPlanList.find((plan) => plan.planId === selectedPlanId);
-
-    // if (matchingPlan) {
-    //   if (currentPlan !== matchingPlan.planName) {
-    //     setCurrentPlan(matchingPlan.planName);
-    //   }
-    //   return;
-    // }
-
-    // setSelectedPlanId(sortedPlanList[0].planId);
-    // setCurrentPlan(sortedPlanList[0].planName);
-  }, [sortedPlanList, selectedPlanId, currentPlan]);
-
-  // const {
-  //   data: planData,
-  //   isLoading: rightLoading,
-  //   isError: rightError,
-  // } = useInterestingPlan(stateCode, selectedPlanId);
-
-  // const leftMapData = enactedTopo
-  //   ? topologyToFeatureCollection(enactedTopo, "districts")
-  //   : null;
-
-  // const rightMapData =
-  //   planData && planData.topology
-  //     ? topologyToFeatureCollection(planData.topology, "districts")
-  //     : null;
-
-  const CONGRESSIONAL_DATA = {    // isEffective is fake; other fields are real
-		Oregon: {
-			districts: [
-				{ districtNumber: 1, latinoPopulation: "71,720", isEffective: "No"},
-				{ districtNumber: 2, latinoPopulation: "66,135", isEffective: "No"},
-				{ districtNumber: 3, latinoPopulation: "67,576", isEffective: "No"},
-				{ districtNumber: 4, latinoPopulation: "42,694", isEffective: "No"},
-				{ districtNumber: 5, latinoPopulation: "46,448", isEffective: "No"},
-				{ districtNumber: 6, latinoPopulation: "94,821", isEffective: "Yes"},
-			],
-      feasibleGroups: ["Latino"]
-		},
-		SouthCarolina: {
-			districts: [
-				{ districtNumber: 1, blackPopulation: "92,299", isEffective: "No"},
-				{ districtNumber: 2, blackPopulation: "133,256", isEffective: "No"},
-				{ districtNumber: 3, blackPopulation: "95,968", isEffective: "No"},
-				{ districtNumber: 4, blackPopulation: "100,848", isEffective: "No"},
-				{ districtNumber: 5, blackPopulation: "133,990", isEffective: "No"},
-				{ districtNumber: 6, blackPopulation: "265,209", isEffective: "Yes"},
-				{ districtNumber: 7, blackPopulation: "143,097", isEffective: "Yes"},
-			],
-      feasibleGroups: ["Black"]
-		},
-	};
-
-	const stateData = CONGRESSIONAL_DATA[stateName?.replaceAll(' ', '')];
-
-	if (!stateData) {
-		return (
-			<div className="compareTable_unavailable">
-				Congressional representation data is not available for {stateName}.
-			</div>
-		);
-	}
-
-  const TEST_PACKING_DATA = {
-    districts: [
-      { districtNumber: 1, blackPopulation: "48,112",  isEffective: "No" },
-      { districtNumber: 2, blackPopulation: "52,401",  isEffective: "No" },
-      { districtNumber: 3, blackPopulation: "49,887",  isEffective: "No" },
-      { districtNumber: 4, blackPopulation: "51,220",  isEffective: "No" },
-      { districtNumber: 5, blackPopulation: "54,019",  isEffective: "No" },
-      { districtNumber: 6, blackPopulation: "612,455", isEffective: "Yes" },
-      { districtNumber: 7, blackPopulation: "96,573",  isEffective: "No" },
-    ],
-    feasibleGroups: ["Black"]
-	};
-
-  const TEST_CRACKING_DATA = {
-    districts: [
-      { districtNumber: 1, blackPopulation: "118,204", isEffective: "No" },
-      { districtNumber: 2, blackPopulation: "121,553", isEffective: "No" },
-      { districtNumber: 3, blackPopulation: "119,887", isEffective: "No" },
-      { districtNumber: 4, blackPopulation: "117,992", isEffective: "No" },
-      { districtNumber: 5, blackPopulation: "122,110", isEffective: "No" },
-      { districtNumber: 6, blackPopulation: "120,481", isEffective: "No" },
-      { districtNumber: 7, blackPopulation: "123,006", isEffective: "No" },
-    ],
-    feasibleGroups: ["Black"]
-	};
-
-  const testPlanList = [
-    {
-      planId: 1,
-      planName: "South Carolina Packing"
-    },
-    {
-      planId: 2,
-      planName: "South Carolina Cracking"
-    },
-  ]
-
-  useEffect(() => {
-    switch (selectedPlanId) {
-      case 1:
-        setRightMapData(SCPackingData);
-        setRightTableData(TEST_PACKING_DATA);
-        break;
-      case 2:
-        setRightMapData(SCCrackingData);
-        setRightTableData(TEST_CRACKING_DATA);
-        break;
+    const matchingPlan = sortedPlanList.find((plan) => plan.planId === selectedPlanId);
+    if (!matchingPlan) {
+      setSelectedPlanId(sortedPlanList[0].planId);
     }
-  }, [selectedPlanId])
+  }, [sortedPlanList, selectedPlanId]);
+
+  const {
+    data: planData,
+    isLoading: rightLoading,
+    isError: rightError,
+  } = useInterestingPlan(stateCode, selectedPlanId);
+
+  const leftMapData = useMemo(
+    () => (enactedTopo ? topologyToFeatureCollection(enactedTopo) : null),
+    [enactedTopo]
+  );
+
+  const rightMapData = useMemo(
+    () => (planData?.topology ? topologyToFeatureCollection(planData.topology, "data") : null),
+    [planData]
+  );
+
+  const rightTableData = useMemo(() => {
+    if (!rightMapData) {
+      return null;
+    }
+
+    const minorityKey = stateName === "Oregon" ? "hispanic" : "black";
+    const districts = rightMapData.features
+      .map((feature) => {
+        const properties = feature.properties ?? {};
+        const districtNumber = Number(properties.district_id);
+        const minorityPopulation = Number(properties[minorityKey] ?? 0);
+        const totalPopulation = Number(properties.total ?? 0);
+        const isEffective = totalPopulation > 0 && (minorityPopulation / totalPopulation) >= 0.6 ? "Yes" : "No";
+
+        return {
+          districtNumber,
+          ...(minorityKey === "hispanic"
+            ? { latinoPopulation: minorityPopulation.toLocaleString() }
+            : { blackPopulation: minorityPopulation.toLocaleString() }),
+          isEffective,
+        };
+      })
+      .sort((a, b) => a.districtNumber - b.districtNumber);
+
+    return { districts };
+  }, [rightMapData, stateName]);
+
+  const currentPlanName = useMemo(() => {
+    const currentPlan = sortedPlanList.find((plan) => plan.planId === selectedPlanId);
+    return currentPlan?.planName ?? "Select a plan";
+  }, [selectedPlanId, sortedPlanList]);
+
+  const stateData = CONGRESSIONAL_DATA[stateName?.replaceAll(" ", "")];
 
   function toggleList() {
-    setShowList(!showList);
+    setShowList((current) => !current);
   }
 
-  function changePlan(planName, planId) {
-    setCurrentPlan(planName);
+  function changePlan(planId) {
     setSelectedPlanId(planId);
-    toggleList();
+    setSelectedInterestingDistrict(0);
+    setShowList(false);
+  }
+
+  if (!stateData) {
+    return (
+      <div className="compareTable_unavailable">
+        Congressional representation data is not available for {stateName}.
+      </div>
+    );
   }
 
   return (
@@ -224,7 +199,7 @@ export default function Compare({ currMap, currMinority, switchMinority }) {
             Current Congressional District Plan of {stateName}
           </div>
           {currMap === "District Map"
-            ? <InterestingMap stateName={stateName} data={SCCurrentDistrictData} selectedDistrict={selectedCurrentDistrict} onSelectDistrict={setSelectedCurrentDistrict} zoom={stateName === "Oregon" ? 6.1 : 6.7} />
+            ? <DistrictMap stateName={stateName} data={leftMapData} selectedDistrict={selectedCurrentDistrict} onSelectDistrict={setSelectedCurrentDistrict} zoom={stateName === "Oregon" ? 6.1 : 6.7} />
             : <MinorityHeatMap currMinority={currMinority} switchMinority={switchMinority} showPrecinctBorders={false} />}
           {leftLoading && (
             <div className="compare-page-status-message">
@@ -237,7 +212,12 @@ export default function Compare({ currMap, currMinority, switchMinority }) {
             </div>
           )}
         </div>
-        <InformationTable stateName={stateName} data={stateData} selectedDistrict={selectedCurrentDistrict} onSelectDistrict={setSelectedCurrentDistrict} />
+        <InformationTable
+          stateName={stateName}
+          data={stateData}
+          selectedDistrict={selectedCurrentDistrict}
+          onSelectDistrict={setSelectedCurrentDistrict}
+        />
       </div>
 
       <div id="compare-page-right-container">
@@ -249,30 +229,36 @@ export default function Compare({ currMap, currMinority, switchMinority }) {
           <div id="compare-page-right-map-subcontainer" className="compare-page-map-subcontainer">
             {!listLoading && !listError && sortedPlanList.length > 0 && (
               <div className="compare-page-plan-list-container">
-                <span className="compare-page-selected" onClick={() => toggleList()}>
-                  {currentPlan}
+                <span className="compare-page-selected" onClick={toggleList}>
+                  {currentPlanName}
                   <img id="dropdown-icon" src={arrowDropdown} width="20px"/>
                 </span>
                 {showList && (
-                <div className="compare-page-dropdown-container">
-                  {testPlanList.map((plan) => (
-                    <span key={plan.planId} className={currentPlan === plan.planName ? "compare-page-selected" : "compare-page-plan-option"} onClick={() => changePlan(plan.planName, plan.planId)}>
-                      {plan.planName}
-                    </span>
-                  ))}
-                  {/* {sortedPlanList.map((plan) => (
-                    <span key={plan.planId} className={currentPlan === plan.planName ? "compare-page-selected" : "compare-page-plan-option"} onClick={() => changePlan(plan.planName, plan.planId)}>
-                      {plan.planName}
-                    </span>
-                  ))} */}
-                </div>
+                  <div className="compare-page-dropdown-container">
+                    {sortedPlanList.map((plan) => (
+                      <span
+                        key={plan.planId}
+                        className={currentPlanName === plan.planName ? "compare-page-selected" : "compare-page-plan-option"}
+                        onClick={() => changePlan(plan.planId)}
+                      >
+                        {plan.planName}
+                      </span>
+                    ))}
+                  </div>
                 )}
               </div>
             )}
 
-            {selectedPlanId && <InterestingMap stateName={stateName} data={rightMapData} selectedDistrict={selectedInterestingDistrict} onSelectDistrict={setSelectedInterestingDistrict} />}
+            {selectedPlanId && (
+              <InterestingMap
+                stateName={stateName}
+                data={rightMapData}
+                selectedDistrict={selectedInterestingDistrict}
+                onSelectDistrict={setSelectedInterestingDistrict}
+              />
+            )}
 
-            {/* {(listLoading || rightLoading) && (
+            {(listLoading || rightLoading) && (
               <div className="compare-page-status-message">
                 Loading {stateName}&apos;s interesting plan...
               </div>
@@ -281,10 +267,15 @@ export default function Compare({ currMap, currMinority, switchMinority }) {
               <div className="compare-page-status-message">
                 Unable to load {stateName}&apos;s interesting plan
               </div>
-            )} */}
+            )}
           </div>
         </div>
-        <InformationTable stateName={stateName} data={rightTableData} selectedDistrict={selectedInterestingDistrict} onSelectDistrict={setSelectedInterestingDistrict} />
+        <InformationTable
+          stateName={stateName}
+          data={rightTableData}
+          selectedDistrict={selectedInterestingDistrict}
+          onSelectDistrict={setSelectedInterestingDistrict}
+        />
       </div>
     </span>
   );

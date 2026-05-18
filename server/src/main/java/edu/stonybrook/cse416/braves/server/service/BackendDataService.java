@@ -236,6 +236,7 @@ public class BackendDataService {
         String stateId = normalizeState(stateIdInput);
         return interestingPlanRepository.findByStateId(stateId)
                 .stream()
+                .filter(this::hasRenderableInterestingPlanTopology)
                 .map(doc -> payloadFrom(Optional.of(doc), ""))
                 .collect(Collectors.toList());
     }
@@ -244,10 +245,12 @@ public class BackendDataService {
     public Map<String, Object> getInterestingPlan(String stateIdInput, String planIdInput) {
         String stateId = normalizeState(stateIdInput);
         String planId = normalizePlanId(planIdInput);
-        return payloadFrom(
-                interestingPlanRepository.findByStateIdAndPlanId(stateId, planId),
-                "Interesting plan not found for stateId=" + stateId + ", planId=" + planId
-        );
+        BasePayloadDocument doc = interestingPlanRepository.findByStateIdAndPlanId(stateId, planId)
+                .filter(this::hasRenderableInterestingPlanTopology)
+                .orElseThrow(() -> new NoSuchElementException(
+                        "Interesting plan not found for stateId=" + stateId + ", planId=" + planId
+                ));
+        return withStoredMetadata(doc);
     }
 
     @Cacheable("vraImpactThresholds")
@@ -414,6 +417,32 @@ public class BackendDataService {
     private Map<String, Object> payloadFrom(Optional<? extends BasePayloadDocument> docOpt, String notFoundMessage) {
         BasePayloadDocument doc = docOpt.orElseThrow(() -> new NoSuchElementException(notFoundMessage));
         return withStoredMetadata(doc);
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean hasRenderableInterestingPlanTopology(BasePayloadDocument doc) {
+        Map<String, Object> payload = doc.getPayload();
+        if (payload == null) {
+            return false;
+        }
+        Object topologyValue = payload.get("topology");
+        if (!(topologyValue instanceof Map<?, ?> topology)) {
+            return false;
+        }
+        Object objectsValue = topology.get("objects");
+        if (!(objectsValue instanceof Map<?, ?> objects)) {
+            return false;
+        }
+        for (Object geometryCollectionValue : objects.values()) {
+            if (!(geometryCollectionValue instanceof Map<?, ?> geometryCollection)) {
+                continue;
+            }
+            Object geometriesValue = geometryCollection.get("geometries");
+            if (geometriesValue instanceof List<?> geometries && !geometries.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Map<String, Object> withStoredMetadata(BasePayloadDocument doc) {
