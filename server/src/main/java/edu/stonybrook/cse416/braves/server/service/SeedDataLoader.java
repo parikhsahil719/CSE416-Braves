@@ -1325,9 +1325,9 @@ public class SeedDataLoader implements ApplicationRunner {
 
     private void seedVraImpactThresholdTables(Path root) throws IOException {
         vraImpactThresholdTableRepository.save(buildDoc(new VraImpactThresholdTableDocument(), "OR", "2024_pres", "latino", null, null, "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/vra-impact-thresholds/OR_latino_2024_pres.json"))));
+                readJsonMap(root.resolve("preprocessing/output/oregon_hispanic_2024_pres.json"))));
         vraImpactThresholdTableRepository.save(buildDoc(new VraImpactThresholdTableDocument(), "SC", "2024_pres", "black",  null, null, "CVAP",
-                readJsonMap(root.resolve("mock-data/v1/vra-impact-thresholds/SC_black_2024_pres.json"))));
+                readJsonMap(root.resolve("preprocessing/output/south_carolina_black_2024_pres.json"))));
     }
 
     private void seedMinorityEffectivenessBoxWhisker(Path root) throws IOException {
