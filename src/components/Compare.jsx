@@ -21,7 +21,7 @@ const CONGRESSIONAL_DATA = {
       { districtNumber: 3, latinoPopulation: "67,576", isEffective: "No" },
       { districtNumber: 4, latinoPopulation: "42,694", isEffective: "No" },
       { districtNumber: 5, latinoPopulation: "46,448", isEffective: "No" },
-      { districtNumber: 6, latinoPopulation: "94,821", isEffective: "Yes" },
+      { districtNumber: 6, latinoPopulation: "94,821", isEffective: "No" },
     ],
   },
   SouthCarolina: {
@@ -32,7 +32,7 @@ const CONGRESSIONAL_DATA = {
       { districtNumber: 4, blackPopulation: "100,848", isEffective: "No" },
       { districtNumber: 5, blackPopulation: "133,990", isEffective: "No" },
       { districtNumber: 6, blackPopulation: "265,209", isEffective: "Yes" },
-      { districtNumber: 7, blackPopulation: "143,097", isEffective: "Yes" },
+      { districtNumber: 7, blackPopulation: "143,097", isEffective: "No" },
     ],
   },
 };

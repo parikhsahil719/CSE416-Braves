@@ -21,7 +21,7 @@ function EnsembleSplits({ payload, loading, failed }) {
   const yMax = Math.max(...series.raceBlind.map(d => d.frequency), ...series.vraConstrained.map(d => d.frequency));
   const domain = [0, yMax + Math.ceil(yMax * 0.1) + 1];
   const toChartData = (src) => allLabels.map(label => ({ splitLabel: label, frequency: src.find(d => d.splitLabel === label)?.frequency ?? 0 }));
-  const margin = { top: 5, right: 10, left: -10, bottom: 15 };
+  const margin = { top: 5, right: 10, left: 4, bottom: 15 };
   return (
     <div className="sim-chartStack">
       <div id="sim-page-data-container">
@@ -30,7 +30,7 @@ function EnsembleSplits({ payload, loading, failed }) {
           <BarChart data={toChartData(series.raceBlind)} margin={margin}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="splitLabel" tick={{ fontSize: 12 }} label={{ value:"Republican wins/Democratic wins", fontSize : "0.8rem", position: "bottom", dy: -4 }} />
-            <YAxis domain={domain} tick={{ fontSize: 12 }} label={{ value:"Number of Plans", fontSize : "0.8rem", angle: -90, position: "insideLeft", dx: 12, dy: 35 }} />
+            <YAxis domain={domain} tick={{ fontSize: 12 }} label={{ value:"Number of Plans", fontSize : "0.8rem", angle: -90, position: "insideLeft", dx: -4, dy: 35 }} />
             <Tooltip formatter={v => [`${v} plans`, "Frequency"]} />
             <RechartsBar dataKey="frequency" fill="#1b9e77" name="Plans" />
           </BarChart>
@@ -43,7 +43,7 @@ function EnsembleSplits({ payload, loading, failed }) {
           <BarChart data={toChartData(series.vraConstrained)} margin={margin}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="splitLabel" tick={{ fontSize: 12 }} label={{ value:"Republican wins/Democratic wins", fontSize : "0.8rem", position: "bottom", dy: -4 }} />
-            <YAxis domain={domain} tick={{ fontSize: 12 }} label={{ value:"Number of Plans", fontSize : "0.8rem", angle: -90, position: "insideLeft", dx: 12, dy: 35 }} />
+            <YAxis domain={domain} tick={{ fontSize: 12 }} label={{ value:"Number of Plans", fontSize : "0.8rem", angle: -90, position: "insideLeft", dx: -4, dy: 35 }} />
             <Tooltip formatter={v => [`${v} plans`, "Frequency"]} />
             <RechartsBar dataKey="frequency" fill="#d95f02" name="Plans" />
           </BarChart>
@@ -303,10 +303,10 @@ function MinorityEffectivenessHistogram({ payload, loading, failed, group }) {
           <span style={{fontSize: "0.75rem"}}><span style={{ display: "inline-block", width: 12, height: 12, background: "#5aa75b", opacity: 0.55, marginRight: 5, verticalAlign: "middle" }} />Non-VRA</span>
         </div>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} margin={{ top: 5, left: -25, bottom: 15 }} barCategoryGap={0}>
+          <BarChart data={chartData} margin={{ top: 5, left: -1, bottom: 15 }} barCategoryGap={0}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="effectiveDistricts" ticks={Array.from({ length: totalDistricts + 1 }, (_, i) => i)} label={{ value: `Number of Districts with ${group} effectiveness > 60%`, position: "bottom", fontSize: "0.85rem" }} tick={{ fontSize: 12 }} />
-            <YAxis label={{ value: "Plans", angle: -90, fontSize: "0.85rem" }} tick={{ fontSize: 12 }} />
+            <YAxis label={{ value: "Plans", angle: -90, fontSize: "0.85rem", dx: -24 }} tick={{ fontSize: 12 }} />
             <Tooltip content={<HistogramTooltip />} />
             <RechartsBar dataKey="maxVal" shape={OverlappingBar} isAnimationActive={false} />
           </BarChart>
